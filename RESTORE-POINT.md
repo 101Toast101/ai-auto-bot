@@ -70,17 +70,17 @@ contextBridge.exposeInMainWorld('api', {
   // File Operations
   readFile: (filePath) => ipcRenderer.invoke('READ_FILE', filePath),
   writeFile: (filePath, content) => ipcRenderer.invoke('WRITE_FILE', { filePath, content }),
-  
+
   // Encryption Operations
   encrypt: (plaintext) => ipcRenderer.invoke('ENCRYPT_DATA', plaintext),
   decrypt: (ciphertext) => ipcRenderer.invoke('DECRYPT_DATA', ciphertext),
-  
+
   // Video Operations (NEW)
   generateVideo: (params) => ipcRenderer.invoke('GENERATE_VIDEO', params),
   generateSlideshow: (params) => ipcRenderer.invoke('GENERATE_SLIDESHOW', params),
   generateGif: (params) => ipcRenderer.invoke('GENERATE_GIF', params),
   onVideoProgress: (callback) => ipcRenderer.on('VIDEO_PROGRESS', (event, progress) => callback(progress)),
-  
+
   // Scheduler Listener
   onScheduledPost: (callback) => {
     ipcRenderer.on('EXECUTE_SCHEDULED_POST', (_event, post) => callback(post));
@@ -95,10 +95,10 @@ const { registerVideoHandlers } = require('./handlers/video-handlers');
 
 app.whenReady().then(() => {
   logInfo('Starting AI Auto Bot...');
-  
+
   // Register video handlers (IMPORTANT)
   registerVideoHandlers(ipcMain, BrowserWindow);
-  
+
   // ... rest of initialization
 });
 ```
