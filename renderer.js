@@ -819,8 +819,16 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       return;
     }
 
+    // Get form data
     const form = $('settingsForm');
     const data = {};
+    
+    // Save dark mode state from the checkbox itself
+    const darkModeToggle = $('darkModeToggle');
+    if (darkModeToggle) {
+      data.isDarkMode = darkModeToggle.checked;
+    }
+    
     if (form) {
       const inputs = form.querySelectorAll('input,select,textarea');
       inputs.forEach((el) => {
@@ -871,6 +879,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function populateFormFromObject(obj) {
     if (!obj) return;
+
+    // Handle dark mode first if it exists
+    if (typeof obj.isDarkMode === 'boolean') {
+      const darkModeToggle = $('darkModeToggle');
+      if (darkModeToggle) {
+        darkModeToggle.checked = obj.isDarkMode;
+        // Trigger the change event to update the UI
+        handleDarkModeToggle({ target: darkModeToggle });
+      }
+    }
+    
+    // Handle form fields
     Object.keys(obj).forEach((key) => {
       const el = $(key);
       if (!el) return;
@@ -2480,12 +2500,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     // Core buttons
     const buttonBindings = {
       'saveConfigBtn': handleSaveConfig,
-
       'postNowBtn': handlePostNow,
       'bulkGenerateBtn': openBulkModal,
       'closeBulkModal': closeBulkModal,
-      'startBulkGeneration': startBulkGeneration,
-      'darkModeToggle': handleDarkModeToggle
+      'startBulkGeneration': startBulkGeneration
     };
 
     // Bind each button and log result
@@ -2498,6 +2516,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         console.warn(`Element not found: ${id}`);
       }
     });
+
+    // Bind dark mode toggle separately since it's a change event
+    const darkModeToggle = $('darkModeToggle');
+    if (darkModeToggle) {
+      darkModeToggle.addEventListener('change', handleDarkModeToggle);
+      console.log('Bound dark mode toggle handler');
+    }
+
     $('downloadBulkZip')?.addEventListener('click', downloadBulkZip);
     $('downloadBulkCSV')?.addEventListener('click', downloadBulkCSV);
 
