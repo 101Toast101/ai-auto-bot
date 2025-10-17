@@ -74,13 +74,17 @@ function decrypt(text) {
   return decrypted;
 }
 
-// 💾 Save token
-function saveToken(platform, token) {
+// 💾 Save token with expiration
+function saveToken(platform, token, expiresIn = null) {
   let tokens = {};
   if (fs.existsSync(TOKEN_PATH)) {
     tokens = JSON.parse(fs.readFileSync(TOKEN_PATH));
   }
-  tokens[platform] = encrypt(token);
+  tokens[platform] = {
+    token: encrypt(token),
+    expiresAt: expiresIn ? Date.now() + (expiresIn * 1000) : null,
+    refreshToken: null // Store refresh token if provided by platform
+  };
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens, null, 2));
 }
 

@@ -41,7 +41,7 @@ All major functionality and development standards are in place:
 contextBridge.exposeInMainWorld('api', {
   startOAuth: (provider) => ipcRenderer.invoke('start-oauth', provider),
   onOAuthToken: (cb) => ipcRenderer.on('oauth-token', (ev, data) => cb(data)),
-  
+
   // File Operations
   readFile: (filePath) => ipcRenderer.invoke('READ_FILE', filePath),
   writeFile: (filePath, content) => ipcRenderer.invoke('WRITE_FILE', { filePath, content }),
