@@ -387,7 +387,9 @@
 
   // Sensitive fields that should be encrypted
   const SENSITIVE_FIELDS = [
-    'apiKey',
+    'apiKey', // Legacy - keep for backwards compatibility
+    'openaiApiKey',
+    'runwayApiKey',
     'instagramToken',
     'tiktokToken',
     'youtubeToken',
@@ -2488,28 +2490,43 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     addLogEntry(`Hashtag mode: ${val}`);
   }
 
-  function handleMemeActionClick() {
-    const aiProvider = $('aiProvider')?.value;
-    const apiKey = $('apiKey')?.value;
-    if (!apiKey) {
-      $('errorContainer').textContent = 'API Key required for AI generation!';
+  async function handleMemeActionClick() {
+    const provider = $('aiProvider')?.value || 'openai';
+    const encryptedKey = $(`${provider}ApiKey`)?.value;
+
+    if (!encryptedKey) {
+      $('errorContainer').textContent = `Please connect to ${provider === 'openai' ? 'OpenAI' : 'Runway ML'} first!`;
       $('errorContainer').style.display = 'block';
-      addLogEntry('AI generation failed — missing API Key');
+      addLogEntry(`AI generation failed — ${provider} not connected`);
       return;
     }
-    $('errorContainer').textContent = '';
-    $('errorContainer').style.display = 'none';
 
-    const mode = $('memeMode')?.value;
+    // Decrypt the API key
+    try {
+      const decryptResult = await window.api.decrypt(encryptedKey);
+      if (!decryptResult.success) {
+        throw new Error('Failed to decrypt API key');
+      }
 
-    if (mode === 'generate') {
-      generateAIImage(apiKey);
-    } else if (mode === 'edit') {
-      editAIImage(apiKey);
+      const apiKey = decryptResult.data;
+      $('errorContainer').textContent = '';
+      $('errorContainer').style.display = 'none';
+
+      const mode = $('memeMode')?.value;
+
+      if (mode === 'generate') {
+        await generateAIImage(apiKey, provider);
+      } else if (mode === 'edit') {
+        await editAIImage(apiKey, provider);
+      }
+    } catch (error) {
+      $('errorContainer').textContent = 'Failed to access API key: ' + error.message;
+      $('errorContainer').style.display = 'block';
+      addLogEntry(`API key access failed: ${error.message}`);
     }
   }
 
-  async function generateAIImage(apiKey) {
+  async function generateAIImage(apiKey, provider = 'openai') {
     const prompt = $('aiPrompt')?.value?.trim();
     if (!prompt) {
       addLogEntry('Please enter a prompt for AI generation');
@@ -2575,7 +2592,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
   }
 
-  async function editAIImage(apiKey) {
+  async function editAIImage(apiKey, provider = 'openai') {
     const prompt = $('aiPrompt')?.value?.trim();
     const sourceImageFile = $('sourceImage')?.files[0];
 
@@ -3192,6 +3209,24 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     $('librarySearch')?.addEventListener('input', renderLibrary);
     $('libraryFilter')?.addEventListener('change', renderLibrary);
+
+    // Setup AI Provider connection buttons
+    $('connectOpenAIBtn')?.addEventListener('click', () => openAiKeyModal('openai'));
+    $('connectRunwayBtn')?.addEventListener('click', () => openAiKeyModal('runway'));
+
+    // AI Key Modal controls
+    $('closeAiKeyModal')?.addEventListener('click', closeAiKeyModal);
+    $('testAiConnection')?.addEventListener('click', testAiConnection);
+    $('saveAiKey')?.addEventListener('click', saveAiKey);
+    $('toggleAiKeyVisibility')?.addEventListener('click', toggleAiKeyVisibility);
+
+    // Close modal when clicking outside
+    $('aiKeyModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'aiKeyModal') {
+        closeAiKeyModal();
+      }
+    });
+
     // Setup OAuth button triggers
     const socialPlatforms = ['Instagram', 'TikTok', 'YouTube', 'Twitter'];
     socialPlatforms.forEach(platform => {
@@ -3208,6 +3243,234 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         });
       }
     });
+  }
+
+  // AI PROVIDER AUTHENTICATION SYSTEM
+  let currentAiProvider = null;
+  const aiProviderInfo = {
+    openai: {
+      name: 'OpenAI',
+      helpText: `
+        <p><strong>Where to get your API key:</strong></p>
+        <ol style="margin: 10px 0; padding-left: 20px;">
+          <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #4a90e2;">platform.openai.com/api-keys</a></li>
+          <li>Click "Create new secret key"</li>
+          <li>Copy the key (starts with "sk-")</li>
+          <li>Paste it here</li>
+        </ol>
+        <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> You'll need billing enabled on your OpenAI account.</p>
+      `,
+      testEndpoint: 'https://api.openai.com/v1/models',
+      keyPattern: /^sk-/
+    },
+    runway: {
+      name: 'Runway ML',
+      helpText: `
+        <p><strong>Where to get your API key:</strong></p>
+        <ol style="margin: 10px 0; padding-left: 20px;">
+          <li>Go to <a href="https://app.runwayml.com/account" target="_blank" style="color: #4a90e2;">app.runwayml.com/account</a></li>
+          <li>Navigate to API Keys section</li>
+          <li>Create a new API key</li>
+          <li>Paste it here</li>
+        </ol>
+        <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> Runway requires a paid subscription for API access.</p>
+      `
+    }
+  };
+
+  function openAiKeyModal(provider) {
+    currentAiProvider = provider;
+    const modal = $('aiKeyModal');
+    const info = aiProviderInfo[provider];
+
+    if (!modal || !info) return;
+
+    // Update modal content
+    $('aiModalTitle').textContent = `Connect to ${info.name}`;
+    $('aiModalLegend').textContent = `${info.name} API Key`;
+    $('aiKeyHelp').innerHTML = info.helpText;
+    $('aiKeyInput').value = '';
+    $('aiKeyInput').type = 'password';
+    $('toggleAiKeyVisibility').textContent = 'Show API Key';
+    $('aiKeyStatus').style.display = 'none';
+
+    // Check if already connected
+    const existingKey = $(`${provider}ApiKey`)?.value;
+    if (existingKey) {
+      $('aiKeyInput').placeholder = '••••••••••••••••••••';
+    }
+
+    // Show modal
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+  }
+
+  function closeAiKeyModal() {
+    const modal = $('aiKeyModal');
+    if (modal) {
+      modal.classList.remove('show');
+      modal.style.display = 'none';
+    }
+    currentAiProvider = null;
+  }
+
+  function showAiKeyStatus(message, type) {
+    const status = $('aiKeyStatus');
+    if (status) {
+      status.textContent = message;
+      status.className = type; // 'success' or 'error'
+      status.style.display = 'block';
+    }
+  }
+
+  async function testAiConnection() {
+    const apiKey = $('aiKeyInput')?.value?.trim();
+    if (!apiKey) {
+      showAiKeyStatus('Please enter an API key', 'error');
+      return;
+    }
+
+    const info = aiProviderInfo[currentAiProvider];
+    if (!info) return;
+
+    // Validate key format for OpenAI
+    if (currentAiProvider === 'openai' && info.keyPattern && !info.keyPattern.test(apiKey)) {
+      showAiKeyStatus('Invalid API key format. OpenAI keys start with "sk-"', 'error');
+      return;
+    }
+
+    showAiKeyStatus('Testing connection...', 'info');
+
+    try {
+      if (currentAiProvider === 'openai') {
+        // Test OpenAI connection
+        const response = await fetch(info.testEndpoint, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
+
+        if (response.ok) {
+          showAiKeyStatus('✓ Connection successful!', 'success');
+        } else if (response.status === 401) {
+          showAiKeyStatus('✗ Invalid API key', 'error');
+        } else {
+          showAiKeyStatus(`✗ Connection failed (${response.status})`, 'error');
+        }
+      } else {
+        // For Runway and other providers, just save (they don't have easy test endpoints)
+        showAiKeyStatus('⚠ API key will be validated on first use', 'success');
+      }
+    } catch (error) {
+      showAiKeyStatus('✗ Connection test failed: ' + error.message, 'error');
+    }
+  }
+
+  async function saveAiKey() {
+    const apiKey = $('aiKeyInput')?.value?.trim();
+    if (!apiKey) {
+      showAiKeyStatus('Please enter an API key', 'error');
+      return;
+    }
+
+    const info = aiProviderInfo[currentAiProvider];
+    if (!info) return;
+
+    // Validate key format
+    if (currentAiProvider === 'openai' && info.keyPattern && !info.keyPattern.test(apiKey)) {
+      showAiKeyStatus('Invalid API key format', 'error');
+      return;
+    }
+
+    try {
+      // Encrypt the API key
+      const encryptResult = await window.api.encrypt(apiKey);
+      if (!encryptResult.success) {
+        throw new Error('Failed to encrypt API key');
+      }
+
+      // Store encrypted key
+      const keyField = $(`${currentAiProvider}ApiKey`);
+      if (keyField) {
+        keyField.value = encryptResult.data;
+      }
+
+      // Set as active provider
+      const providerField = $('aiProvider');
+      if (providerField) {
+        providerField.value = currentAiProvider;
+      }
+
+      // Update button visual state
+      const btn = $(`connect${info.name.replace(' ', '')}Btn`);
+      if (btn) {
+        btn.classList.add('connected');
+      }
+
+      // Save to settings file
+      const settingsResult = await readFileAsync(PATHS.SETTINGS);
+      const settings = settingsResult.success ? safeParse(settingsResult.content, {}) : {};
+      settings[`${currentAiProvider}ApiKey`] = encryptResult.data;
+      settings.aiProvider = currentAiProvider;
+
+      await writeFileAsync(PATHS.SETTINGS, JSON.stringify(settings, null, 2));
+
+      addLogEntry(`Connected to ${info.name} successfully`);
+      showAiKeyStatus(`✓ Connected to ${info.name}!`, 'success');
+
+      // Close modal after 1.5 seconds
+      setTimeout(() => {
+        closeAiKeyModal();
+      }, 1500);
+    } catch (error) {
+      showAiKeyStatus('Failed to save API key: ' + error.message, 'error');
+      addLogEntry(`Failed to connect to ${info.name}: ${error.message}`);
+    }
+  }
+
+  function toggleAiKeyVisibility() {
+    const input = $('aiKeyInput');
+    const btn = $('toggleAiKeyVisibility');
+    if (input && btn) {
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide API Key';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Show API Key';
+      }
+    }
+  }
+
+  async function checkAiProviderConnections() {
+    // Check which providers are connected and update button states
+    const settingsResult = await readFileAsync(PATHS.SETTINGS);
+    if (!settingsResult.success) return;
+
+    const settings = safeParse(settingsResult.content, {});
+
+    Object.keys(aiProviderInfo).forEach(provider => {
+      const keyField = $(`${provider}ApiKey`);
+      const encryptedKey = settings[`${provider}ApiKey`];
+
+      if (encryptedKey) {
+        // Key exists - mark as connected
+        if (keyField) keyField.value = encryptedKey;
+
+        const info = aiProviderInfo[provider];
+        const btn = $(`connect${info.name.replace(' ', '')}Btn`);
+        if (btn) {
+          btn.classList.add('connected');
+        }
+      }
+    });
+
+    // Set active provider
+    if (settings.aiProvider) {
+      const providerField = $('aiProvider');
+      if (providerField) providerField.value = settings.aiProvider;
+    }
   }
 
   // Handle OAuth callback
@@ -3282,7 +3545,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         populateSavedConfigs(),
         populateScheduledPosts(),
         renderLibrary(),
-        fetchMemeTemplates()
+        fetchMemeTemplates(),
+        checkAiProviderConnections() // Check which AI providers are connected
       ]);
 
       // Load settings last

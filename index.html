@@ -169,6 +169,57 @@ Top Text 2|Bottom Text 2"></textarea>
       </div>
     </div>
 
+    <!-- AI Provider API Key Modal -->
+    <div id="aiKeyModal"
+      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+      <div
+        style="background: var(--glass-bg); max-width: 500px; width: 90%; padding: 30px; border-radius: 15px; position: relative;">
+        <button id="closeAiKeyModal"
+          style="position: absolute; top: 15px; right: 15px; background: #e53e3e; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">×</button>
+
+        <h2 id="aiModalTitle" style="margin-bottom: 20px;">Connect to OpenAI</h2>
+
+        <div class="feature-highlight"
+          style="margin-bottom: 20px; padding: 15px; background: rgba(74, 144, 226, 0.1); border-left: 4px solid var(--blue-gradient); border-radius: 5px;">
+          <p style="margin: 0; font-size: 0.9rem;">
+            <strong>🔒 Your API key is encrypted</strong><br>
+            <span style="font-size: 0.85rem; color: #718096;">Your key is stored locally and encrypted before being
+              saved.</span>
+          </p>
+        </div>
+
+        <fieldset style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <legend id="aiModalLegend">OpenAI API Key</legend>
+
+          <label style="display: block; margin-bottom: 15px;">
+            <span style="display: block; margin-bottom: 5px; font-weight: 600;">API Key</span>
+            <input type="password" id="aiKeyInput" placeholder="sk-..."
+              style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: monospace;" />
+            <button type="button" id="toggleAiKeyVisibility"
+              style="margin-top: 5px; font-size: 0.8rem; background: transparent; border: none; color: #4a90e2; cursor: pointer;">Show
+              API Key</button>
+          </label>
+
+          <div id="aiKeyHelp" style="font-size: 0.85rem; color: #718096; line-height: 1.5;">
+            <!-- Provider-specific help will be inserted here -->
+          </div>
+        </fieldset>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" id="testAiConnection"
+            style="flex: 1; padding: 12px; background: #4299e1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            Test Connection
+          </button>
+          <button type="button" id="saveAiKey"
+            style="flex: 1; padding: 12px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            Save & Connect
+          </button>
+        </div>
+
+        <div id="aiKeyStatus" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+      </div>
+    </div>
+
     <!-- CONFIG MANAGER -->
     <div id="configManager">
       <input type="text" id="configNameInput" placeholder="Config Name"
@@ -331,18 +382,31 @@ Top Text 2|Bottom Text 2"></textarea>
           Video</button>
       </fieldset>
 
-      <!-- General -->
-      <fieldset>
-        <legend>General</legend>
-        <label>AI Provider
-          <select id="aiProvider">
-            <option value="openai">OpenAI</option>
-            <option value="runway">Runway</option>
-          </select>
-        </label>
-        <label>API Key
-          <input type="text" id="apiKey" />
-        </label>
+      <!-- AI Provider Authentication -->
+      <fieldset class="oauth-fieldset">
+        <legend>Connect AI Providers</legend>
+        <div class="feature-highlight" style="margin-bottom: 15px;">
+          <strong>🤖 Connect your AI providers to unlock content generation</strong>
+          <p style="margin: 5px 0; font-size: 0.85rem; color: #718096;">Your API keys are encrypted and stored securely
+          </p>
+        </div>
+        <div class="oauth-buttons">
+          <button type="button" id="connectOpenAIBtn" class="ai-connect-btn" data-provider="openai">
+            <span class="connect-icon">🔗</span>
+            <span class="provider-name">Connect OpenAI</span>
+            <span class="connected-badge" style="display: none;">✓ Connected</span>
+          </button>
+          <button type="button" id="connectRunwayBtn" class="ai-connect-btn" data-provider="runway">
+            <span class="connect-icon">🔗</span>
+            <span class="provider-name">Connect Runway ML</span>
+            <span class="connected-badge" style="display: none;">✓ Connected</span>
+          </button>
+        </div>
+
+        <!-- Hidden fields to store active provider and encrypted keys -->
+        <input type="hidden" id="aiProvider" value="openai" />
+        <input type="hidden" id="openaiApiKey" />
+        <input type="hidden" id="runwayApiKey" />
       </fieldset>
 
       <!-- Platforms -->

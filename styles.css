@@ -806,7 +806,8 @@ body.dark .spinner-text {
   margin-top: 10px;
 }
 
-.oauth-buttons button {
+.oauth-buttons button,
+.ai-connect-btn {
   background-color: #007Bff;
   color: white;
   border: none;
@@ -815,6 +816,87 @@ body.dark .spinner-text {
   font-size: 16px;
   cursor: pointer;
   width: 100%;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ai-connect-btn.connected {
+  background-color: #48bb78;
+}
+
+.ai-connect-btn.connected .connect-icon {
+  display: none;
+}
+
+.ai-connect-btn.connected .connected-badge {
+  display: inline !important;
+}
+
+.ai-connect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.ai-connect-btn.connected:hover {
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.connected-badge {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* AI Key Modal Styling */
+#aiKeyModal {
+  display: none;
+}
+
+#aiKeyModal.show {
+  display: flex !important;
+}
+
+body.dark #aiKeyModal>div {
+  background: var(--glass-bg-dark);
+  color: #e2e8f0;
+}
+
+body.dark #aiKeyModal fieldset {
+  background: rgba(40, 40, 40, 0.5);
+  border-color: #4a5568;
+}
+
+body.dark #aiKeyModal input {
+  background: rgba(40, 40, 40, 0.9);
+  border-color: #555;
+  color: #e2e8f0;
+}
+
+#aiKeyStatus.success {
+  background: #c6f6d5;
+  color: #22543d;
+  border: 1px solid #48bb78;
+}
+
+#aiKeyStatus.error {
+  background: #fed7d7;
+  color: #742a2a;
+  border: 1px solid #e53e3e;
+}
+
+body.dark #aiKeyStatus.success {
+  background: rgba(72, 187, 120, 0.2);
+  color: #9ae6b4;
+  border-color: #48bb78;
+}
+
+body.dark #aiKeyStatus.error {
+  background: rgba(229, 62, 62, 0.2);
+  color: #fc8181;
+  border-color: #e53e3e;
 }
 
 /* Scrollbar Styling */
