@@ -880,6 +880,15 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   function populateFormFromObject(obj) {
     if (!obj) return;
 
+    // Handle dark mode first if it exists
+    if (typeof obj.isDarkMode === 'boolean') {
+      const darkModeToggle = $('darkModeToggle');
+      if (darkModeToggle) {
+        darkModeToggle.checked = obj.isDarkMode;
+        handleDarkModeToggle({ target: darkModeToggle });
+      }
+    }
+
     // Set content type first
     const contentType = $('contentType');
     if (contentType) {
@@ -888,11 +897,17 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     // If it's a meme, set the template and text
-    if (obj.contentType === 'meme') {
-      if ($('memeTemplate')) $('memeTemplate').value = obj.template || '';
-      if ($('memeTopText')) $('memeTopText').value = obj.topText || '';
-      if ($('memeBottomText')) $('memeBottomText').value = obj.bottomText || '';
-      // Update preview
+    if (obj.contentType === 'meme' || !obj.contentType) {
+      // Try to get template from metadata first, then fallback to direct properties
+      const template = obj.metadata?.template || obj.template || obj.memeTemplate || '';
+      const topText = obj.metadata?.variation?.top || obj.topText || obj.caption?.split('\n')[0] || '';
+      const bottomText = obj.metadata?.variation?.bottom || obj.bottomText || obj.caption?.split('\n')[1] || '';
+      
+      if ($('memeTemplate')) $('memeTemplate').value = template;
+      if ($('memeTopText')) $('memeTopText').value = topText;
+      if ($('memeBottomText')) $('memeBottomText').value = bottomText;
+      
+      // Always update preview when setting meme content
       updateMemePreview();
     }
 
@@ -900,7 +915,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if ($('caption')) $('caption').value = obj.caption || '';
     if ($('hashtags')) $('hashtags').value = obj.hashtags || '';
 
-    // Set any other form fields
+    // Handle form fields
     Object.keys(obj).forEach((key) => {
       const el = $(key);
       if (!el) return;
@@ -913,7 +928,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         el.value = obj[key] ?? '';
       }
 
-      el.dispatchEvent(new Event('change', { bubbles: true }));
+      // Don't trigger change event for template/text fields as they're already handled
+      if (!['memeTemplate', 'memeTopText', 'memeBottomText'].includes(key)) {
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     });
   }
 
