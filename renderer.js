@@ -1105,8 +1105,12 @@
               console.log(`[Bulk Video] Video result:`, videoResult);
 
               if (videoResult.success) {
+                // Format path correctly for file:// protocol (Windows compatibility)
+                const videoPath = videoResult.path.replace(/\\/g, '/');
+                const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+                
                 await addToLibrary({
-                  url: `file://${videoResult.path}`,
+                  url: videoUrl,
                   type: 'video',
                   platform: dims.name,
                   caption: `${variation.top} ${variation.bottom}`,
@@ -1126,7 +1130,7 @@
                 const preview = document.createElement('div');
                 preview.style.cssText = 'border: 2px solid #9f7aea; border-radius: 8px; overflow: hidden;';
                 preview.innerHTML = `
-                  <video src="file://${videoResult.path}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
+                  <video src="${videoUrl}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
                   <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
                     📹 ${dims.name} (${duration}s)
                   </div>
@@ -1261,8 +1265,12 @@
           console.log(`[Bulk AI Video] Video result:`, videoResult);
 
           if (videoResult.success) {
+            // Format path correctly for file:// protocol (Windows compatibility)
+            const videoPath = videoResult.path.replace(/\\/g, '/');
+            const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+            
             await addToLibrary({
-              url: `file://${videoResult.path}`,
+              url: videoUrl,
               type: 'video',
               platform: dims.name,
               caption: prompt,
@@ -1282,7 +1290,7 @@
             const preview = document.createElement('div');
             preview.style.cssText = 'border: 2px solid #805ad5; border-radius: 8px; overflow: hidden;';
             preview.innerHTML = `
-              <video src="file://${videoResult.path}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
+              <video src="${videoUrl}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
               <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
                 🤖 AI ${dims.name} (${duration}s)
               </div>
@@ -2680,8 +2688,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
           throw new Error(videoResult.error || 'Video conversion failed');
         }
 
+        // Format path correctly for file:// protocol (Windows compatibility)
+        const videoPath = videoResult.path.replace(/\\/g, '/');
+        const videoFileUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+        
         // Download and display
-        videoBlob = await fetch(`file://${videoResult.path}`).then(r => r.blob());
+        videoBlob = await fetch(videoFileUrl).then(r => r.blob());
         const localVideoUrl = URL.createObjectURL(videoBlob);
 
         const preview = $('videoPreview');
