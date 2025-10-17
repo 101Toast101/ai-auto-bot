@@ -198,7 +198,7 @@ const videoResult = await window.api.invoke('ai-text-to-video', {
 
 ## Commit Information
 
-**Branch:** feature/video-functionality  
+**Branch:** feature/video-functionality
 **Files Changed:** 2
 - `index.html` - Added video-specific UI controls
 - `renderer.js` - Added video bulk generation logic
@@ -209,8 +209,8 @@ const videoResult = await window.api.invoke('ai-text-to-video', {
 
 ## Summary
 
-✅ **Working:** Bulk video generation fully functional via meme-to-video conversion  
-⏳ **Coming Soon:** Direct AI text-to-video generation  
-🔒 **Preserved:** All existing meme bulk generation functionality intact  
+✅ **Working:** Bulk video generation fully functional via meme-to-video conversion
+⏳ **Coming Soon:** Direct AI text-to-video generation
+🔒 **Preserved:** All existing meme bulk generation functionality intact
 
 The implementation is production-ready and maintains backward compatibility with all existing features.

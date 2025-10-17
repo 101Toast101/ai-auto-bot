@@ -858,25 +858,19 @@
     if (videoModeLabel) videoModeLabel.style.display = isVideo ? '' : 'none';
     if (videoDurationLabel) videoDurationLabel.style.display = isVideo ? '' : 'none';
 
-    // Show/hide meme-specific options
-    const templateStrategyLabel = $('bulkTemplateStrategyLabel');
-    const textModeLabel = $('bulkTextModeLabel');
-    if (templateStrategyLabel) templateStrategyLabel.style.display = isVideo ? 'none' : '';
-    if (textModeLabel) textModeLabel.style.display = isVideo ? 'none' : '';
-
-    // Update visibility of dependent meme fields
+    // Keep template and text mode visible for meme-to-video mode
+    // Only show/hide based on video mode selection
     if (!isVideo) {
+      // Meme mode - show all meme options
+      const templateStrategyLabel = $('bulkTemplateStrategyLabel');
+      const textModeLabel = $('bulkTextModeLabel');
+      if (templateStrategyLabel) templateStrategyLabel.style.display = '';
+      if (textModeLabel) textModeLabel.style.display = '';
       handleBulkTemplateStrategyChange();
       handleBulkTextModeChange();
-    } else {
-      // Hide all meme-specific dependent fields when in video mode
-      const singleLabel = $('bulkSingleTemplateLabel');
-      const aiLabel = $('bulkAiPromptLabel');
-      const manualLabel = $('bulkManualTextLabel');
-      if (singleLabel) singleLabel.style.display = 'none';
-      if (aiLabel) aiLabel.style.display = 'none';
-      if (manualLabel) manualLabel.style.display = 'none';
     }
+    // For video mode, we still need template/text options for meme-to-video
+    // So we DON'T hide them anymore
   }
 
   function handleBulkTemplateStrategyChange() {
@@ -907,7 +901,7 @@
   async function startBulkGeneration() {
     try {
       const contentType = $('bulkContentType')?.value || 'meme';
-      
+
       // Route to appropriate generator based on content type
       if (contentType === 'video') {
         await startBulkVideoGeneration();
@@ -1017,6 +1011,16 @@
       const duration = parseInt($('bulkVideoDuration')?.value || '10');
       const textMode = $('bulkTextMode')?.value || 'manual';
 
+      // Validation
+      if (quantity < 1 || quantity > 100) {
+        throw new Error('Quantity must be between 1 and 100');
+      }
+      if (duration < 3 || duration > 30) {
+        throw new Error('Duration must be between 3 and 30 seconds');
+      }
+
+      console.log(`[Bulk Video] Starting generation: ${quantity} videos, ${duration}s each, mode: ${videoMode}`);
+
       bulkGeneratedContent = [];
       $('bulkProgress').style.display = 'block';
       $('bulkComplete').style.display = 'none';
@@ -1040,6 +1044,7 @@
         // Mode: meme-to-video - Generate memes first, then convert to videos
         showSpinner('Generating meme variations...');
         const textVariations = await generateBulkTextVariations(quantity, textMode);
+        console.log(`[Bulk Video] Generated ${textVariations.length} text variations`);
         hideSpinner();
 
         const strategy = $('bulkTemplateStrategy')?.value || 'random';
@@ -1048,23 +1053,29 @@
           templateToUse = $('bulkSingleTemplate')?.value || 'tenguy';
         }
 
+        console.log(`[Bulk Video] Template strategy: ${strategy}, platforms: ${platforms.length}`);
+
         for (let i = 0; i < quantity; i++) {
           const variation = textVariations[i];
           const template = templateToUse || allTemplates[Math.floor(Math.random() * allTemplates.length)]?.id || 'tenguy';
 
           for (const dims of platforms) {
             const memeUrl = `https://api.memegen.link/images/${template}/${formatMemeText(variation.top)}/${formatMemeText(variation.bottom)}.png`;
+            console.log(`[Bulk Video] Processing ${i + 1}/${quantity} - ${dims.name}: ${memeUrl.substring(0, 80)}...`);
 
             showSpinner(`Converting to video ${i * platforms.length + platforms.indexOf(dims) + 1}/${quantity * platforms.length}...`);
 
             try {
-              // Convert meme to video using IPC handler
-              const videoResult = await window.api.invoke('meme-to-video', {
-                imageUrl: memeUrl,
+              // Convert meme to video using the correct IPC handler
+              console.log(`[Bulk Video] Calling generateVideo API...`);
+              const videoResult = await window.api.generateVideo({
+                imagePath: memeUrl,  // Correct parameter name
                 duration: duration,
                 resolution: `${dims.width}x${dims.height}`,
                 fps: 30
               });
+
+              console.log(`[Bulk Video] Video result:`, videoResult);
 
               if (videoResult.success) {
                 await addToLibrary({
@@ -1094,10 +1105,13 @@
                   </div>
                 `;
                 $('bulkPreviewGrid').appendChild(preview);
+              } else {
+                throw new Error(videoResult.error || 'Video generation failed');
               }
             } catch (videoError) {
               console.error('Video conversion error:', videoError);
               addLogEntry(`Failed to convert video ${i + 1}: ${videoError.message}`);
+              // Continue with next video instead of stopping
             }
 
             hideSpinner();
