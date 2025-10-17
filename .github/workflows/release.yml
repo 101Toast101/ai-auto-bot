@@ -1,0 +1,161 @@
+name: Release
+
+# Trigger on tag push or manual dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      skip_signing:
+        description: 'Skip code signing (not recommended for production)'
+        required: false
+        type: boolean
+        default: false
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      # Windows code signing setup (requires secrets)
+      - name: Decode signing cert
+        if: ${{ !inputs.skip_signing && secrets.WIN_CSC_LINK }}
+        run: |
+          echo "${{ secrets.WIN_CSC_LINK }}" > win-cert.b64
+          certutil -decode win-cert.b64 win-cert.pfx
+        shell: cmd
+
+      # Build with or without signing based on secrets
+      - name: Build Windows (signed)
+        if: ${{ !inputs.skip_signing && secrets.WIN_CSC_LINK }}
+        env:
+          CSC_LINK: win-cert.pfx
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: npm run dist
+
+      - name: Build Windows (unsigned)
+        if: ${{ inputs.skip_signing || !secrets.WIN_CSC_LINK }}
+        run: npm run dist:dir
+
+      # Upload artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: win-unpacked
+          path: dist/win-unpacked/
+
+  release-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      # macOS code signing and notarization (requires secrets)
+      - name: Import Developer ID cert
+        if: ${{ !inputs.skip_signing && secrets.MACOS_CSC_LINK }}
+        env:
+          MACOS_CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
+          MACOS_CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          echo "$MACOS_CSC_LINK" | base64 --decode > signing.p12
+          security create-keychain -p actions build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p actions build.keychain
+          security import signing.p12 -k build.keychain -P "$MACOS_CSC_KEY_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k actions build.keychain
+
+      # Build with or without signing based on secrets
+      - name: Build macOS (signed)
+        if: ${{ !inputs.skip_signing && secrets.MACOS_CSC_LINK }}
+        env:
+          CSC_LINK: signing.p12
+          CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npm run dist
+
+      - name: Build macOS (unsigned)
+        if: ${{ inputs.skip_signing || !secrets.MACOS_CSC_LINK }}
+        run: npm run dist:dir
+
+      # Upload artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-unpacked
+          path: dist/mac/
+
+  create-release:
+    needs: [release-windows, release-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Download artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: win-unpacked
+          path: dist/win-unpacked
+      - uses: actions/download-artifact@v4
+        with:
+          name: mac-unpacked
+          path: dist/mac
+
+      # Create release with artifacts
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: |
+            dist/win-unpacked/**/*
+            dist/mac/**/*
+          body: |
+            Release ${{ github.ref_name }}
+
+            ## Code Signing Status
+            - Windows: ${{ !inputs.skip_signing && secrets.WIN_CSC_LINK != '' }}
+            - macOS: ${{ !inputs.skip_signing && secrets.MACOS_CSC_LINK != '' }}
+
+            Please verify artifacts before publishing.
+
+# Code Signing Setup Guide (in repository root)
+# -------------------------------------------
+# 1. Windows Code Signing
+#    - Convert PFX to base64: certutil -encode cert.pfx cert.b64
+#    - Add to secrets:
+#      WIN_CSC_LINK: contents of cert.b64
+#      WIN_CSC_KEY_PASSWORD: PFX password
+#
+# 2. macOS Code Signing & Notarization
+#    - Export Developer ID cert: security export...
+#    - Convert to base64: base64 -i cert.p12 -o cert.b64
+#    - Add to secrets:
+#      MACOS_CSC_LINK: contents of cert.b64
+#      MACOS_CSC_KEY_PASSWORD: p12 password
+#      APPLE_ID: your Apple ID
+#      APPLE_ID_PASSWORD: app-specific password
+#      APPLE_TEAM_ID: from developer account

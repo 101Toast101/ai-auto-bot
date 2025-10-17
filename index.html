@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https: blob:;
+      connect-src 'self' https://api.memegen.link https://api.openai.com https://api.runwayml.com https://graph.facebook.com https://open.tiktokapis.com https://www.googleapis.com https://upload.twitter.com https://api.twitter.com https://cdn.jsdelivr.net;
+      font-src 'self' data:;
+      media-src 'self' blob: data:;
+      worker-src 'self' blob:;
+    "
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>AI Auto Bot</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>🎬 AI Auto Bot</h1>
+      </header>
+
+      <!-- Top-bar Controls -->
+      <div id="controls">
+        <div
+          id="errorContainer"
+          class="error-container"
+          style="color: red; margin: 10px 0; display: none"
+        ></div>
+        <button type="button" id="postNowBtn">Post Now</button>
+        <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
+        <label class="toggle">
+          Dark Mode
+          <input type="checkbox" id="darkModeToggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- BULK GENERATION MODAL -->
+      <div id="bulkModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto;">
+        <div style="background: var(--glass-bg); max-width: 800px; margin: 50px auto; padding: 30px; border-radius: 15px; position: relative;">
+          <button id="closeBulkModal" style="position: absolute; top: 15px; right: 15px; background: #e53e3e; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Close</button>
+          
+          <h2>Bulk Content Generation</h2>
+          
+          <fieldset style="margin: 20px 0; padding: 20px; border-radius: 10px;">
+            <legend>Generation Settings</legend>
+            
+            <label>
+              Quantity
+              <input type="number" id="bulkQuantity" min="1" max="100" value="10" />
+            </label>
+            
+            <label>
+              Content Type
+              <select id="bulkContentType">
+                <option value="meme">Meme</option>
+                <option value="video">Video (Coming Soon)</option>
+              </select>
+            </label>
+            
+            <label>
+              Template Strategy
+              <select id="bulkTemplateStrategy">
+                <option value="random">Random Templates</option>
+                <option value="single">Single Template</option>
+              </select>
+            </label>
+            
+            <label id="bulkSingleTemplateLabel" style="display: none;">
+              Choose Template
+              <select id="bulkSingleTemplate"></select>
+            </label>
+            
+            <label>
+              Text Mode
+              <select id="bulkTextMode">
+                <option value="ai">AI Generated</option>
+                <option value="manual">Manual Entry</option>
+              </select>
+            </label>
+            
+            <label id="bulkAiPromptLabel">
+              AI Prompt
+              <input type="text" id="bulkAiPrompt" placeholder="funny memes about cats" />
+            </label>
+            
+            <label id="bulkManualTextLabel" style="display: none;">
+              Text Variations (Top|Bottom per line)
+              <textarea id="bulkManualText" rows="5" placeholder="Top Text 1|Bottom Text 1
+Top Text 2|Bottom Text 2"></textarea>
+            </label>
+            
+            <label>
+              Platform Variations
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 8px;">
+                <div>
+                  <input type="checkbox" id="bulkInstagram" checked />
+                  <label for="bulkInstagram">Instagram (1080x1080)</label>
+                </div>
+                <div>
+                  <input type="checkbox" id="bulkTikTok" />
+                  <label for="bulkTikTok">TikTok (1080x1920)</label>
+                </div>
+                <div>
+                  <input type="checkbox" id="bulkYouTube" />
+                  <label for="bulkYouTube">YouTube (1280x720)</label>
+                </div>
+                <div>
+                  <input type="checkbox" id="bulkTwitter" />
+                  <label for="bulkTwitter">Twitter (1200x675)</label>
+                </div>
+              </div>
+            </label>
+            
+            <label>
+              Hashtag Mode
+              <select id="bulkHashtagMode">
+                <option value="auto">Auto Generate</option>
+                <option value="manual">Manual Entry</option>
+              </select>
+            </label>
+            
+            <label id="bulkManualHashtagsLabel" style="display: none;">
+              Manual Hashtags
+              <input type="text" id="bulkManualHashtags" placeholder="#meme #funny #viral" />
+            </label>
+            
+            <button type="button" id="startBulkGeneration" style="margin-top: 20px; width: 100%; padding: 12px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+              Start Generation
+            </button>
+          </fieldset>
+          
+          <!-- Progress Section -->
+          <div id="bulkProgress" style="display: none; margin: 20px 0;">
+            <h3>Generating...</h3>
+            <div style="background: #e2e8f0; border-radius: 10px; height: 30px; overflow: hidden; margin: 10px 0;">
+              <div id="bulkProgressBar" style="background: var(--blue-gradient); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="bulkProgressText">Preparing...</p>
+            <div id="bulkPreviewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; margin-top: 20px;"></div>
+          </div>
+          
+          <!-- Complete Section -->
+          <div id="bulkComplete" style="display: none; margin: 20px 0;">
+            <h3>✅ Generation Complete!</h3>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+              <button type="button" id="downloadBulkZip" style="flex: 1; padding: 12px; background: #48bb78; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                Download ZIP
+              </button>
+              <button type="button" id="downloadBulkCSV" style="flex: 1; padding: 12px; background: #4299e1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                Download CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIG MANAGER -->
+      <div id="configManager">
+        <input
+          type="text"
+          id="configNameInput"
+          placeholder="Config Name"
+          style="padding: 8px; width: 60%; margin-right: 8px"
+        />
+        <button type="button" id="saveConfigBtn">Save Config</button>
+
+        <fieldset id="savedConfigsFieldset">
+          <legend>Saved Configurations</legend>
+          <ul id="savedConfigsList"></ul>
+        </fieldset>
+      </div>
+
+      <!-- Content Library (moved outside form) -->
+      <fieldset id="libraryFieldset">
+        <legend>Content Library</legend>
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="librarySearch" placeholder="Search by caption, hashtag, or platform..." style="width: 70%; margin-right: 10px;" />
+          <select id="libraryFilter" style="width: 25%;">
+            <option value="all">All Content</option>
+            <option value="meme">Memes Only</option>
+            <option value="video">Videos Only</option>
+            <option value="posted">Posted</option>
+            <option value="draft">Drafts</option>
+          </select>
+        </div>
+        <div id="libraryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; max-height: 500px; overflow-y: auto;">
+          <p style="text-align: center; color: #718096; padding: 40px;">No content yet</p>
+        </div>
+      </fieldset>
+
+      <!-- Settings Form -->
+      <form id="settingsForm">
+        <!-- Content Type -->
+        <fieldset>
+          <legend>Content Type</legend>
+          <label
+            >Type
+            <select id="contentType">
+              <option value="meme">Meme</option>
+              <option value="video">Video</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- Meme Fields -->
+        <fieldset id="memeFields">
+          <legend>Meme</legend>
+          <label
+            >Meme Mode
+            <select id="memeMode">
+              <option value="template">Use Template</option>
+              <option value="generate">AI Generate</option>
+              <option value="edit">AI Edit Image</option>
+              <option value="variations">Create Variations</option>
+            </select>
+          </label>
+          <label
+            >Template
+            <input
+              type="text"
+              id="memeSearch"
+              placeholder="Search templates..."
+              style="margin-bottom: 5px"
+            />
+            <select id="memeTemplate">
+              <option value="ai-generator">🤖 AI Generator</option>
+            </select>
+          </label>
+          <label>
+            Top Text
+            <input type="text" id="memeTopText" placeholder="Top text" />
+          </label>
+          <label>
+            Bottom Text
+            <input type="text" id="memeBottomText" placeholder="Bottom text" />
+          </label>
+          
+          <label id="promptLabel" style="display: none;">
+            AI Prompt
+            <textarea id="aiPrompt" placeholder="Describe the meme you want..." rows="3"></textarea>
+          </label>
+          
+          <label id="sourceImageLabel" style="display: none;">
+            Source Image
+            <input type="file" id="sourceImage" accept="image/*" />
+          </label>
+          
+          <label id="maskImageLabel" style="display: none;">
+            Mask Image (optional)
+            <input type="file" id="maskImage" accept="image/*" />
+          </label>
+          
+          <button type="button" id="actionBtn" style="display: none; margin-top: 10px; padding: 10px 20px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer;">Generate</button>
+          
+          <button type="button" id="createVariationsBtn" style="display: none; margin-top: 10px; padding: 10px 20px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer;">Create Variations</button>
+          
+          <div id="variationResults" style="display: none; margin-top: 10px;"></div>
+          
+          <fieldset>
+            <legend>Preview</legend>
+            <img
+              id="memePreview"
+              width="300"
+              alt="Live Meme Preview"
+              style="display: block; margin: 0 auto; border: 1px solid #e2e8f0"
+            />
+          </fieldset>
+        </fieldset>
+
+        <!-- Video Fields -->
+        <fieldset id="videoFields" style="display: none;">
+          <legend>Video</legend>
+          <label
+            >Video Mode
+            <select id="videoMode">
+              <option value="text">Text to Video</option>
+              <option value="memes">Meme Compilation</option>
+            </select>
+          </label>
+          
+          <label id="videoPromptLabel">
+            Video Prompt
+            <textarea id="videoPrompt" placeholder="Describe your video..." rows="3"></textarea>
+          </label>
+          
+          <label id="selectMemesLabel" style="display: none;">
+            Select Memes
+            <button type="button" id="selectMemesBtn" style="margin-top: 5px;">Select from Library</button>
+          </label>
+          
+          <div id="selectedMemesContainer" style="display: none; margin-top: 10px;">
+            <h4>Selected Memes:</h4>
+            <div id="selectedMemesList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+          </div>
+          
+          <label
+            >Duration (sec)
+            <input type="number" id="videoDuration" min="1" value="5" />
+          </label>
+          <label
+            >Quality
+            <select id="videoQuality">
+              <option>720p</option>
+              <option>1080p</option>
+            </select>
+          </label>
+          <label
+            >Style
+            <select id="videoStyle">
+              <option>realistic</option>
+              <option>cinematic</option>
+              <option>animated</option>
+            </select>
+          </label>
+          <label
+            >Aspect Ratio
+            <select id="aspectRatio">
+              <option>16:9</option>
+              <option>9:16</option>
+              <option>1:1</option>
+            </select>
+          </label>
+          <label
+            >Frame Rate (fps)
+            <select id="frameRate">
+              <option>24</option>
+              <option>30</option>
+            </select>
+          </label>
+          
+          <button type="button" id="generateVideoBtn" style="margin-top: 10px; padding: 10px 20px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer;">Generate Video</button>
+        </fieldset>
+
+        <!-- General -->
+        <fieldset>
+          <legend>General</legend>
+          <label
+            >AI Provider
+            <select id="aiProvider">
+              <option value="openai">OpenAI</option>
+              <option value="runway">Runway</option>
+            </select>
+          </label>
+          <label
+            >API Key
+            <input type="text" id="apiKey" />
+          </label>
+        </fieldset>
+
+        <!-- Platforms -->
+        <fieldset>
+          <legend>Platforms</legend>
+          <div class="platform-grid">
+            <div class="checkbox-item">
+              <input type="checkbox" id="instagram" />
+              <label for="instagram">Instagram</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="tiktok" />
+              <label for="tiktok">TikTok</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="youtube" />
+              <label for="youtube">YouTube</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="twitter" />
+              <label for="twitter">Twitter</label>
+            </div>
+          </div>
+        </fieldset>
+		
+        <fieldset class="oauth-fieldset">
+          <legend>Connect Your Social Media Accounts</legend>
+          <div class="oauth-buttons">
+            <button type="button" id="connectInstagramBtn">🔗 Connect Instagram</button>
+            <button type="button" id="connectTikTokBtn">🔗 Connect TikTok</button>
+            <button type="button" id="connectYouTubeBtn">🔗 Connect YouTube</button>
+            <button type="button" id="connectTwitterBtn">🔗 Connect Twitter</button>
+          </div>
+		  
+		  <!-- hidden token stores used by renderer.js -->
+				<input type="hidden" id="instagramToken" />
+				<input type="hidden" id="tiktokToken" />
+				<input type="hidden" id="youtubeToken" />
+				<input type="hidden" id="twitterToken" />
+        </fieldset>
+
+
+	 
+        <!-- Smart Content Features -->
+        <fieldset>
+          <legend>Smart Content Features</legend>
+          <div class="feature-highlight">
+            <strong>💡 Use advanced content options:</strong>
+            <div class="checkbox-grid" style="margin-top: 10px">
+              <div class="checkbox-item">
+                <input type="checkbox" id="useAdvancedOptions" />
+                <label for="useAdvancedOptions">Enable Advanced Options</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="trendingTopics" />
+                <label for="trendingTopics">Trending Topics</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="seasonalContent" />
+                <label for="seasonalContent">Seasonal Content</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="audienceOptimization" />
+                <label for="audienceOptimization">Audience Optimization</label>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Hashtags -->
+        <fieldset>
+          <legend>Hashtags</legend>
+          <label
+            >Hashtag Mode
+            <select id="hashtagMode">
+              <option value="auto">Auto Generate</option>
+              <option value="manual">Manual Entry</option>
+            </select>
+          </label>
+          <label id="manualHashtagLabel" style="display: none">
+            Manual Hashtags
+            <input type="text" id="manualHashtags" placeholder="#ai #fun" />
+          </label>
+        </fieldset>
+
+        <!-- Scheduling -->
+        <fieldset id="schedulingFieldset">
+          <legend>Scheduling</legend>
+          <label
+            >Post At
+            <input type="datetime-local" id="scheduleDateTime" />
+          </label>
+          <label
+            >Recurrence
+            <select id="recurrenceSelect">
+              <option value="none">None</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </label>
+          <label
+            >Timezone
+            <select id="timezoneSelect"></select>
+          </label>
+          <button type="button" id="schedulePostBtn" class="action-btn">Schedule Post</button>
+        </fieldset>
+
+        <!-- Scheduled Posts -->
+        <fieldset id="scheduledPostsFieldset">
+          <legend>Scheduled Posts</legend>
+          <ul id="scheduledPostsList"></ul>
+        </fieldset>
+
+        <!-- Activity Log -->
+        <fieldset>
+          <legend>Activity Log</legend>
+          <div id="logContainer" class="log-container"></div>
+        </fieldset>
+      </form>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

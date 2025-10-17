@@ -1,0 +1,53 @@
+{
+  "name": "ai-auto-bot",
+  "productName": "AI Auto Bot",
+  "version": "1.0.0",
+  "description": "AI Auto Bot desktop application built with Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+  "dist:dir": "electron-builder --dir",
+  "dist:unsigned": "electron-builder --win --x64 --dir -c.win.sign=false -c.win.requestedExecutionLevel=asInvoker",
+    "init:key": "node scripts/init-encryption.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "author": "Your Name <you@example.com>",
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "lru-cache": "^11.2.2",
+    "winston": "^3.9.0"
+  },
+  "devDependencies": {
+    "electron": "^38.1.2",
+    "electron-builder": "^24.6.0",
+    "jest": "^29.7.0"
+  },
+  "build": {
+    "appId": "com.j.ai-autobot",
+    "files": [
+      "**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md}"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      
+      "target": ["dmg", "zip"],
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist"
+    },
+    "win": {
+      "target": ["nsis"],
+      "sign": false
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "desktop": {
+        "StartupWMClass": "ai-auto-bot"
+      }
+    }
+  }
+}
