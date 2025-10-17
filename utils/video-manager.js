@@ -19,15 +19,19 @@ async function memeToVideo(imagePath, options) {
   return new Promise((resolve, reject) => {
     const { duration = 10, outputPath, resolution = '1080x1080', fps = 30 } = options;
 
+    // Parse resolution
+    const [width, height] = resolution.split('x').map(Number);
+
     const args = [
       '-y', // Overwrite output file if exists
       '-loop', '1', // Loop input
       '-i', imagePath, // Input file
       '-t', duration.toString(), // Duration
-      '-vf', `scale=${resolution},zoompan=z='min(zoom+0.0015,1.1)':d=${duration*fps}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`, // Zoom effect
+      '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`, // Simple scale and center
       '-c:v', 'libx264', // Video codec
       '-pix_fmt', 'yuv420p', // Pixel format for compatibility
       '-r', fps.toString(), // Frame rate
+      '-preset', 'fast', // Encoding speed
       outputPath // Output file
     ];
 

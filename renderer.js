@@ -1038,8 +1038,8 @@
       }
 
       if (videoMode === 'text-to-video') {
-        // Future: AI text-to-video generation using OpenAI/Runway
-        throw new Error('AI Text-to-Video is coming soon! Use "Convert Memes to Videos" for now.');
+        // AI text-to-video generation using OpenAI/Runway
+        await generateBulkAIVideos(quantity, platforms, duration, textMode);
       } else {
         // Mode: meme-to-video - Generate memes first, then convert to videos
         showSpinner('Generating meme variations...');
@@ -1141,6 +1141,156 @@
       addLogEntry(`Bulk video generation failed: ${error.message}`);
       throw error;
     }
+  }
+
+  async function generateBulkAIVideos(quantity, platforms, duration, textMode) {
+    // Check for API key
+    const settingsResult = await readFileAsync(PATHS.SETTINGS);
+    if (!settingsResult.success) {
+      throw new Error('Failed to load settings');
+    }
+
+    const settings = safeParse(settingsResult.content, {});
+    const provider = settings.aiProvider || 'openai';
+    const encryptedKey = settings[`${provider}ApiKey`];
+
+    if (!encryptedKey) {
+      throw new Error(`No API key found for ${provider}. Please connect ${provider} first in settings.`);
+    }
+
+    // Decrypt the API key
+    const decryptedKey = await window.api.decrypt(encryptedKey);
+    if (!decryptedKey) {
+      throw new Error('Failed to decrypt API key');
+    }
+
+    console.log('[Bulk AI Video] Starting generation with provider:', provider);
+    showSpinner('Generating AI video prompts...');
+
+    // Generate text variations for video prompts
+    const textVariations = await generateBulkTextVariations(quantity, textMode);
+    console.log(`[Bulk AI Video] Generated ${textVariations.length} prompts`);
+    hideSpinner();
+
+    for (let i = 0; i < quantity; i++) {
+      const variation = textVariations[i];
+      const prompt = `${variation.top} ${variation.bottom}`.trim();
+
+      for (const dims of platforms) {
+        showSpinner(`Generating AI video ${i * platforms.length + platforms.indexOf(dims) + 1}/${quantity * platforms.length}...`);
+        console.log(`[Bulk AI Video] Processing ${i + 1}/${quantity} - ${dims.name}: "${prompt}"`);
+
+        try {
+          let videoResult;
+
+          if (provider === 'openai') {
+            // OpenAI doesn't have direct text-to-video yet, so we'll use DALL-E + video conversion
+            console.log('[Bulk AI Video] Using OpenAI DALL-E + video conversion workflow');
+
+            // Generate image with DALL-E
+            const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${decryptedKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                prompt: prompt,
+                n: 1,
+                size: dims.width === dims.height ? '1024x1024' : dims.width > dims.height ? '1792x1024' : '1024x1792'
+              })
+            });
+
+            if (!imageResponse.ok) {
+              const errorData = await imageResponse.json();
+              throw new Error(errorData.error?.message || `OpenAI API error: ${imageResponse.status}`);
+            }
+
+            const imageData = await imageResponse.json();
+            const imageUrl = imageData.data[0]?.url;
+
+            if (!imageUrl) {
+              throw new Error('No image URL returned from OpenAI');
+            }
+
+            console.log('[Bulk AI Video] Image generated, converting to video...');
+
+            // Convert image to video
+            videoResult = await window.api.generateVideo({
+              imagePath: imageUrl,
+              duration: duration,
+              resolution: `${dims.width}x${dims.height}`,
+              fps: 30
+            });
+
+          } else if (provider === 'runway') {
+            // Runway Gen-2 API (placeholder - update with real API when available)
+            console.log('[Bulk AI Video] Using Runway ML API');
+            throw new Error('Runway ML integration coming soon! Use OpenAI for now.');
+          } else {
+            throw new Error(`Unknown provider: ${provider}`);
+          }
+
+          console.log(`[Bulk AI Video] Video result:`, videoResult);
+
+          if (videoResult.success) {
+            await addToLibrary({
+              url: `file://${videoResult.path}`,
+              type: 'video',
+              platform: dims.name,
+              caption: prompt,
+              hashtags: $('bulkHashtagMode')?.value === 'manual' ? ($('bulkManualHashtags')?.value || '') : '#ai #video #generated',
+              metadata: {
+                dimensions: dims,
+                prompt: prompt,
+                duration,
+                provider,
+                videoPath: videoResult.path,
+                generatedBy: 'ai-text-to-video'
+              },
+              contentType: 'video',
+              status: 'draft'
+            });
+
+            const preview = document.createElement('div');
+            preview.style.cssText = 'border: 2px solid #805ad5; border-radius: 8px; overflow: hidden;';
+            preview.innerHTML = `
+              <video src="file://${videoResult.path}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
+              <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
+                🤖 AI ${dims.name} (${duration}s)
+              </div>
+            `;
+            $('bulkPreviewGrid').appendChild(preview);
+          } else {
+            throw new Error(videoResult.error || 'Video generation failed');
+          }
+
+        } catch (videoError) {
+          console.error('AI video generation error:', videoError);
+          addLogEntry(`Failed to generate AI video ${i + 1}: ${videoError.message}`);
+          // Continue with next video instead of stopping
+        }
+
+        hideSpinner();
+      }
+
+      const progress = ((i + 1) / quantity) * 100;
+      $('bulkProgressBar').style.width = `${progress}%`;
+      $('bulkProgressText').textContent = `Generated ${i + 1}/${quantity} (${bulkGeneratedContent.length} total AI videos)`;
+
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between API calls
+    }
+
+    $('bulkProgressText').textContent = `Complete! Generated ${bulkGeneratedContent.length} AI videos`;
+    $('bulkComplete').style.display = 'block';
+
+    const libRes = await readFileAsync(PATHS.LIBRARY);
+    let library = libRes.success ? safeParse(libRes.content, []) : [];
+    library = bulkGeneratedContent.concat(library);
+    await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
+    await renderLibrary();
+
+    addLogEntry(`Bulk generated ${bulkGeneratedContent.length} AI videos using ${provider}`);
   }
 
   async function generateBulkTextVariations(quantity, mode) {
@@ -1936,7 +2086,15 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   async function handleGenerateVideo() {
     const mode = $('videoMode')?.value;
 
-    if (mode === 'meme-to-video') {
+    console.log('[Generate Video] Mode selected:', mode);
+
+    if (mode === 'text') {
+      // Text to Video using AI
+      await generateAIVideo();
+    } else if (mode === 'memes') {
+      // Meme compilation/slideshow
+      await generateSlideshow();
+    } else if (mode === 'meme-to-video') {
       await generateMemeToVideo();
     } else if (mode === 'slideshow') {
       await generateSlideshow();
@@ -1944,6 +2102,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       await generateAnimatedGIF();
     } else if (mode === 'ai-video') {
       await generateAIVideo();
+    } else {
+      console.warn('[Generate Video] Unknown mode:', mode);
+      $('errorContainer').textContent = 'Please select a video mode';
+      $('errorContainer').style.display = 'block';
     }
   }
 
@@ -2400,81 +2562,173 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   }
 
   async function generateAIVideo() {
-    const apiKey = $('apiKey')?.value;
-    if (!apiKey) {
-      $('errorContainer').textContent = 'API Key required for AI video generation!';
+    // Get API key from settings (encrypted)
+    const settingsResult = await readFileAsync(PATHS.SETTINGS);
+    if (!settingsResult.success) {
+      $('errorContainer').textContent = 'Failed to load settings!';
+      $('errorContainer').style.display = 'block';
+      return;
+    }
+
+    const settings = safeParse(settingsResult.content, {});
+    const provider = settings.aiProvider || 'openai';
+    const encryptedKey = settings[`${provider}ApiKey`];
+
+    if (!encryptedKey) {
+      $('errorContainer').textContent = `No API key found for ${provider}. Please connect ${provider} in settings.`;
       $('errorContainer').style.display = 'block';
       addLogEntry('AI video generation failed — missing API Key');
       return;
     }
 
+    // Decrypt the API key
+    const apiKey = await window.api.decrypt(encryptedKey);
+    if (!apiKey) {
+      $('errorContainer').textContent = 'Failed to decrypt API key!';
+      $('errorContainer').style.display = 'block';
+      return;
+    }
+
     const prompt = $('videoPrompt')?.value?.trim();
     if (!prompt) {
+      $('errorContainer').textContent = 'Please enter a video prompt!';
+      $('errorContainer').style.display = 'block';
       addLogEntry('Please enter a video prompt');
       return;
     }
 
-    showSpinner('Generating AI video (this may take 1-2 minutes)...');
+    console.log('[AI Video] Generating with provider:', provider);
+    showSpinner('Generating AI video...');
 
     try {
       const duration = parseInt($('videoDuration')?.value || '5');
-      const motion = $('motionAmount')?.value || 'medium';
+      const aspectRatio = $('aspectRatio')?.value || '16:9';
+      const dimensions = aspectRatio === '1:1' ? { width: 1024, height: 1024 } :
+                        aspectRatio === '16:9' ? { width: 1792, height: 1024 } :
+                        { width: 1024, height: 1792 };
 
-      // Runway Gen-2 API
-      const response = await fetch('https://api.runwayml.com/v1/generate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          duration: duration,
-          motion_amount: motion === 'low' ? 0.3 : motion === 'medium' ? 0.6 : 0.9
-        })
-      });
+      if (provider === 'openai') {
+        // OpenAI DALL-E + video conversion workflow
+        console.log('[AI Video] Using OpenAI DALL-E + video conversion');
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `API error: ${response.status}`);
-      }
+        updateSpinnerMessage('Generating image with DALL-E...');
 
-      const data = await response.json();
-
-      // Poll for completion
-      let videoUrl = null;
-      const taskId = data.id;
-
-      while (!videoUrl) {
-        updateSpinnerMessage('AI video processing...');
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-
-        const statusResponse = await fetch(`https://api.runwayml.com/v1/tasks/${taskId}`, {
-          headers: { 'Authorization': `Bearer ${apiKey}` }
+        const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            n: 1,
+            size: `${dimensions.width}x${dimensions.height}`
+          })
         });
 
-        const status = await statusResponse.json();
-
-        if (status.status === 'completed') {
-          videoUrl = status.video_url;
-        } else if (status.status === 'failed') {
-          throw new Error('Video generation failed');
+        if (!imageResponse.ok) {
+          const errorData = await imageResponse.json();
+          throw new Error(errorData.error?.message || `OpenAI API error: ${imageResponse.status}`);
         }
+
+        const imageData = await imageResponse.json();
+        const imageUrl = imageData.data[0]?.url;
+
+        if (!imageUrl) {
+          throw new Error('No image URL returned from OpenAI');
+        }
+
+        console.log('[AI Video] Image generated, converting to video...');
+        updateSpinnerMessage('Converting image to video...');
+
+        // Convert to video
+        const videoResult = await window.api.generateVideo({
+          imagePath: imageUrl,
+          duration: duration,
+          resolution: `${dimensions.width}x${dimensions.height}`,
+          fps: 30
+        });
+
+        if (!videoResult.success) {
+          throw new Error(videoResult.error || 'Video conversion failed');
+        }
+
+        // Download and display
+        videoBlob = await fetch(`file://${videoResult.path}`).then(r => r.blob());
+        const localVideoUrl = URL.createObjectURL(videoBlob);
+
+        const preview = $('videoPreview');
+        if (preview) {
+          preview.src = localVideoUrl;
+          $('videoPreviewContainer').style.display = 'block';
+        }
+
+        hideSpinner();
+        addLogEntry('AI video created successfully using OpenAI!');
+
+      } else if (provider === 'runway') {
+        // Runway Gen-2 API
+        console.log('[AI Video] Using Runway ML API');
+        const motion = $('motionAmount')?.value || 'medium';
+
+        const response = await fetch('https://api.runwayml.com/v1/generate', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            duration: duration,
+            motion_amount: motion === 'low' ? 0.3 : motion === 'medium' ? 0.6 : 0.9
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || `API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Poll for completion
+        let videoUrl = null;
+        const taskId = data.id;
+
+        while (!videoUrl) {
+          updateSpinnerMessage('AI video processing...');
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+
+          const statusResponse = await fetch(`https://api.runwayml.com/v1/tasks/${taskId}`, {
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+          });
+
+          const status = await statusResponse.json();
+
+          if (status.status === 'completed') {
+            videoUrl = status.video_url;
+          } else if (status.status === 'failed') {
+            throw new Error('Video generation failed');
+          }
+        }
+
+        // Download and display
+        const videoResponse = await fetch(videoUrl);
+        videoBlob = await videoResponse.blob();
+        const localVideoUrl = URL.createObjectURL(videoBlob);
+
+        const preview = $('videoPreview');
+        if (preview) {
+          preview.src = localVideoUrl;
+          $('videoPreviewContainer').style.display = 'block';
+        }
+
+        hideSpinner();
+        addLogEntry('AI video generated successfully using Runway!');
+
+      } else {
+        throw new Error(`Unknown provider: ${provider}`);
       }
-
-      // Download and display
-      const videoResponse = await fetch(videoUrl);
-      videoBlob = await videoResponse.blob();
-      const localVideoUrl = URL.createObjectURL(videoBlob);
-
-      const preview = $('videoPreview');
-      if (preview) {
-        preview.src = localVideoUrl;
-        $('videoPreviewContainer').style.display = 'block';
-      }
-
-      hideSpinner();
-      addLogEntry('AI video generated successfully!');
 
     } catch (error) {
       hideSpinner();
