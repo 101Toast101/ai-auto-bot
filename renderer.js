@@ -1108,7 +1108,7 @@
                 // Format path correctly for file:// protocol (Windows compatibility)
                 const videoPath = videoResult.path.replace(/\\/g, '/');
                 const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
-                
+
                 await addToLibrary({
                   url: videoUrl,
                   type: 'video',
@@ -1268,7 +1268,7 @@
             // Format path correctly for file:// protocol (Windows compatibility)
             const videoPath = videoResult.path.replace(/\\/g, '/');
             const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
-            
+
             await addToLibrary({
               url: videoUrl,
               type: 'video',
@@ -2691,7 +2691,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         // Format path correctly for file:// protocol (Windows compatibility)
         const videoPath = videoResult.path.replace(/\\/g, '/');
         const videoFileUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
-        
+
         // Download and display
         videoBlob = await fetch(videoFileUrl).then(r => r.blob());
         const localVideoUrl = URL.createObjectURL(videoBlob);
