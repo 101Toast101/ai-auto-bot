@@ -479,19 +479,46 @@
 
       // Media preview
       const mediaContainer = document.createElement('div');
-      mediaContainer.style.cssText = 'width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; background: #000;';
+      mediaContainer.style.cssText = 'width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; background: #000; position: relative;';
 
       if (item.url) {
-        if (item.type === 'video') {
+        if (item.type === 'video' || item.contentType === 'video') {
           const video = document.createElement('video');
           video.src = item.url;
           video.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain;';
           video.controls = true;
+          video.preload = 'metadata';
+          video.muted = true; // Auto-play requires muted
+
+          // Add play icon overlay
+          const playIcon = document.createElement('div');
+          playIcon.innerHTML = '▶';
+          playIcon.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; opacity: 0.8; pointer-events: none;';
+          mediaContainer.appendChild(playIcon);
+
+          // Remove play icon when video is playing
+          video.addEventListener('play', () => playIcon.style.display = 'none');
+          video.addEventListener('pause', () => playIcon.style.display = 'block');
+
+          // Handle video load errors
+          video.addEventListener('error', (e) => {
+            console.error('Video load error:', e, 'URL:', item.url);
+            // Show fallback
+            const errorText = document.createElement('div');
+            errorText.textContent = '📹 Video';
+            errorText.style.cssText = 'color: white; font-size: 16px; text-align: center;';
+            mediaContainer.innerHTML = '';
+            mediaContainer.appendChild(errorText);
+          });
+
           mediaContainer.appendChild(video);
         } else {
           const img = document.createElement('img');
           img.src = item.url;
           img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain;';
+          img.onerror = () => {
+            img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzQ4NWU2OCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4=';
+          };
           mediaContainer.appendChild(img);
         }
       }
