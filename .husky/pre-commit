@@ -1,0 +1,25 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run ESLint
+npm run lint
+
+# Run tests
+npm test
+
+# Check for sensitive data
+if git diff --cached -G"(password|secret|key|token|auth)" | grep -i "password\|secret\|key\|token\|auth"
+then
+  echo "Warning: Possible sensitive data detected in commit"
+  exit 1
+fi
+
+# Run security audit
+npm audit
+
+# Verify no .env file is being committed
+if git diff --cached --name-only | grep -q "^.env$"
+then
+  echo "Error: Attempting to commit .env file"
+  exit 1
+fi

@@ -7,11 +7,22 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
-  "dist:dir": "electron-builder --dir",
-  "dist:unsigned": "electron-builder --win --x64 --dir -c.win.sign=false -c.win.requestedExecutionLevel=asInvoker",
+    "dist:dir": "electron-builder --dir",
+    "dist:unsigned": "electron-builder --win --x64 --dir -c.win.sign=false -c.win.requestedExecutionLevel=asInvoker",
     "init:key": "node scripts/init-encryption.js",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky install",
+    "security-check": "npm audit && npx snyk test",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "jest --findRelatedTests"
+    ]
   },
   "author": "Your Name <you@example.com>",
   "dependencies": {
@@ -22,7 +33,14 @@
   "devDependencies": {
     "electron": "^38.1.2",
     "electron-builder": "^24.6.0",
-    "jest": "^29.7.0"
+    "eslint": "^9.37.0",
+    "eslint-plugin-jest": "^29.0.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-security": "^3.0.1",
+    "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "lint-staged": "^16.2.4",
+    "snyk": "^1.1300.0"
   },
   "build": {
     "appId": "com.j.ai-autobot",
@@ -34,17 +52,23 @@
       "output": "dist"
     },
     "mac": {
-      
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "hardenedRuntime": true,
       "entitlements": "entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "sign": false
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "desktop": {
         "StartupWMClass": "ai-auto-bot"
       }

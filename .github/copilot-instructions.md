@@ -16,7 +16,12 @@ This file contains concise, actionable guidance for AI coding agents working on 
 
 3. Data and encryption
    - Local tokens may also be handled by `tokenStore.js` which expects an `ENCRYPTION_KEY` in environment (`.env`) and uses AES. When adding token code, respect the existing encryption format and `.env` usage.
+   - NEVER commit `.env` file (it's in `.gitignore`). Use `.env.example` as a template but keep secrets out of version control.
    - `utils/database.js` provides helpers (`readJson`, `writeJson`, readSettings/writeSettings`) — prefer these for background Node-side data operations.
+   - Sensitive files/directories excluded from git:
+     - `.env` (encryption keys and secrets)
+     - `data/` (user data and tokens)
+     - `logs/` (may contain sensitive information)
 
 4. Integration points & external deps
    - AI image generation and platform posting helpers are in `utils/api-manager.js` (OpenAI DALL‑E endpoints, Instagram/TikTok/YouTube/Twitter POST flows). Tokens are required and must be encrypted at rest.
@@ -33,6 +38,12 @@ This file contains concise, actionable guidance for AI coding agents working on 
    - `WRITE_FILE` in `main.js` expects a stringified JSON payload; if validation fails it returns `{ success: false, error: { message, details } }` — caller must handle and display messages (see `renderer.js` error handling via `displayValidationError`).
    - The renderer uses optimistic UI patterns (update UI and then persist). When modifying persistence behavior, ensure logs are appended via `addLogEntry` or `utils/database.appendActivityLog` to preserve audit trail.
    - The scheduler marks `post.posted = true` and writes back `scheduledPosts.json` after execution — avoid race conditions if multiple windows/processes manipulated the same file.
+   - File Duplication Prevention:
+     - Use provided deduplication helpers (e.g., `dedupeSavedConfigs`, `dedupeScheduledPosts`)
+     - Always check for existing files before creation using `getValidatorForFile`
+     - Ensure unique identifiers (timestamps, UUIDs) for new content
+     - Use file validation to prevent duplicate IDs in collections
+     - When creating new files, verify paths don't exist using `fs.exists`
 
 7. Quick examples to follow
    - Read settings (renderer): `const r = await window.api.readFile('data/settings.json'); const settings = JSON.parse(r.content);`
@@ -41,5 +52,68 @@ This file contains concise, actionable guidance for AI coding agents working on 
 
 8. When editing tests
    - Tests use Jest (see `jest.config.js`). Keep Node/Electron-specific APIs isolated or stubbed; prefer `utils/*` modules for pure JS logic to make unit testing straightforward.
+
+9. Context Gathering Best Practices
+   - Initial Workspace Understanding:
+     - Use semantic search to get high-level view of relevant code
+     - Use file search with patterns like `**/*.js` to find all JavaScript files
+     - Use grep search with regex patterns to find related functionality across files
+
+   - Deep Dive into Related Files:
+     - Read ALL related files in parallel when working with features
+     - For features affecting multiple tiers, check:
+       - `renderer.js` (UI logic)
+       - `styles.css` (styling)
+       - `preload.js` (IPC bridge)
+       - `main.js` (backend logic)
+       - Relevant config/validator files
+
+   - Dependency Chain Analysis:
+     - Follow imports/requires to understand file relationships
+     - Check all references to functions/variables
+     - Verify IPC channels in both main and renderer processes
+
+   - State Management Check:
+     - Review all state storage files in `data/`
+     - Check validator schemas before making changes
+     - Verify IPC communication patterns
+
+   - Test Coverage:
+     - Read relevant test files in `tests/` directory
+     - Ensure changes match existing test patterns
+
+10. Development Standards & Quality Gates
+    - Version Control:
+      - Follow semantic versioning (MAJOR.MINOR.PATCH)
+      - Branch naming: feature/*, bugfix/*, release/*
+      - Require signed commits
+      - PR template requirements in `.github/pull_request_template.md`
+
+    - Code Quality Requirements:
+      - 80% minimum test coverage
+      - Zero security vulnerabilities (run `npm audit`)
+      - ESLint compliance (configuration in `.eslintrc`)
+      - TypeScript strict mode preferred
+      - Documentation required for public APIs
+
+    - Security Requirements:
+      - Dependencies must be pinned to exact versions
+      - Weekly security updates required
+      - Input validation on all user-provided data
+      - Regular security audits
+      - OWASP compliance required
+
+    - Performance Standards:
+      - Maximum main thread blocking: 16ms
+      - Maximum initial load time: 2s
+      - Memory usage below 200MB
+      - CPU usage below 15% idle
+
+    - Release Process:
+      - Staging environment testing required
+      - Change log updates required
+      - Version bump in package.json
+      - Tag releases in git
+      - Generate release notes
 
 If anything in this file is unclear or you need more detail (e.g., validator schemas, encryption format, or OAuth CLIENT_ID placement), ask and I will expand specific sections.
