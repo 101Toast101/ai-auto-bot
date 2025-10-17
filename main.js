@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { encrypt, decrypt } = require('./utils/encrypt');
 const { logInfo, logError } = require('./utils/logger');
+const { registerVideoHandlers } = require('./handlers/video-handlers');
 const {
   validateSettings,
   validateScheduledPosts,
@@ -30,6 +31,9 @@ function createWindow() {
 app.whenReady().then(() => {
   logInfo('Starting AI Auto Bot...');
 
+  // Register video handlers
+  registerVideoHandlers(ipcMain, BrowserWindow);
+
   // Initialize data directory
   const dataDir = path.join(__dirname, 'data');
   if (!fs.existsSync(dataDir)) {
@@ -54,7 +58,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
-  
+
   // Start auto-scheduler after window is created
   setTimeout(() => {
     startScheduler();
@@ -168,7 +172,7 @@ ipcMain.handle('start-oauth', async (event, provider) => {
 // Helper function to get validator for file
 function getValidatorForFile(filePath) {
   const filename = path.basename(filePath);
-  
+
   switch (filename) {
     case 'settings.json':
       return validateSettings;
@@ -201,7 +205,7 @@ ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
   console.log('[IPC] WRITE_FILE:', filePath);
   try {
     const validator = getValidatorForFile(filePath);
-    
+
     if (validator) {
       let data;
       try {
@@ -215,7 +219,7 @@ ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
           }
         };
       }
-      
+
       const { valid, errors } = validator(data);
       if (!valid) {
         return {
@@ -227,7 +231,7 @@ ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
         };
       }
     }
-    
+
     await fs.promises.writeFile(filePath, content, 'utf-8');
     return { success: true };
   } catch (error) {
@@ -260,7 +264,7 @@ function startScheduler() {
   schedulerInterval = setInterval(async () => {
     try {
       const scheduledPostsPath = path.join(__dirname, 'data', 'scheduledPosts.json');
-      
+
       if (!fs.existsSync(scheduledPostsPath)) return;
 
       const content = await fs.promises.readFile(scheduledPostsPath, 'utf-8');
@@ -270,14 +274,14 @@ function startScheduler() {
       const now = new Date();
       const postsToExecute = posts.filter(post => {
         if (post.posted) return false;
-        
+
         const scheduledTime = new Date(post.scheduledTime);
         return scheduledTime <= now;
       });
 
       for (const post of postsToExecute) {
         console.log(`[Scheduler] Executing scheduled post: ${post.scheduledTime}`);
-        
+
         // Mark as posted
         post.posted = true;
         post.postedAt = new Date().toISOString();
@@ -292,8 +296,8 @@ function startScheduler() {
       // Save updated posts
       if (postsToExecute.length > 0) {
         await fs.promises.writeFile(
-          scheduledPostsPath, 
-          JSON.stringify(data, null, 2), 
+          scheduledPostsPath,
+          JSON.stringify(data, null, 2),
           'utf-8'
         );
       }

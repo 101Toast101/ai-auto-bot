@@ -7,6 +7,58 @@
   let selectedMemesForSlideshow = [];
   let videoBlob = null;
 
+  // Helper functions for UI notifications and progress
+  function showNotification(message, type = 'info') {
+    const errorContainer = $('errorContainer');
+    if (errorContainer) {
+      errorContainer.textContent = message;
+      errorContainer.className = `error-container ${type}`;
+      errorContainer.style.display = 'block';
+      errorContainer.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : type === 'warning' ? 'orange' : 'blue';
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        errorContainer.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  function showProgress(message) {
+    let overlay = $('progressOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'progressOverlay';
+      overlay.className = 'progress-overlay';
+      overlay.innerHTML = `
+        <div class="progress-content">
+          <p class="progress-text">${message}</p>
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    } else {
+      const text = overlay.querySelector('.progress-text');
+      if (text) text.textContent = message;
+      overlay.style.display = 'flex';
+    }
+  }
+
+  function hideProgress() {
+    const overlay = $('progressOverlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  }
+
+  function updateProgress(percent) {
+    const fill = document.querySelector('.progress-fill');
+    if (fill) {
+      fill.style.width = `${percent}%`;
+    }
+  }
+
   // Load meme templates
   async function loadMemeTemplates() {
     try {
@@ -38,6 +90,250 @@
 
   // Call on startup
   loadMemeTemplates();
+
+  // Initialize video features
+  async function initializeVideoFeatures() {
+    console.log('Initializing video features...');
+
+    // Use event delegation for dynamically created library items
+    document.addEventListener('click', async function(e) {
+      // Handle video conversion button
+      if (e.target.closest('.convert-to-video-btn')) {
+        e.preventDefault();
+        const btn = e.target.closest('.convert-to-video-btn');
+        const item = btn.closest('.library-item');
+        if (item && item.dataset.itemId) {
+          await handleVideoConversion(item.dataset.itemId);
+        }
+      }
+
+      // Handle GIF conversion button
+      if (e.target.closest('.convert-to-gif-btn')) {
+        e.preventDefault();
+        const btn = e.target.closest('.convert-to-gif-btn');
+        const item = btn.closest('.library-item');
+        if (item && item.dataset.itemId) {
+          await handleGifConversion(item.dataset.itemId);
+        }
+      }
+
+      // Handle add to slideshow button
+      if (e.target.closest('.add-to-slideshow-btn')) {
+        e.preventDefault();
+        const btn = e.target.closest('.add-to-slideshow-btn');
+        const item = btn.closest('.library-item');
+        if (item && item.dataset.itemId) {
+          if (selectedMemesForSlideshow.includes(item.dataset.itemId)) {
+            selectedMemesForSlideshow = selectedMemesForSlideshow.filter(id => id !== item.dataset.itemId);
+          } else {
+            selectedMemesForSlideshow.push(item.dataset.itemId);
+          }
+          updateSlideshowUI();
+        }
+      }
+    });
+
+    // Listen for video progress updates
+    if (window.api && window.api.onVideoProgress) {
+      window.api.onVideoProgress((progress) => {
+        console.log('Video progress:', progress);
+        if (progress.progress !== undefined) {
+          updateProgress(progress.progress);
+        }
+      });
+    }
+  }
+
+  // Handle video conversion
+  async function handleVideoConversion(itemId) {
+    try {
+      console.log('Starting video conversion for item:', itemId);
+
+      const library = await loadLibraryItem(itemId);
+      if (!library || !library.url) {
+        throw new Error('Invalid library item - missing URL');
+      }
+
+      console.log('Converting image to video:', library.url);
+
+      // Show progress indicator
+      showProgress('Converting to video...');
+
+      const result = await window.api.generateVideo({
+        imagePath: library.url,
+        duration: 10,
+        resolution: '1080x1080',
+        fps: 30
+      });
+
+      console.log('Video generation result:', result);
+
+      if (result && result.success) {
+        // Update library with new video
+        await updateLibraryWithVideo(itemId, result.path);
+        showNotification('Video conversion complete!', 'success');
+      } else {
+        throw new Error(result?.error || 'Video conversion failed');
+      }
+    } catch (error) {
+      console.error('Video conversion error:', error);
+      showNotification('Failed to convert to video: ' + error.message, 'error');
+    } finally {
+      hideProgress();
+    }
+  }
+
+  // Handle slideshow creation
+  async function handleSlideshowCreation() {
+    try {
+      if (selectedMemesForSlideshow.length < 2) {
+        showNotification('Please select at least 2 images for slideshow', 'warning');
+        return;
+      }
+
+      showProgress('Creating slideshow...');
+
+      // Get the actual image paths/URLs from the selected IDs
+      const libRes = await readFileAsync(PATHS.LIBRARY);
+      if (!libRes.success) {
+        throw new Error('Failed to load library');
+      }
+
+      const library = safeParse(libRes.content, []);
+      const imagePaths = selectedMemesForSlideshow
+        .map(id => {
+          const item = library.find(libItem => libItem.id === id);
+          return item ? item.url : null;
+        })
+        .filter(url => url !== null);
+
+      if (imagePaths.length < 2) {
+        throw new Error('Could not find selected images');
+      }
+
+      const result = await window.api.generateSlideshow({
+        imagePaths: imagePaths,
+        duration: 3,
+        resolution: '1080x1080',
+        transition: 'fade',
+        fps: 30
+      });
+
+      if (result.success) {
+        // Add to library
+        await addToLibrary({
+          type: 'video',
+          url: result.path,
+          caption: 'Generated Slideshow',
+          created: new Date().toISOString()
+        });
+        showNotification('Slideshow created successfully!', 'success');
+      } else {
+        throw new Error(result.error || 'Slideshow creation failed');
+      }
+    } catch (error) {
+      console.error('Slideshow creation error:', error);
+      showNotification('Failed to create slideshow: ' + error.message, 'error');
+    } finally {
+      hideProgress();
+      selectedMemesForSlideshow = [];
+      updateSlideshowUI();
+    }
+  }
+
+  // Handle GIF conversion
+  async function handleGifConversion(itemId) {
+    try {
+      const library = await loadLibraryItem(itemId);
+      if (!library || !library.url) {
+        throw new Error('Invalid library item');
+      }
+
+      showProgress('Converting to GIF...');
+
+      const result = await window.api.generateGif({
+        imagePath: library.url,
+        width: 480,
+        height: 480,
+        duration: 3,
+        fps: 15
+      });
+
+      if (result.success) {
+        // Add to library
+        await addToLibrary({
+          type: 'image',
+          url: result.path,
+          caption: 'Converted GIF',
+          created: new Date().toISOString()
+        });
+        showNotification('GIF conversion complete!', 'success');
+      } else {
+        throw new Error(result.error || 'GIF conversion failed');
+      }
+    } catch (error) {
+      console.error('GIF conversion error:', error);
+      showNotification('Failed to convert to GIF: ' + error.message, 'error');
+    } finally {
+      hideProgress();
+    }
+  }
+
+  // Helper function to load a library item by ID
+  async function loadLibraryItem(itemId) {
+    const libRes = await readFileAsync(PATHS.LIBRARY);
+    if (!libRes.success) return null;
+
+    const library = safeParse(libRes.content, []);
+    return library.find(item => item.id === itemId);
+  }
+
+  // Update the library with a new video
+  async function updateLibraryWithVideo(itemId, videoUrl) {
+    const libRes = await readFileAsync(PATHS.LIBRARY);
+    if (!libRes.success) return false;
+
+    let library = safeParse(libRes.content, []);
+    const index = library.findIndex(item => item.id === itemId);
+
+    if (index === -1) return false;
+
+    library[index] = {
+      ...library[index],
+      url: videoUrl,
+      type: 'video',
+      modified: new Date().toISOString()
+    };
+
+    await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
+    await displayLibraryContent(); // Refresh display
+    return true;
+  }
+
+  // Update UI to reflect selected items for slideshow
+  function updateSlideshowUI() {
+    document.querySelectorAll('.library-item').forEach(item => {
+      const isSelected = selectedMemesForSlideshow.includes(item.dataset.itemId);
+      item.classList.toggle('selected-for-slideshow', isSelected);
+    });
+
+    // Update the create slideshow button state
+    const slideshowBtn = $('createSlideshowBtn');
+    const slideshowCount = $('slideshowCount');
+
+    if (slideshowBtn) {
+      if (selectedMemesForSlideshow.length >= 2) {
+        slideshowBtn.style.display = '';
+        slideshowBtn.disabled = false;
+      } else {
+        slideshowBtn.style.display = 'none';
+      }
+    }
+
+    if (slideshowCount) {
+      slideshowCount.textContent = selectedMemesForSlideshow.length;
+    }
+  }
 
   // IPC WRAPPERS
   async function readFileAsync(filePath) {
@@ -176,6 +472,7 @@
     library.forEach(item => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'library-item';
+      itemDiv.dataset.itemId = item.id;
       itemDiv.style.cssText = 'border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: var(--glass-bg);';
 
       // Media preview
@@ -198,6 +495,54 @@
       }
 
       itemDiv.appendChild(mediaContainer);
+
+      // Add video control buttons
+      const controlsDiv = document.createElement('div');
+      controlsDiv.className = 'video-controls';
+
+      // Convert to Video button
+      if (item.type === 'image') {
+        const videoBtn = document.createElement('button');
+        videoBtn.className = 'toolbar-btn convert-to-video-btn';
+        videoBtn.title = 'Convert to Video';
+        videoBtn.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/>
+            <path d="M10 8l6 4-6 4V8z" fill="currentColor"/>
+          </svg>
+        `;
+        controlsDiv.appendChild(videoBtn);
+      }
+
+      // Convert to GIF button
+      if (item.type === 'video') {
+        const gifBtn = document.createElement('button');
+        gifBtn.className = 'toolbar-btn convert-to-gif-btn';
+        gifBtn.title = 'Convert to GIF';
+        gifBtn.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+            <text x="6" y="16" font-size="10" fill="currentColor">GIF</text>
+          </svg>
+        `;
+        controlsDiv.appendChild(gifBtn);
+      }
+
+      // Add to Slideshow button
+      if (item.type === 'image') {
+        const slideshowBtn = document.createElement('button');
+        slideshowBtn.className = 'toolbar-btn add-to-slideshow-btn';
+        slideshowBtn.title = 'Add to Slideshow';
+        slideshowBtn.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="4" y="4" width="12" height="12" stroke-width="2"/>
+            <rect x="8" y="8" width="12" height="12" stroke-width="2"/>
+          </svg>
+        `;
+        controlsDiv.appendChild(slideshowBtn);
+      }
+
+      itemDiv.appendChild(controlsDiv);
 
       // Info section
       const info = document.createElement('div');
@@ -1180,6 +1525,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const on = ev.target.checked;
     document.documentElement.classList.toggle('dark', on);
     document.body.classList.toggle('dark', on);
+
+    // Also apply to container for full coverage
+    const container = document.querySelector('.container');
+    if (container) container.classList.toggle('dark', on);
+
     addLogEntry(`Dark mode ${on ? 'enabled' : 'disabled'}`);
   }
 
@@ -1208,15 +1558,181 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   function handleVideoModeChange(ev) {
     const mode = ev?.target?.value || $('videoMode')?.value;
 
+    // Update visible options based on mode
+    const sections = {
+      'text': ['videoPromptLabel', 'generateVideoBtn'],
+      'memes': ['selectMemesLabel', 'selectedMemesContainer'],
+      'gif': ['sourceImageLabel', 'createVariationsBtn']
+    };
+
+    // Hide all sections first
+    Object.values(sections).flat().forEach(id => {
+      if ($(id)) $(id).style.display = 'none';
+    });
+
+    // Show relevant sections
+    if (sections[mode]) {
+      sections[mode].forEach(id => {
+        if ($(id)) $(id).style.display = '';
+      });
+    }
+
+    // Update action button text
+    const actionBtn = $('generateVideoBtn');
+    if (actionBtn) {
+      actionBtn.textContent = mode === 'gif' ? 'Create GIF' : 'Generate Video';
+    }
+
+    addLogEntry(`Video mode set to ${mode}`);
+  }
+
+  // Handle video generation
+  async function handleVideoGeneration() {
+    const mode = $('videoMode')?.value;
+    const resolution = $('aspectRatio')?.value === '1:1' ? '1080x1080' :
+                      $('aspectRatio')?.value === '16:9' ? '1920x1080' : '1080x1920';
+
+    try {
+      let result;
+
+      // Show progress indicator
+      const progressBar = document.createElement('div');
+      progressBar.className = 'progress-bar';
+      $('videoFields').appendChild(progressBar);
+
+      // Listen for progress updates
+      window.api.onVideoProgress((progress) => {
+        progressBar.style.width = `${progress.progress}%`;
+        if (progress.status === 'complete') {
+          progressBar.remove();
+        }
+      });
+
+      switch (mode) {
+        case 'text': {
+          // AI Video generation will be implemented in phase 4
+          break;
+        }
+
+        case 'memes': {
+          // Get selected memes from the container
+          const selectedMemes = Array.from($('selectedMemesList').children)
+            .map(el => el.dataset.path)
+            .filter(Boolean);
+
+          if (selectedMemes.length === 0) {
+            throw new Error('Please select at least one meme');
+          }
+
+          result = await window.api.generateSlideshow({
+            imagePaths: selectedMemes,
+            duration: parseInt($('videoDuration')?.value || '3'),
+            resolution,
+            fps: parseInt($('frameRate')?.value || '30'),
+            transition: 'fade'
+          });
+          break;
+        }
+
+        case 'gif': {
+          const sourceImage = $('sourceImage')?.files[0];
+          if (!sourceImage) {
+            throw new Error('Please select a source image');
+          }
+
+          result = await window.api.generateGif({
+            imagePath: sourceImage.path,
+            width: resolution.split('x')[0],
+            height: resolution.split('x')[1],
+            duration: parseInt($('videoDuration')?.value || '3'),
+            fps: 15
+          });
+          break;
+        }
+      }
+
+      if (result?.success) {
+        // Add to library
+        const libraryItem = {
+          id: `content_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: mode === 'gif' ? 'gif' : 'video',
+          url: result.path,
+          caption: $('caption')?.value || '',
+          hashtags: $('hashtags')?.value || '',
+          contentType: 'video',
+          createdAt: new Date().toISOString()
+        };
+
+        await addToLibrary(libraryItem);
+        addLogEntry(`${mode === 'gif' ? 'GIF' : 'Video'} generated successfully`);
+      } else {
+        throw new Error(result?.error || 'Generation failed');
+      }
+    } catch (error) {
+      displayError(error);
+    }
+  }
+
+  // Handle meme selection for video compilation
+  function handleMemeSelection() {
+    const selectedMemesList = $('selectedMemesList');
+    const libraryGrid = $('libraryGrid');
+
+    // Create selection mode UI
+    libraryGrid.classList.add('selection-mode');
+    const selectionHeader = document.createElement('div');
+    selectionHeader.innerHTML = `
+      <div style="padding: 10px; background: var(--glass-bg); position: sticky; top: 0; z-index: 10;">
+        <h3>Select memes for your compilation</h3>
+        <button id="doneSelectingBtn" style="margin-top: 10px;">Done Selecting</button>
+      </div>
+    `;
+    libraryGrid.prepend(selectionHeader);
+
+    // Add selection functionality to library items
+    libraryGrid.querySelectorAll('.library-item').forEach(item => {
+      item.onclick = () => {
+        if (item.classList.toggle('selected')) {
+          // Add to selected list
+          const preview = document.createElement('div');
+          preview.className = 'selected-meme-preview';
+          preview.dataset.path = item.dataset.path;
+          preview.innerHTML = `
+            <img src="${item.querySelector('img').src}" style="width: 100px; height: 100px; object-fit: cover;">
+            <button class="remove-selected">×</button>
+          `;
+          preview.querySelector('.remove-selected').onclick = () => {
+            preview.remove();
+            item.classList.remove('selected');
+          };
+          selectedMemesList.appendChild(preview);
+        } else {
+          // Remove from selected list
+          selectedMemesList.querySelector(`[data-path="${item.dataset.path}"]`)?.remove();
+        }
+      };
+    });
+
+    // Handle done selecting
+    $('doneSelectingBtn').onclick = () => {
+      libraryGrid.classList.remove('selection-mode');
+      selectionHeader.remove();
+      libraryGrid.querySelectorAll('.library-item').forEach(item => {
+        item.onclick = null;
+        item.classList.remove('selected');
+      });
+    };
+  }
+
+  function handleVideoModeChange() {
+    const mode = $('videoMode')?.value;
     const memeToVideoOptions = $('memeToVideoOptions');
     const slideshowOptions = $('slideshowOptions');
-    const gifOptions = $('gifOptions');
     const aiVideoOptions = $('aiVideoOptions');
 
-    // Hide all option sections
+    // Hide all option sections first
     if (memeToVideoOptions) memeToVideoOptions.style.display = 'none';
     if (slideshowOptions) slideshowOptions.style.display = 'none';
-    if (gifOptions) gifOptions.style.display = 'none';
     if (aiVideoOptions) aiVideoOptions.style.display = 'none';
 
     // Show relevant section
@@ -2722,7 +3238,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       return;
     }
 
-    // Initialize library display and filters
+    // Initialize video functionality
+    await initializeVideoFeatures();
+
+    // Set up event listeners for library display and filters
     displayLibraryContent();
     const searchInput = $('librarySearch');
     const filterSelect = $('libraryFilter');
@@ -2736,6 +3255,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if (filterSelect) {
       filterSelect.addEventListener('change', () => {
         displayLibraryContent();
+      });
+    }
+
+    // Set up create slideshow button
+    const createSlideshowBtn = $('createSlideshowBtn');
+    if (createSlideshowBtn) {
+      createSlideshowBtn.addEventListener('click', async () => {
+        await handleSlideshowCreation();
       });
     }
 
@@ -2754,7 +3281,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         populateTimezones(),
         populateSavedConfigs(),
         populateScheduledPosts(),
-        renderLibrary()
+        renderLibrary(),
+        fetchMemeTemplates()
       ]);
 
       // Load settings last
@@ -2769,35 +3297,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       }
 
       console.log('Initialization complete!');
-
-      // Load settings from file
-      const settingsResult = await window.api.readFile('data/settings.json');
-      if (settingsResult.success) {
-        const obj = safeParse(settingsResult.content, {});
-        const decryptedObj = await decryptSensitiveFields(obj);
-        populateFormFromObject(decryptedObj);
-        addLogEntry('Loaded and decrypted settings from data/settings.json');
-      } else {
-        addLogEntry('No settings file loaded - starting fresh');
-      }
-    } catch (err) {
-      console.error('Initialization error:', err);
-      const errorContainer = $('errorContainer');
-      if (errorContainer) {
-        errorContainer.textContent = `Initialization failed: ${err.message}`;
-        errorContainer.style.display = 'block';
-      }
-      addLogEntry(`Initialization error: ${err.message}`);
-      return;
+    } catch (error) {
+      console.error('Initialization error:', error);
+      addLogEntry('Initialization failed: ' + error.message, 'error');
     }
-
-    const sched = $('scheduleDateTime');
-    if (sched && !sched.value) {
-      sched.value = toDateTimeLocal(new Date().toISOString());
-    }
-
-    await fetchMemeTemplates();
-    addDownloadButton();
 
     // Listen for scheduled posts from main process
     if (window.api && window.api.onScheduledPost) {
@@ -2810,56 +3313,43 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
           populateFormFromObject(decryptedSource);
         }
 
-        // Wait a moment for form to populate
+        // Wait a moment for form to populate, then post
         setTimeout(() => {
           handlePostNow();
         }, 1000);
       });
     }
 
-    // Listen for tokens from main process and persist via existing helpers
-	if (window.api?.onOAuthToken) {
-	  window.api.onOAuthToken(async (data) => {
+    // Listen for OAuth tokens from main process
+    if (window.api && window.api.onOAuthToken) {
+      window.api.onOAuthToken(async (data) => {
         const provider = data.provider; // 'instagram'|'tiktok'|'youtube'|'twitter'
         const token = data.token;
-		if (!provider || !token) return;
+        if (!provider || !token) return;
 
-		// Fill hidden input so the UI and post flow see it
-        const input = document.getElementById(`${provider}Token`);
-		if (input) input.value = token;
+        // Fill hidden input so the UI and post flow see it
+        const input = $(`${provider}Token`);
+        if (input) input.value = token;
 
-		// Persist token into settings using your encryptSensitiveFields/writeFileAsync helpers
+        // Persist token into settings
         const r = await readFileAsync(PATHS.SETTINGS);
         const settings = r.success ? safeParse(r.content, {}) : {};
-            settings[`${provider}Token`] = token;
+        settings[`${provider}Token`] = token;
 
         const encrypted = await encryptSensitiveFields(settings);
         const w = await writeFileAsync(PATHS.SETTINGS, JSON.stringify(encrypted, null, 2));
-		if (w.success) {
-		  addLogEntry(`Saved ${provider} token (encrypted)`);
-		} else {
-		  addLogEntry(`Failed to save ${provider} token: ${w.error?.message || 'unknown'}`);
+        if (w.success) {
+          addLogEntry(`Saved ${provider} token (encrypted)`);
+        } else {
+          addLogEntry(`Failed to save ${provider} token: ${w.error?.message || 'unknown'}`);
         }
       });
-  }
+    }
+
     addLogEntry('AI Auto Bot ready - All functions operational');
     addLogEntry('📅 Auto-scheduler is active - checking every minute');
   }
 
-  // Ensure document is ready before initializing
-  if (document.readyState === 'loading') {
-    console.log('Document still loading, waiting for DOMContentLoaded...');
-    window.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded fired, initializing...');
-      init();
-    });
-  } else {
-    console.log('Document already loaded, initializing immediately...');
-    init();
-  }
-
-  // Log window load for debugging
-  window.addEventListener('load', () => {
-    console.log('Window load complete');
-  });
+  // Run initialization when the window loads
+  window.addEventListener('DOMContentLoaded', init);
 })();

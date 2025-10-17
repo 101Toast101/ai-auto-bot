@@ -27,6 +27,8 @@
   "author": "Your Name <you@example.com>",
   "dependencies": {
     "dotenv": "^17.2.2",
+    "ffmpeg-static": "^5.2.0",
+    "gif-encoder-2": "^1.0.5",
     "lru-cache": "^11.2.2",
     "winston": "^3.9.0"
   },
