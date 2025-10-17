@@ -848,6 +848,37 @@
     $('bulkModal').style.display = 'none';
   }
 
+  function handleBulkContentTypeChange() {
+    const contentType = $('bulkContentType')?.value;
+    const isVideo = contentType === 'video';
+
+    // Show/hide video-specific options
+    const videoModeLabel = $('bulkVideoModeLabel');
+    const videoDurationLabel = $('bulkVideoDurationLabel');
+    if (videoModeLabel) videoModeLabel.style.display = isVideo ? '' : 'none';
+    if (videoDurationLabel) videoDurationLabel.style.display = isVideo ? '' : 'none';
+
+    // Show/hide meme-specific options
+    const templateStrategyLabel = $('bulkTemplateStrategyLabel');
+    const textModeLabel = $('bulkTextModeLabel');
+    if (templateStrategyLabel) templateStrategyLabel.style.display = isVideo ? 'none' : '';
+    if (textModeLabel) textModeLabel.style.display = isVideo ? 'none' : '';
+
+    // Update visibility of dependent meme fields
+    if (!isVideo) {
+      handleBulkTemplateStrategyChange();
+      handleBulkTextModeChange();
+    } else {
+      // Hide all meme-specific dependent fields when in video mode
+      const singleLabel = $('bulkSingleTemplateLabel');
+      const aiLabel = $('bulkAiPromptLabel');
+      const manualLabel = $('bulkManualTextLabel');
+      if (singleLabel) singleLabel.style.display = 'none';
+      if (aiLabel) aiLabel.style.display = 'none';
+      if (manualLabel) manualLabel.style.display = 'none';
+    }
+  }
+
   function handleBulkTemplateStrategyChange() {
     const strategy = $('bulkTemplateStrategy')?.value;
     const singleLabel = $('bulkSingleTemplateLabel');
@@ -874,6 +905,23 @@
   }
 
   async function startBulkGeneration() {
+    try {
+      const contentType = $('bulkContentType')?.value || 'meme';
+      
+      // Route to appropriate generator based on content type
+      if (contentType === 'video') {
+        await startBulkVideoGeneration();
+      } else {
+        await startBulkMemeGeneration();
+      }
+    } catch (error) {
+      hideSpinner();
+      $('bulkProgressText').textContent = `Error: ${error.message}`;
+      addLogEntry(`Bulk generation failed: ${error.message}`);
+    }
+  }
+
+  async function startBulkMemeGeneration() {
     try {
       const quantity = parseInt($('bulkQuantity')?.value || '10');
       const textMode = $('bulkTextMode')?.value || 'manual';
@@ -957,7 +1005,127 @@
     } catch (error) {
       hideSpinner();
       $('bulkProgressText').textContent = `Error: ${error.message}`;
-      addLogEntry(`Bulk generation failed: ${error.message}`);
+      addLogEntry(`Bulk meme generation failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async function startBulkVideoGeneration() {
+    try {
+      const quantity = parseInt($('bulkQuantity')?.value || '10');
+      const videoMode = $('bulkVideoMode')?.value || 'meme-to-video';
+      const duration = parseInt($('bulkVideoDuration')?.value || '10');
+      const textMode = $('bulkTextMode')?.value || 'manual';
+
+      bulkGeneratedContent = [];
+      $('bulkProgress').style.display = 'block';
+      $('bulkComplete').style.display = 'none';
+      $('bulkPreviewGrid').innerHTML = '';
+      $('bulkProgressBar').style.width = '0%';
+
+      const platforms = [];
+      if ($('bulkInstagram')?.checked) platforms.push({ name: 'instagram', width: 1080, height: 1080 });
+      if ($('bulkTikTok')?.checked) platforms.push({ name: 'tiktok', width: 1080, height: 1920 });
+      if ($('bulkYouTube')?.checked) platforms.push({ name: 'youtube', width: 1280, height: 720 });
+      if ($('bulkTwitter')?.checked) platforms.push({ name: 'twitter', width: 1200, height: 675 });
+
+      if (platforms.length === 0) {
+        platforms.push({ name: 'instagram', width: 1080, height: 1080 });
+      }
+
+      if (videoMode === 'text-to-video') {
+        // Future: AI text-to-video generation using OpenAI/Runway
+        throw new Error('AI Text-to-Video is coming soon! Use "Convert Memes to Videos" for now.');
+      } else {
+        // Mode: meme-to-video - Generate memes first, then convert to videos
+        showSpinner('Generating meme variations...');
+        const textVariations = await generateBulkTextVariations(quantity, textMode);
+        hideSpinner();
+
+        const strategy = $('bulkTemplateStrategy')?.value || 'random';
+        let templateToUse = null;
+        if (strategy === 'single') {
+          templateToUse = $('bulkSingleTemplate')?.value || 'tenguy';
+        }
+
+        for (let i = 0; i < quantity; i++) {
+          const variation = textVariations[i];
+          const template = templateToUse || allTemplates[Math.floor(Math.random() * allTemplates.length)]?.id || 'tenguy';
+
+          for (const dims of platforms) {
+            const memeUrl = `https://api.memegen.link/images/${template}/${formatMemeText(variation.top)}/${formatMemeText(variation.bottom)}.png`;
+
+            showSpinner(`Converting to video ${i * platforms.length + platforms.indexOf(dims) + 1}/${quantity * platforms.length}...`);
+
+            try {
+              // Convert meme to video using IPC handler
+              const videoResult = await window.api.invoke('meme-to-video', {
+                imageUrl: memeUrl,
+                duration: duration,
+                resolution: `${dims.width}x${dims.height}`,
+                fps: 30
+              });
+
+              if (videoResult.success) {
+                await addToLibrary({
+                  url: `file://${videoResult.path}`,
+                  type: 'video',
+                  platform: dims.name,
+                  caption: `${variation.top} ${variation.bottom}`,
+                  hashtags: $('bulkHashtagMode')?.value === 'manual' ? ($('bulkManualHashtags')?.value || '') : '#video #meme #viral',
+                  metadata: {
+                    dimensions: dims,
+                    template,
+                    variation,
+                    duration,
+                    originalMemeUrl: memeUrl,
+                    videoPath: videoResult.path
+                  },
+                  contentType: 'video',
+                  status: 'draft'
+                });
+
+                const preview = document.createElement('div');
+                preview.style.cssText = 'border: 2px solid #9f7aea; border-radius: 8px; overflow: hidden;';
+                preview.innerHTML = `
+                  <video src="file://${videoResult.path}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
+                  <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
+                    📹 ${dims.name} (${duration}s)
+                  </div>
+                `;
+                $('bulkPreviewGrid').appendChild(preview);
+              }
+            } catch (videoError) {
+              console.error('Video conversion error:', videoError);
+              addLogEntry(`Failed to convert video ${i + 1}: ${videoError.message}`);
+            }
+
+            hideSpinner();
+          }
+
+          const progress = ((i + 1) / quantity) * 100;
+          $('bulkProgressBar').style.width = `${progress}%`;
+          $('bulkProgressText').textContent = `Generated ${i + 1}/${quantity} (${bulkGeneratedContent.length} total videos)`;
+
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        $('bulkProgressText').textContent = `Complete! Generated ${bulkGeneratedContent.length} videos`;
+        $('bulkComplete').style.display = 'block';
+
+        const libRes = await readFileAsync(PATHS.LIBRARY);
+        let library = libRes.success ? safeParse(libRes.content, []) : [];
+        library = bulkGeneratedContent.concat(library);
+        await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
+        await renderLibrary();
+
+        addLogEntry(`Bulk generated ${bulkGeneratedContent.length} videos from memes`);
+      }
+    } catch (error) {
+      hideSpinner();
+      $('bulkProgressText').textContent = `Error: ${error.message}`;
+      addLogEntry(`Bulk video generation failed: ${error.message}`);
+      throw error;
     }
   }
 
@@ -3090,6 +3258,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     $('downloadBulkZip')?.addEventListener('click', downloadBulkZip);
     $('downloadBulkCSV')?.addEventListener('click', downloadBulkCSV);
 
+    $('bulkContentType')?.addEventListener('change', handleBulkContentTypeChange);
     $('bulkTemplateStrategy')?.addEventListener('change', handleBulkTemplateStrategyChange);
     $('bulkTextMode')?.addEventListener('change', handleBulkTextModeChange);
     $('bulkHashtagMode')?.addEventListener('change', handleBulkHashtagModeChange);

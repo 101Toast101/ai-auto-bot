@@ -62,11 +62,24 @@
             Content Type
             <select id="bulkContentType">
               <option value="meme">Meme</option>
-              <option value="video">Video (Coming Soon)</option>
+              <option value="video">Video</option>
             </select>
           </label>
 
-          <label>
+          <label id="bulkVideoModeLabel" style="display: none;">
+            Video Mode
+            <select id="bulkVideoMode">
+              <option value="meme-to-video">Convert Memes to Videos</option>
+              <option value="text-to-video">AI Text-to-Video (Coming Soon)</option>
+            </select>
+          </label>
+
+          <label id="bulkVideoDurationLabel" style="display: none;">
+            Video Duration (seconds)
+            <input type="number" id="bulkVideoDuration" min="3" max="30" value="10" />
+          </label>
+
+          <label id="bulkTemplateStrategyLabel">
             Template Strategy
             <select id="bulkTemplateStrategy">
               <option value="random">Random Templates</option>
@@ -79,7 +92,7 @@
             <select id="bulkSingleTemplate"></select>
           </label>
 
-          <label>
+          <label id="bulkTextModeLabel">
             Text Mode
             <select id="bulkTextMode">
               <option value="ai">AI Generated</option>
