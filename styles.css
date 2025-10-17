@@ -210,6 +210,10 @@ form fieldset,
   box-shadow: var(--shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  position: relative;
+  /* Create stacking context */
+  z-index: 1;
+  /* Base z-index */
 }
 
 form fieldset:hover,
@@ -218,6 +222,8 @@ form fieldset:hover,
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(74, 144, 226, 0.3);
+  z-index: 10;
+  /* Bring to front on hover */
 }
 
 body.dark form fieldset:hover,

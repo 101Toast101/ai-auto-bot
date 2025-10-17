@@ -14,18 +14,29 @@ const {
 } = require('./utils/validators');
 
 let schedulerInterval = null;
+let mainWindow = null;  // Store window reference globally
 
 function createWindow() {
-  let win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1500,
     height: 1100,
+    minWidth: 800,    // Prevent window from shrinking too narrow (matches CSS min-width)
+    minHeight: 600,   // Prevent window from shrinking too short
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false
     }
   });
-  win.loadFile(path.join(__dirname, 'index.html'));
+
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  // Prevent garbage collection
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+
+  return mainWindow;
 }
 
 app.whenReady().then(() => {
