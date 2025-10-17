@@ -902,11 +902,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const template = obj.metadata?.template || obj.template || obj.memeTemplate || '';
       const topText = obj.metadata?.variation?.top || obj.topText || obj.caption?.split('\n')[0] || '';
       const bottomText = obj.metadata?.variation?.bottom || obj.bottomText || obj.caption?.split('\n')[1] || '';
-      
+
       if ($('memeTemplate')) $('memeTemplate').value = template;
       if ($('memeTopText')) $('memeTopText').value = topText;
       if ($('memeBottomText')) $('memeBottomText').value = bottomText;
-      
+
       // Always update preview when setting meme content
       updateMemePreview();
     }
