@@ -475,7 +475,8 @@
       const itemDiv = document.createElement('div');
       itemDiv.className = 'library-item';
       itemDiv.dataset.itemId = item.id;
-      itemDiv.style.cssText = 'border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: var(--glass-bg);';
+      // REMOVED inline styles to let CSS handle dark mode
+      // itemDiv.style.cssText = 'border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: var(--glass-bg);';
 
       // Media preview
       const mediaContainer = document.createElement('div');
@@ -573,9 +574,9 @@
 
       itemDiv.appendChild(controlsDiv);
 
-      // Info section
+      // Info section - increased bottom padding for buttons
       const info = document.createElement('div');
-      info.style.cssText = 'padding: 12px;';
+      info.style.cssText = 'padding: 12px 12px 16px 12px;';
 
       // Type badge
       const typeBadge = document.createElement('span');
@@ -597,20 +598,27 @@
         info.appendChild(hashtags);
       }
 
-      // Action buttons
+      // Action buttons - made more visible and compact
       const actions = document.createElement('div');
-      actions.style.cssText = 'display: flex; gap: 8px; margin-top: 8px;';
+      actions.style.cssText = 'display: flex; gap: 6px; margin-top: 10px; width: 100%;';
+
+      // Reuse button - loads content back into main form
+      const reuseBtn = document.createElement('button');
+      reuseBtn.textContent = 'Reuse';
+      reuseBtn.style.cssText = 'flex: 1; min-width: 60px; padding: 8px 4px; background: #4299e1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap;';
+      reuseBtn.onclick = () => reuseFromLibrary(item.id);
 
       const scheduleBtn = document.createElement('button');
       scheduleBtn.textContent = 'Schedule';
-      scheduleBtn.style.cssText = 'flex: 1; padding: 6px; background: #48bb78; color: white; border: none; border-radius: 4px; cursor: pointer;';
+      scheduleBtn.style.cssText = 'flex: 1; min-width: 60px; padding: 8px 4px; background: #48bb78; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap;';
       scheduleBtn.onclick = () => schedulePost(item.id);
 
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = 'Delete';
-      deleteBtn.style.cssText = 'flex: 1; padding: 6px; background: #e53e3e; color: white; border: none; border-radius: 4px; cursor: pointer;';
+      deleteBtn.style.cssText = 'flex: 1; min-width: 60px; padding: 8px 4px; background: #e53e3e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap;';
       deleteBtn.onclick = () => deleteFromLibrary(item.id);
 
+      actions.appendChild(reuseBtn);
       actions.appendChild(scheduleBtn);
       actions.appendChild(deleteBtn);
 
@@ -694,7 +702,7 @@
   // Schedule a post from library
   async function schedulePost(contentId) {
     try {
-      // Load the content from library
+      // STEP 1: Load the content from library
       const libRes = await readFileAsync(PATHS.LIBRARY);
       if (!libRes.success) {
         throw new Error('Failed to load library');
@@ -705,47 +713,202 @@
         throw new Error('Content not found in library');
       }
 
-      // Generate a unique ID for the scheduled post
-      const id = 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-      // Get scheduling time from UI
-      const scheduleTime = $('scheduleTime')?.value;
-      if (!scheduleTime) {
-        throw new Error('Please select a schedule time');
+      // STEP 2: Validate scheduling parameters
+      const scheduleDateTime = $('scheduleDateTime')?.value;
+      if (!scheduleDateTime) {
+        addLogEntry('⚠️ Please set a schedule date/time in the Scheduling section', 'warning');
+        $('scheduleDateTime')?.focus();
+        return;
       }
 
-      // Create the post object
+      // Check if scheduled time is in the future
+      const scheduledTime = new Date(scheduleDateTime);
+      if (scheduledTime <= new Date()) {
+        addLogEntry('⚠️ Schedule time must be in the future', 'warning');
+        $('scheduleDateTime')?.focus();
+        return;
+      }
+
+      // STEP 3: Validate platform selection
+      const selectedPlatforms = [];
+      if ($('postInstagram')?.checked) selectedPlatforms.push('instagram');
+      if ($('postTikTok')?.checked) selectedPlatforms.push('tiktok');
+      if ($('postYouTube')?.checked) selectedPlatforms.push('youtube');
+      if ($('postTwitter')?.checked) selectedPlatforms.push('twitter');
+
+      if (selectedPlatforms.length === 0) {
+        addLogEntry('⚠️ Please select at least one platform in the Platforms section', 'warning');
+        return;
+      }
+
+      // STEP 4: Load settings to check for social media tokens and API keys
+      const settingsRes = await readFileAsync(PATHS.SETTINGS);
+      const settings = settingsRes.success ? safeParse(settingsRes.content, {}) : {};
+
+      // Check social media authentication for selected platforms
+      const missingAuth = [];
+      const warningMessages = [];
+
+      if (selectedPlatforms.includes('instagram') && !settings.instagramToken) {
+        missingAuth.push('Instagram');
+      }
+      if (selectedPlatforms.includes('tiktok') && !settings.tiktokToken) {
+        missingAuth.push('TikTok');
+      }
+      if (selectedPlatforms.includes('youtube') && !settings.youtubeToken) {
+        missingAuth.push('YouTube');
+      }
+      if (selectedPlatforms.includes('twitter') && !settings.twitterToken) {
+        missingAuth.push('Twitter');
+      }
+
+      if (missingAuth.length > 0) {
+        addLogEntry(`⚠️ Missing social media authentication for: ${missingAuth.join(', ')}. Please connect in the Platforms section.`, 'warning');
+        warningMessages.push(`Social media: ${missingAuth.join(', ')}`);
+      }
+
+      // STEP 5: Check AI provider API keys (if content was AI-generated)
+      if (content.metadata?.generatedBy?.includes('ai') || content.metadata?.provider) {
+        const aiProvider = content.metadata?.provider || 'openai';
+        
+        if (aiProvider === 'openai' && !settings.apiKey) {
+          addLogEntry('⚠️ Missing OpenAI API key. Please set in AI Provider section.', 'warning');
+          warningMessages.push('AI Provider: OpenAI');
+        }
+        
+        if (aiProvider === 'runway' && !settings.runwayApiKey) {
+          addLogEntry('⚠️ Missing Runway ML API key. Please set in AI Provider section.', 'warning');
+          warningMessages.push('AI Provider: Runway ML');
+        }
+      }
+
+      // STEP 6: Show summary of missing requirements
+      if (warningMessages.length > 0) {
+        const continueAnyway = confirm(
+          `⚠️ Missing required credentials:\n\n${warningMessages.join('\n')}\n\n` +
+          `The post will be scheduled, but may fail when attempting to post.\n\n` +
+          `Do you want to schedule anyway?`
+        );
+        
+        if (!continueAnyway) {
+          addLogEntry('❌ Scheduling cancelled. Please set up credentials first.', 'warning');
+          return;
+        }
+      }
+
+      // STEP 7: All validations passed (or user chose to continue) - create the post
+      const id = 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
       const post = {
         id,
-        content: content.content || content.url,  // Use content field if available, fall back to url
+        contentId: contentId,
+        content: content.url,
+        caption: content.caption || '',
+        hashtags: content.hashtags || '',
         type: content.type,
-        scheduleTime: new Date(scheduleTime).toISOString(),  // Ensure proper ISO format
-        platforms: Array.from($('platforms')?.selectedOptions || []).map(opt => opt.value),
+        scheduleTime: scheduledTime.toISOString(),
+        platforms: selectedPlatforms,
+        recurrence: $('recurrenceSelect')?.value || 'none',
         createdAt: new Date().toISOString(),
         status: 'pending',
-        metadata: content.metadata || {}
+        posted: false,
+        metadata: {
+          ...content.metadata,
+          validationWarnings: warningMessages.length > 0 ? warningMessages : undefined
+        }
       };
 
-      // Load existing scheduled posts
+      // STEP 8: Save scheduled post
       const scheduledRes = await readFileAsync(PATHS.SCHEDULED_POSTS);
       const scheduled = scheduledRes.success ?
         safeParse(scheduledRes.content, { posts: [] }) :
         { posts: [] };
 
-      // Add new post
       scheduled.posts.push(post);
 
-      // Save back
       const result = await writeFileAsync(PATHS.SCHEDULED_POSTS, JSON.stringify(scheduled, null, 2));
       if (result.success) {
-        addLogEntry(`Scheduled post for ${scheduleTime}`, 'success');
+        addLogEntry(
+          `✅ Post scheduled for ${scheduledTime.toLocaleString()} on ${selectedPlatforms.join(', ')}` +
+          (warningMessages.length > 0 ? ' (with warnings)' : ''),
+          'success'
+        );
+        await displayScheduledPosts();
       } else {
         throw new Error(result.error?.message || 'Failed to save scheduled post');
       }
 
-      await displayScheduledPosts(); // Refresh the display
     } catch (e) {
-      addLogEntry('Failed to schedule post: ' + e.message, 'error');
+      console.error('Schedule post error:', e);
+      addLogEntry('❌ Failed to schedule post: ' + e.message, 'error');
+    }
+  }
+
+  // Reuse content from library - loads it back into the main form
+  async function reuseFromLibrary(contentId) {
+    try {
+      const libRes = await readFileAsync(PATHS.LIBRARY);
+      if (!libRes.success) {
+        throw new Error('Failed to load library');
+      }
+
+      const library = safeParse(libRes.content, []);
+      const item = library.find(i => i.id === contentId);
+
+      if (!item) {
+        throw new Error('Content not found in library');
+      }
+
+      // Load based on content type
+      if (item.type === 'meme' && item.metadata) {
+        // Switch to meme mode
+        $('contentType').value = 'meme';
+        $('contentType').dispatchEvent(new Event('change'));
+
+        // Set meme fields if available
+        if (item.metadata.template) {
+          $('memeMode').value = 'template';
+          $('memeMode').dispatchEvent(new Event('change'));
+          $('memeTemplate').value = item.metadata.template;
+        }
+        if (item.metadata.topText) {
+          $('memeTopText').value = item.metadata.topText;
+        }
+        if (item.metadata.bottomText) {
+          $('memeBottomText').value = item.metadata.bottomText;
+        }
+
+        // Update preview
+        updateMemePreview();
+      } else if (item.type === 'video') {
+        // Switch to video mode
+        $('contentType').value = 'video';
+        $('contentType').dispatchEvent(new Event('change'));
+      }
+
+      // Load caption and hashtags
+      if (item.caption) {
+        // Caption field doesn't exist in current UI, but hashtags do
+        console.log('Caption:', item.caption);
+      }
+      if (item.hashtags) {
+        $('hashtags').value = item.hashtags;
+      }
+
+      // Parse and select platforms
+      if (item.platform) {
+        const platforms = item.platform.toLowerCase().split(',').map(p => p.trim());
+        $('postInstagram').checked = platforms.includes('instagram');
+        $('postTikTok').checked = platforms.includes('tiktok');
+        $('postYouTube').checked = platforms.includes('youtube');
+        $('postTwitter').checked = platforms.includes('twitter');
+      }
+
+      addLogEntry(`✅ Loaded content from library: ${item.type}`, 'success');
+
+    } catch (e) {
+      console.error('Reuse from library error:', e);
+      addLogEntry('Failed to reuse content: ' + e.message, 'error');
     }
   }
 
@@ -1487,6 +1650,82 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     } else if (template === 'ai-generator') {
       preview.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23f0f0f0" width="300" height="200"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%234a5568" font-size="14"%3EClick Generate to create%3C/text%3E%3C/svg%3E';
       preview.style.display = 'block';
+    }
+  }
+
+  // Save current meme preview to library
+  async function saveMemeToLibrary() {
+    try {
+      const template = $('memeTemplate')?.value;
+      const topText = $('memeTopText')?.value || '';
+      const bottomText = $('memeBottomText')?.value || '';
+      const preview = $('memePreview');
+
+      // Validate
+      if (!template || template === 'ai-generator') {
+        addLogEntry('Please select a meme template first', 'warning');
+        return;
+      }
+
+      if (!preview || !preview.src || preview.src.includes('data:image/svg+xml')) {
+        addLogEntry('No meme to save. Please generate a meme first.', 'warning');
+        return;
+      }
+
+      showSpinner('Saving meme to library...');
+
+      // Get selected platforms to determine caption format
+      const platforms = [];
+      if ($('postInstagram')?.checked) platforms.push('Instagram');
+      if ($('postTikTok')?.checked) platforms.push('TikTok');
+      if ($('postYouTube')?.checked) platforms.push('YouTube');
+      if ($('postTwitter')?.checked) platforms.push('Twitter');
+
+      const caption = topText && bottomText
+        ? `${topText} / ${bottomText}`
+        : topText || bottomText || 'Meme';
+
+      // Save to library
+      await addToLibrary({
+        url: preview.src,
+        type: 'meme',  // Changed from 'image' to 'meme' to match filter
+        caption: caption,
+        hashtags: $('hashtags')?.value || '#meme #funny',
+        platform: platforms.length > 0 ? platforms.join(', ') : 'All',
+        metadata: {
+          template: template,
+          topText: topText,
+          bottomText: bottomText,
+          generatedBy: 'meme-template'
+        },
+        contentType: 'meme',  // Changed from 'image' to 'meme'
+        status: 'draft'
+      });
+
+      hideSpinner();
+      addLogEntry('✅ Meme saved to library successfully!');
+
+      // Visual feedback on button
+      const btn = $('saveMemeToLibrary');
+      if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Saved!';
+        btn.style.background = 'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }, 2000);
+      }
+
+      // Refresh library display
+      if ($('libraryTab')?.classList.contains('active')) {
+        displayLibraryContent();
+      }
+
+    } catch (error) {
+      console.error('Save meme error:', error);
+      hideSpinner();
+      addLogEntry(`Failed to save meme: ${error.message}`, 'error');
     }
   }
 
@@ -3541,7 +3780,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       'postNowBtn': handlePostNow,
       'bulkGenerateBtn': openBulkModal,
       'closeBulkModal': closeBulkModal,
-      'startBulkGeneration': startBulkGeneration
+      'startBulkGeneration': startBulkGeneration,
+      'saveMemeToLibrary': saveMemeToLibrary  // Save meme to library button
     };
 
     // Bind each button and log result
