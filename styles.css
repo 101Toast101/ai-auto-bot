@@ -247,6 +247,7 @@ body.dark fieldset legend {
 #settingsForm {
   display: grid;
   grid-template-columns: repeat(3, minmax(250px, 1fr));
+  grid-auto-flow: dense;
   gap: 1px;
   margin: 0;
   margin-top: 0;
@@ -254,67 +255,65 @@ body.dark fieldset legend {
   min-width: 780px;
 }
 
-/* COLUMN 1: Content Type, Smart Content, Hashtags */
-#settingsForm>fieldset:nth-of-type(1) {
-  /* Content Type */
-  grid-column: 1;
-  grid-row: 1;
+/* Allow fieldsets to auto-place in the grid based on DOM order */
+/* This makes drag-and-drop reordering work naturally */
+#settingsForm>fieldset {
+  /* Fieldsets will fill grid cells in order */
+  min-height: 100px;
 }
 
-#settingsForm>fieldset:nth-of-type(6) {
-  /* Smart Content */
-  grid-column: 1;
-  grid-row: 2;
+/* No fixed positioning - fieldsets auto-place based on HTML order */
+/* This allows drag-and-drop to reorder them naturally */
+
+/* Drag-and-Drop Styles */
+#settingsForm fieldset[draggable="true"] {
+  transition: opacity 0.2s, transform 0.2s;
 }
 
-#settingsForm>fieldset:nth-of-type(7) {
-  /* Hashtags */
-  grid-column: 1;
-  grid-row: 3;
+#settingsForm fieldset.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  cursor: grabbing !important;
 }
 
-/* COLUMN 2: Meme/Video, General, Tokens */
-#memeFields,
-#videoFields {
-  grid-column: 2 !important;
-  grid-row: 1 !important;
+.fieldset-placeholder {
+  background: rgba(102, 126, 234, 0.2);
+  border: 2px dashed rgba(102, 126, 234, 0.5);
+  border-radius: 12px;
+  margin: 1px;
+  transition: all 0.2s ease;
 }
 
-#settingsForm>fieldset:nth-of-type(2) {
-  /* General */
-  grid-column: 2;
-  grid-row: 2;
+body.dark .fieldset-placeholder {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.6);
 }
 
-#settingsForm>fieldset:nth-of-type(5) {
-  /* Tokens */
-  grid-column: 2;
-  grid-row: 3;
+.drag-handle {
+  display: inline-block;
+  margin-right: 8px;
+  color: rgba(102, 126, 234, 0.6);
+  font-weight: bold;
+  cursor: grab;
+  user-select: none;
+  font-size: 1rem;
+  vertical-align: middle;
 }
 
-/* COLUMN 3: Scheduling, Scheduled Posts, Platforms */
-#schedulingFieldset {
-  grid-column: 3;
-  grid-row: 1;
+.drag-handle:hover {
+  color: rgba(102, 126, 234, 1);
 }
 
-#scheduledPostsFieldset {
-  grid-column: 3;
-  grid-row: 2;
+body.dark .drag-handle {
+  color: rgba(102, 126, 234, 0.8);
 }
 
-#settingsForm>fieldset:nth-of-type(4) {
-  /* Platforms */
-  grid-column: 3;
-  grid-row: 3;
+body.dark .drag-handle:hover {
+  color: rgba(102, 126, 234, 1);
 }
 
-/* Activity Log - Full width at bottom */
-#settingsForm>fieldset:has(#logContainer) {
-  grid-column: 1 / -1;
-  grid-row: 4;
-  margin-top: 0;
-  margin-bottom: 1px;
+#settingsForm fieldset:hover .drag-handle {
+  color: rgba(102, 126, 234, 0.9);
 }
 
 /* Form Elements */

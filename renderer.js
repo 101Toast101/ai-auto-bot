@@ -4331,6 +4331,170 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     addLogEntry('AI Auto Bot ready - All functions operational');
     addLogEntry('📅 Auto-scheduler is active - checking every minute');
+
+    // Initialize drag-and-drop for fieldset reordering
+    initDragAndDrop();
+  }
+
+  // Drag-and-drop functionality for rearranging fieldsets
+  function initDragAndDrop() {
+    const form = $('settingsForm');
+    if (!form) return;
+
+    const fieldsets = Array.from(form.querySelectorAll('fieldset'));
+    let draggedElement = null;
+    let placeholder = null;
+
+    // Load saved layout
+    loadLayout();
+
+    fieldsets.forEach((fieldset, index) => {
+      // Make fieldset draggable
+      fieldset.setAttribute('draggable', 'true');
+      fieldset.style.cursor = 'move';
+
+      // Add drag handle visual indicator to legend
+      const legend = fieldset.querySelector('legend');
+      if (legend && !legend.querySelector('.drag-handle')) {
+        const handle = document.createElement('span');
+        handle.className = 'drag-handle';
+        handle.innerHTML = '⋮⋮';
+        handle.title = 'Drag to reorder';
+        legend.insertBefore(handle, legend.firstChild);
+      }
+
+      fieldset.addEventListener('dragstart', (e) => {
+        draggedElement = fieldset;
+        fieldset.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', fieldset.innerHTML);
+      });
+
+      fieldset.addEventListener('dragend', (e) => {
+        fieldset.classList.remove('dragging');
+        if (placeholder && placeholder.parentNode) {
+          placeholder.parentNode.removeChild(placeholder);
+        }
+        placeholder = null;
+        draggedElement = null;
+
+        // Save new layout
+        saveLayout();
+        addLogEntry('Layout saved');
+      });
+
+      fieldset.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        if (!draggedElement || draggedElement === fieldset) return;
+
+        // Create placeholder if it doesn't exist
+        if (!placeholder) {
+          placeholder = document.createElement('div');
+          placeholder.className = 'fieldset-placeholder';
+          placeholder.style.height = draggedElement.offsetHeight + 'px';
+        }
+
+        // Get all fieldsets
+        const allFieldsets = Array.from(form.querySelectorAll('fieldset:not(.dragging)'));
+        const index = allFieldsets.indexOf(fieldset);
+
+        // Determine if we should insert before or after
+        const rect = fieldset.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+
+        if (e.clientY < midpoint) {
+          form.insertBefore(placeholder, fieldset);
+        } else {
+          form.insertBefore(placeholder, fieldset.nextSibling);
+        }
+      });
+
+      fieldset.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (!draggedElement || draggedElement === fieldset) return;
+
+        // Insert dragged element at placeholder position
+        if (placeholder && placeholder.parentNode) {
+          form.insertBefore(draggedElement, placeholder);
+          placeholder.parentNode.removeChild(placeholder);
+        }
+        placeholder = null;
+      });
+    });
+
+    // Also handle drops on the form itself
+    form.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+
+    form.addEventListener('drop', (e) => {
+      e.preventDefault();
+    });
+
+    addLogEntry('🎯 Drag-and-drop enabled - You can now rearrange cards!');
+  }
+
+  async function saveLayout() {
+    const form = $('settingsForm');
+    if (!form) return;
+
+    const fieldsets = Array.from(form.querySelectorAll('fieldset'));
+    const layout = fieldsets.map((fs, index) => {
+      // Get a unique identifier for each fieldset
+      const id = fs.id || fs.querySelector('legend')?.textContent?.trim() || `fieldset-${index}`;
+      return id;
+    });
+
+    try {
+      const r = await readFileAsync(PATHS.SETTINGS);
+      const settings = r.success ? safeParse(r.content, {}) : {};
+      settings.fieldsetLayout = layout;
+
+      const encrypted = await encryptSensitiveFields(settings);
+      await writeFileAsync(PATHS.SETTINGS, JSON.stringify(encrypted, null, 2));
+    } catch (err) {
+      console.error('Failed to save layout:', err);
+    }
+  }
+
+  async function loadLayout() {
+    const form = $('settingsForm');
+    if (!form) return;
+
+    try {
+      const r = await readFileAsync(PATHS.SETTINGS);
+      if (!r.success) return;
+
+      const settings = safeParse(r.content, {});
+      const decrypted = await decryptSensitiveFields(settings);
+      const layout = decrypted.fieldsetLayout;
+
+      if (!layout || !Array.isArray(layout)) return;
+
+      // Build a map of current fieldsets
+      const fieldsets = Array.from(form.querySelectorAll('fieldset'));
+      const fieldsetMap = new Map();
+
+      fieldsets.forEach((fs, index) => {
+        const id = fs.id || fs.querySelector('legend')?.textContent?.trim() || `fieldset-${index}`;
+        fieldsetMap.set(id, fs);
+      });
+
+      // Reorder fieldsets according to saved layout
+      layout.forEach((id) => {
+        const fieldset = fieldsetMap.get(id);
+        if (fieldset) {
+          form.appendChild(fieldset);
+        }
+      });
+
+      addLogEntry('Layout restored');
+    } catch (err) {
+      console.error('Failed to load layout:', err);
+    }
   }
 
   // Run initialization when the window loads

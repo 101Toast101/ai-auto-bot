@@ -1,8 +1,8 @@
 # Restore Point: Distribution Ready (v1.3)
 
-**Date:** October 18, 2025  
-**Tag:** `v1.3-dist-ready`  
-**Branch:** `feature/video-functionality`  
+**Date:** October 18, 2025
+**Tag:** `v1.3-dist-ready`
+**Branch:** `feature/video-functionality`
 **Status:** ✅ Ready for Beta Distribution (Unsigned)
 
 ## Summary
