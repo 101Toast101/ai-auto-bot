@@ -770,12 +770,12 @@
       // STEP 5: Check AI provider API keys (if content was AI-generated)
       if (content.metadata?.generatedBy?.includes('ai') || content.metadata?.provider) {
         const aiProvider = content.metadata?.provider || 'openai';
-        
+
         if (aiProvider === 'openai' && !settings.apiKey) {
           addLogEntry('⚠️ Missing OpenAI API key. Please set in AI Provider section.', 'warning');
           warningMessages.push('AI Provider: OpenAI');
         }
-        
+
         if (aiProvider === 'runway' && !settings.runwayApiKey) {
           addLogEntry('⚠️ Missing Runway ML API key. Please set in AI Provider section.', 'warning');
           warningMessages.push('AI Provider: Runway ML');
@@ -789,7 +789,7 @@
           `The post will be scheduled, but may fail when attempting to post.\n\n` +
           `Do you want to schedule anyway?`
         );
-        
+
         if (!continueAnyway) {
           addLogEntry('❌ Scheduling cancelled. Please set up credentials first.', 'warning');
           return;
