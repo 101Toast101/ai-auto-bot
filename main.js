@@ -1,4 +1,5 @@
 // main.js - Electron main process with validation
+require('dotenv').config(); // Load environment variables
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -87,24 +88,32 @@ app.on('activate', () => {
     createWindow();
   }
 });
-// in main.js (requires: const { BrowserWindow, ipcMain } = require('electron'); and fetch available)
+// OAuth Handler - Uses real credentials from .env
 ipcMain.handle('start-oauth', async (event, provider) => {
-  // Use hardcoded test values for now
-  const REDIRECT_URI = 'http://localhost:3000/oauth/callback';
+  const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/oauth/callback';
+
   const PROVIDERS = {
     instagram: {
-      authUrl: `https://api.instagram.com/oauth/authorize?client_id=TEST_ID&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=user_profile,user_media`,
+      clientId: process.env.INSTAGRAM_CLIENT_ID,
+      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
+      authUrl: `https://api.instagram.com/oauth/authorize?client_id=${process.env.INSTAGRAM_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=user_profile,user_media`,
       tokenEndpoint: 'https://api.instagram.com/oauth/access_token'
     },
     tiktok: {
-      authUrl: `https://open.tiktokapis.com/platform/oauth/connect/?client_key=TEST_KEY&response_type=code&scope=user.info.basic&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`,
+      clientId: process.env.TIKTOK_CLIENT_KEY,
+      clientSecret: process.env.TIKTOK_CLIENT_SECRET,
+      authUrl: `https://open.tiktokapis.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`,
       tokenEndpoint: 'https://open.tiktokapis.com/oauth/access_token/'
     },
     youtube: {
-      authUrl: `https://accounts.google.com/o/oauth2/v2/auth?client_id=TEST_ID&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=https://www.googleapis.com/auth/youtube.upload`,
+      clientId: process.env.YOUTUBE_CLIENT_ID,
+      clientSecret: process.env.YOUTUBE_CLIENT_SECRET,
+      authUrl: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.YOUTUBE_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=https://www.googleapis.com/auth/youtube.upload`,
       tokenEndpoint: 'https://oauth2.googleapis.com/token'
     },
     twitter: {
+      clientId: process.env.TWITTER_CLIENT_ID,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET,
       authUrl: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=tweet.read%20tweet.write%20users.read`,
       tokenEndpoint: 'https://api.twitter.com/2/oauth2/token'
     }
@@ -112,6 +121,13 @@ ipcMain.handle('start-oauth', async (event, provider) => {
 
   const P = PROVIDERS[provider];
   if (!P) throw new Error('Unknown provider');
+
+  // Check if credentials are configured
+  if (!P.clientId || !P.clientSecret || P.clientId.startsWith('YOUR_') || P.clientId.includes('test')) {
+    throw new Error(`${provider} credentials not configured. Please update your .env file with real OAuth credentials.`);
+  }
+
+  let resolved = false; // Track if promise has been resolved
 
   return new Promise((resolve, reject) => {
     const authWin = new BrowserWindow({
@@ -125,20 +141,23 @@ ipcMain.handle('start-oauth', async (event, provider) => {
     const handleRedirect = async (event2, url) => {
       try {
         if (!url || !url.startsWith(REDIRECT_URI)) return;
+        if (resolved) return; // Already handled
+
         event2.preventDefault();
         const parsed = new URL(url);
         const code = parsed.searchParams.get('code') || new URLSearchParams(parsed.hash?.slice(1) || '').get('access_token');
-        authWin.close();
 
         if (!code) {
-          reject(new Error('No code returned'));
+          resolved = true;
+          authWin.close();
+          reject(new Error('No authorization code returned'));
           return;
         }
 
-        // Exchange code for token. Prefer to call your backend for this step.
+        // Exchange code for token
         const body = new URLSearchParams();
-        body.append('client_id', /* CLIENT_ID for provider */);
-        body.append('client_secret', /* CLIENT_SECRET or omit if using PKCE/backend */);
+        body.append('client_id', P.clientId);
+        body.append('client_secret', P.clientSecret);
         body.append('grant_type', 'authorization_code');
         body.append('redirect_uri', REDIRECT_URI);
         body.append('code', code);
@@ -151,20 +170,35 @@ ipcMain.handle('start-oauth', async (event, provider) => {
 
         if (!tokenResp.ok) {
           const txt = await tokenResp.text();
+          resolved = true;
+          authWin.close();
           reject(new Error(`Token exchange failed: ${txt}`));
           return;
         }
 
         const tokenData = await tokenResp.json();
         const token = tokenData.access_token || tokenData.token;
+
+        if (!token) {
+          resolved = true;
+          authWin.close();
+          reject(new Error('No access token in response'));
+          return;
+        }
+
         // Send token back to renderer
         event.sender.send('oauth-token', { provider, token });
-        resolve({ provider, token });
-        // Close auth window on success
+
+        resolved = true;
         authWin.close();
+        resolve({ provider, token });
       } catch (err) {
         console.error('OAuth error:', err);
-        reject(err);
+        if (!resolved) {
+          resolved = true;
+          authWin.close();
+          reject(err);
+        }
       }
     };
 
@@ -175,7 +209,8 @@ ipcMain.handle('start-oauth', async (event, provider) => {
     // Handle window close
     authWin.on('closed', () => {
       if (!resolved) {
-        reject(new Error('OAuth window closed'));
+        resolved = true;
+        reject(new Error('OAuth window closed by user'));
       }
     });
   });
