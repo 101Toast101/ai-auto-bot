@@ -33,6 +33,7 @@
       <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
       <button type="button" id="createSlideshowBtn" style="display: none;">Create Slideshow (<span
           id="slideshowCount">0</span>)</button>
+      <button type="button" id="resetLayoutBtn" title="Reset all cards to default layout">Reset Layout</button>
       <label class="toggle">
         Dark Mode
         <input type="checkbox" id="darkModeToggle" />
@@ -486,9 +487,9 @@ Top Text 2|Bottom Text 2"></textarea>
         </label>
       </fieldset>
 
-      <!-- Scheduling -->
+      <!-- Scheduling & Scheduled Posts (Combined) -->
       <fieldset id="schedulingFieldset">
-        <legend>Scheduling</legend>
+        <legend>Scheduling & Scheduled Posts</legend>
         <label>Post At
           <input type="datetime-local" id="scheduleDateTime" />
         </label>
@@ -503,12 +504,12 @@ Top Text 2|Bottom Text 2"></textarea>
           <select id="timezoneSelect"></select>
         </label>
         <button type="button" id="schedulePostBtn" class="action-btn">Schedule Post</button>
-      </fieldset>
 
-      <!-- Scheduled Posts -->
-      <fieldset id="scheduledPostsFieldset">
-        <legend>Scheduled Posts</legend>
-        <ul id="scheduledPostsList"></ul>
+        <!-- Scheduled Posts List (now part of same card) -->
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <h4 style="margin-top: 0; margin-bottom: 8px; font-size: 0.9rem; color: #667eea;">Scheduled Posts:</h4>
+          <ul id="scheduledPostsList"></ul>
+        </div>
       </fieldset>
     </form>
   </div>

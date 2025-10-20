@@ -1791,6 +1791,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       });
     }
 
+    // Save card layout positions
+    const fieldsets = Array.from(form.querySelectorAll('fieldset'));
+    const layout = {};
+    fieldsets.forEach((fs, index) => {
+      const id = fs.id || fs.querySelector('legend')?.textContent?.trim() || `fieldset-${index}`;
+      layout[id] = {
+        gridColumn: fs.style.gridColumn || '',
+        gridRow: fs.style.gridRow || ''
+      };
+    });
+    data.fieldsetLayout = layout;
+
     const encryptedData = await encryptSensitiveFields(data);
 
     const res = await readFileAsync(PATHS.SAVED_CONFIGS);
@@ -1808,7 +1820,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const w = await writeFileAsync(PATHS.SAVED_CONFIGS, JSON.stringify(configs, null, 2));
     if (w.success) {
       clearError();
-      addLogEntry(`Config saved: ${name} (encrypted)`);
+      addLogEntry(`Config saved: ${name} (encrypted, with layout)`);
       await populateSavedConfigs();
       $('configNameInput').value = '';
     } else {
@@ -1839,6 +1851,26 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       if (darkModeToggle) {
         darkModeToggle.checked = obj.isDarkMode;
         handleDarkModeToggle({ target: darkModeToggle });
+      }
+    }
+
+    // Restore card layout if saved
+    if (obj.fieldsetLayout && typeof obj.fieldsetLayout === 'object') {
+      const form = $('settingsForm');
+      if (form) {
+        const fieldsets = Array.from(form.querySelectorAll('fieldset'));
+        fieldsets.forEach((fs, index) => {
+          const id = fs.id || fs.querySelector('legend')?.textContent?.trim() || `fieldset-${index}`;
+          if (obj.fieldsetLayout[id]) {
+            if (obj.fieldsetLayout[id].gridColumn) {
+              fs.style.gridColumn = obj.fieldsetLayout[id].gridColumn;
+            }
+            if (obj.fieldsetLayout[id].gridRow) {
+              fs.style.gridRow = obj.fieldsetLayout[id].gridRow;
+            }
+          }
+        });
+        addLogEntry('📍 Card layout restored from config');
       }
     }
 
@@ -4343,7 +4375,50 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     const fieldsets = Array.from(form.querySelectorAll('fieldset'));
     let draggedElement = null;
-    let placeholder = null;
+    let dropPreview = null;
+
+    // Create drop preview element
+    function createDropPreview() {
+      const preview = document.createElement('div');
+      preview.className = 'grid-drop-preview';
+      preview.innerHTML = '<div class="grid-position-label"></div>';
+      document.body.appendChild(preview);
+      return preview;
+    }
+
+    // Update drop preview position
+    function updateDropPreview(e) {
+      if (!draggedElement || !dropPreview) return;
+
+      const rect = form.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Calculate column (1-3)
+      const colWidth = rect.width / 3;
+      const col = Math.max(1, Math.min(3, Math.ceil(x / colWidth)));
+
+      // Calculate row (1-3) based on grid thirds
+      const rowHeight = rect.height / 3;
+      const row = Math.max(1, Math.min(3, Math.ceil(y / rowHeight)));
+
+      // Calculate preview position
+      const previewLeft = rect.left + (col - 1) * colWidth;
+      const previewTop = rect.top + (row - 1) * rowHeight;
+      const previewWidth = colWidth - 2; // account for gap
+      const previewHeight = rowHeight - 2;
+
+      dropPreview.style.left = `${previewLeft}px`;
+      dropPreview.style.top = `${previewTop}px`;
+      dropPreview.style.width = `${previewWidth}px`;
+      dropPreview.style.height = `${previewHeight}px`;
+
+      // Update label
+      const label = dropPreview.querySelector('.grid-position-label');
+      if (label) {
+        label.textContent = `Column ${col}, Row ${row}`;
+      }
+    }
 
     // Load saved layout
     loadLayout();
@@ -4359,7 +4434,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         const handle = document.createElement('span');
         handle.className = 'drag-handle';
         handle.innerHTML = '⋮⋮';
-        handle.title = 'Drag to reorder';
+        handle.title = 'Drag to place anywhere';
         legend.insertBefore(handle, legend.firstChild);
       }
 
@@ -4367,74 +4442,67 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         draggedElement = fieldset;
         fieldset.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', fieldset.innerHTML);
+
+        // Create drop preview
+        dropPreview = createDropPreview();
+      });
+
+      fieldset.addEventListener('drag', (e) => {
+        if (e.clientX === 0 && e.clientY === 0) return; // Ignore final drag event
+        updateDropPreview(e);
       });
 
       fieldset.addEventListener('dragend', (e) => {
         fieldset.classList.remove('dragging');
-        if (placeholder && placeholder.parentNode) {
-          placeholder.parentNode.removeChild(placeholder);
+
+        // Remove drop preview
+        if (dropPreview) {
+          dropPreview.remove();
+          dropPreview = null;
         }
-        placeholder = null;
+
+        // Calculate which grid cell was dropped on
+        const rect = form.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Calculate column (1-3)
+        const colWidth = rect.width / 3;
+        const col = Math.max(1, Math.min(3, Math.ceil(x / colWidth)));
+
+        // Calculate row (1-3) based on grid thirds
+        const rowHeight = rect.height / 3;
+        const row = Math.max(1, Math.min(3, Math.ceil(y / rowHeight)));
+
+        // Set explicit grid position
+        fieldset.style.gridColumn = col;
+        fieldset.style.gridRow = row;
+
         draggedElement = null;
 
         // Save new layout
         saveLayout();
-        addLogEntry('Layout saved');
-      });
-
-      fieldset.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-
-        if (!draggedElement || draggedElement === fieldset) return;
-
-        // Create placeholder if it doesn't exist
-        if (!placeholder) {
-          placeholder = document.createElement('div');
-          placeholder.className = 'fieldset-placeholder';
-          placeholder.style.height = draggedElement.offsetHeight + 'px';
-        }
-
-        // Get all fieldsets
-        const allFieldsets = Array.from(form.querySelectorAll('fieldset:not(.dragging)'));
-        const index = allFieldsets.indexOf(fieldset);
-
-        // Determine if we should insert before or after
-        const rect = fieldset.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-
-        if (e.clientY < midpoint) {
-          form.insertBefore(placeholder, fieldset);
-        } else {
-          form.insertBefore(placeholder, fieldset.nextSibling);
-        }
-      });
-
-      fieldset.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (!draggedElement || draggedElement === fieldset) return;
-
-        // Insert dragged element at placeholder position
-        if (placeholder && placeholder.parentNode) {
-          form.insertBefore(draggedElement, placeholder);
-          placeholder.parentNode.removeChild(placeholder);
-        }
-        placeholder = null;
+        addLogEntry(`Placed card at column ${col}, row ${row}`);
       });
     });
 
-    // Also handle drops on the form itself
-    form.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    });
+    // Add reset layout button handler
+    const resetBtn = $('resetLayoutBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        // Remove all custom grid positions
+        fieldsets.forEach(fs => {
+          fs.style.gridColumn = '';
+          fs.style.gridRow = '';
+        });
 
-    form.addEventListener('drop', (e) => {
-      e.preventDefault();
-    });
+        // Clear saved layout
+        saveLayout();
+        addLogEntry('🔄 Layout reset to default');
+      });
+    }
 
-    addLogEntry('🎯 Drag-and-drop enabled - You can now rearrange cards!');
+    addLogEntry('🎯 Drag-and-drop enabled - Drag cards to any grid position!');
   }
 
   async function saveLayout() {
@@ -4442,11 +4510,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if (!form) return;
 
     const fieldsets = Array.from(form.querySelectorAll('fieldset'));
-    const layout = fieldsets.map((fs, index) => {
+    const layout = {};
+
+    fieldsets.forEach((fs, index) => {
       // Get a unique identifier for each fieldset
       const id = fs.id || fs.querySelector('legend')?.textContent?.trim() || `fieldset-${index}`;
-      return id;
+      layout[id] = {
+        gridColumn: fs.style.gridColumn || '',
+        gridRow: fs.style.gridRow || ''
+      };
     });
+
+    console.log('Saving layout:', layout);
 
     try {
       const r = await readFileAsync(PATHS.SETTINGS);
@@ -4455,6 +4530,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       const encrypted = await encryptSensitiveFields(settings);
       await writeFileAsync(PATHS.SETTINGS, JSON.stringify(encrypted, null, 2));
+      addLogEntry('💾 Layout saved');
     } catch (err) {
       console.error('Failed to save layout:', err);
     }
@@ -4472,26 +4548,25 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const decrypted = await decryptSensitiveFields(settings);
       const layout = decrypted.fieldsetLayout;
 
-      if (!layout || !Array.isArray(layout)) return;
+      console.log('Loading layout:', layout);
 
-      // Build a map of current fieldsets
+      if (!layout || typeof layout !== 'object') return;
+
       const fieldsets = Array.from(form.querySelectorAll('fieldset'));
-      const fieldsetMap = new Map();
 
       fieldsets.forEach((fs, index) => {
         const id = fs.id || fs.querySelector('legend')?.textContent?.trim() || `fieldset-${index}`;
-        fieldsetMap.set(id, fs);
-      });
-
-      // Reorder fieldsets according to saved layout
-      layout.forEach((id) => {
-        const fieldset = fieldsetMap.get(id);
-        if (fieldset) {
-          form.appendChild(fieldset);
+        if (layout[id]) {
+          if (layout[id].gridColumn) {
+            fs.style.gridColumn = layout[id].gridColumn;
+          }
+          if (layout[id].gridRow) {
+            fs.style.gridRow = layout[id].gridRow;
+          }
         }
       });
 
-      addLogEntry('Layout restored');
+      addLogEntry('📍 Layout restored');
     } catch (err) {
       console.error('Failed to load layout:', err);
     }
