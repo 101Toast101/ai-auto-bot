@@ -276,6 +276,37 @@ body.dark fieldset legend {
 /* No fixed positioning - fieldsets auto-place based on HTML order */
 /* This allows drag-and-drop to reorder them naturally */
 
+/* Center content in specific fieldsets with minimal content */
+/* Apply to all fieldsets by default, then override for specific ones */
+#settingsForm>fieldset {
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+
+/* Keep these cards top-aligned with normal padding (they have lots of content) */
+#memeFields,
+#videoFields,
+#schedulingFieldset,
+#libraryFieldset {
+  justify-content: flex-start;
+  padding-top: 20px;
+}
+
+/* Tighten spacing in centered cards to make them more compact */
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) label {
+  margin-bottom: 8px;
+}
+
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) input,
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) select,
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) button {
+  margin-bottom: 6px;
+}
+
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) .checkbox-item {
+  margin-bottom: 6px;
+}
+
 /* Drag-and-Drop Styles */
 #settingsForm fieldset[draggable="true"] {
   transition: opacity 0.2s, transform 0.2s;
