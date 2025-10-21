@@ -1,7 +1,7 @@
 # Restore Point: OAuth Integration Complete
 
-**Date**: October 20, 2025  
-**Commit**: 455125e  
+**Date**: October 20, 2025
+**Commit**: 455125e
 **Status**: TikTok & Instagram OAuth Working ✅
 
 ## What's Working

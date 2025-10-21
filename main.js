@@ -198,6 +198,11 @@ ipcMain.handle('start-oauth', async (event, provider) => {
   const P = PROVIDERS[provider];
   if (!P) throw new Error('Unknown provider');
 
+  // Debug logging
+  console.log(`[OAuth Debug] Provider: ${provider}`);
+  console.log(`[OAuth Debug] Client ID: ${P.clientId}`);
+  console.log(`[OAuth Debug] Auth URL: ${P.authUrl}`);
+
   // Check if credentials are configured
   if (!P.clientId || !P.clientSecret || P.clientId.startsWith('YOUR_') || P.clientId.includes('test')) {
     throw new Error(`${provider} credentials not configured. Please update your .env file with real OAuth credentials.`);
