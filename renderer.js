@@ -475,7 +475,46 @@
       const itemDiv = document.createElement('div');
       itemDiv.className = 'library-item';
       itemDiv.dataset.itemId = item.id;
-      // REMOVED inline styles to let CSS handle dark mode
+
+      // Add click handler to select/deselect for scheduling
+      itemDiv.addEventListener('click', (e) => {
+        // Don't select if clicking a button
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+
+        const isCurrentlySelected = itemDiv.classList.contains('selected-for-scheduling');
+
+        if (isCurrentlySelected) {
+          // Deselect if clicking the same card again
+          itemDiv.classList.remove('selected-for-scheduling');
+          window.selectedContentForScheduling = null;
+
+          // Hide preview
+          const preview = $('selectedContentPreview');
+          if (preview) preview.style.display = 'none';
+
+          addLogEntry(`❌ Deselected content`, 'info');
+        } else {
+          // Select new card
+          document.querySelectorAll('.library-item').forEach(el => el.classList.remove('selected-for-scheduling'));
+          itemDiv.classList.add('selected-for-scheduling');
+
+          // Store selected content ID globally
+          window.selectedContentForScheduling = item.id;
+
+          // Show preview in scheduling section
+          const preview = $('selectedContentPreview');
+          const previewImg = $('selectedContentImg');
+          const previewInfo = $('selectedContentInfo');
+
+          if (preview && previewImg && previewInfo) {
+            preview.style.display = 'block';
+            previewImg.src = item.url;
+            previewInfo.textContent = `${item.type.toUpperCase()} • Created ${new Date(item.createdAt).toLocaleString()}`;
+          }
+
+          addLogEntry(`📌 Selected content for scheduling: ${item.type}`, 'success');
+        }
+      });      // REMOVED inline styles to let CSS handle dark mode
       // itemDiv.style.cssText = 'border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: var(--glass-bg);';
 
       // Media preview
@@ -696,9 +735,6 @@
     }
   }
 
-  // Call on startup and after content generation
-  displayLibraryContent();
-
   // Schedule a post from library
   async function schedulePost(contentId) {
     try {
@@ -731,10 +767,10 @@
 
       // STEP 3: Validate platform selection
       const selectedPlatforms = [];
-      if ($('postInstagram')?.checked) selectedPlatforms.push('instagram');
-      if ($('postTikTok')?.checked) selectedPlatforms.push('tiktok');
-      if ($('postYouTube')?.checked) selectedPlatforms.push('youtube');
-      if ($('postTwitter')?.checked) selectedPlatforms.push('twitter');
+      if ($('instagram')?.checked) selectedPlatforms.push('instagram');
+      if ($('tiktok')?.checked) selectedPlatforms.push('tiktok');
+      if ($('youtube')?.checked) selectedPlatforms.push('youtube');
+      if ($('twitter')?.checked) selectedPlatforms.push('twitter');
 
       if (selectedPlatforms.length === 0) {
         addLogEntry('⚠️ Please select at least one platform in the Platforms section', 'warning');
@@ -833,7 +869,7 @@
           (warningMessages.length > 0 ? ' (with warnings)' : ''),
           'success'
         );
-        await displayScheduledPosts();
+        await populateScheduledPosts();
       } else {
         throw new Error(result.error?.message || 'Failed to save scheduled post');
       }
@@ -1159,10 +1195,10 @@
           });
 
           const preview = document.createElement('div');
-          preview.style.cssText = 'border: 2px solid #4299e1; border-radius: 8px; overflow: hidden;';
+          preview.style.cssText = 'border: 2px solid #4299e1; border-radius: 8px; overflow: hidden; background: var(--card-bg, #ffffff);';
           preview.innerHTML = `
             <img src="${memeUrl}" style="width: 100%; height: 120px; object-fit: cover;" />
-            <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
+            <div style="padding: 5px; font-size: 11px; background: var(--card-bg, #f7fafc); color: var(--text-color, #000);">
               ${dims.name}
             </div>
           `;
@@ -1183,7 +1219,7 @@
       let library = libRes.success ? safeParse(libRes.content, []) : [];
       library = bulkGeneratedContent.concat(library);
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-      await renderLibrary();
+      await displayLibraryContent();
 
       addLogEntry(`Bulk generated ${bulkGeneratedContent.length} memes`);
     } catch (error) {
@@ -1291,10 +1327,10 @@
                 });
 
                 const preview = document.createElement('div');
-                preview.style.cssText = 'border: 2px solid #9f7aea; border-radius: 8px; overflow: hidden;';
+                preview.style.cssText = 'border: 2px solid #9f7aea; border-radius: 8px; overflow: hidden; background: var(--card-bg, #ffffff);';
                 preview.innerHTML = `
                   <video src="${videoUrl}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
-                  <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
+                  <div style="padding: 5px; font-size: 11px; background: var(--card-bg, #f7fafc); color: var(--text-color, #000);">
                     📹 ${dims.name} (${duration}s)
                   </div>
                 `;
@@ -1325,7 +1361,7 @@
         let library = libRes.success ? safeParse(libRes.content, []) : [];
         library = bulkGeneratedContent.concat(library);
         await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-        await renderLibrary();
+        await displayLibraryContent();
 
         addLogEntry(`Bulk generated ${bulkGeneratedContent.length} videos from memes`);
       }
@@ -1451,10 +1487,10 @@
             });
 
             const preview = document.createElement('div');
-            preview.style.cssText = 'border: 2px solid #805ad5; border-radius: 8px; overflow: hidden;';
+            preview.style.cssText = 'border: 2px solid #805ad5; border-radius: 8px; overflow: hidden; background: var(--card-bg, #ffffff);';
             preview.innerHTML = `
               <video src="${videoUrl}" style="width: 100%; height: 120px; object-fit: cover;" muted></video>
-              <div style="padding: 5px; font-size: 11px; background: rgba(0,0,0,0.7); color: white;">
+              <div style="padding: 5px; font-size: 11px; background: var(--card-bg, #f7fafc); color: var(--text-color, #000);">
                 🤖 AI ${dims.name} (${duration}s)
               </div>
             `;
@@ -1486,7 +1522,7 @@
     let library = libRes.success ? safeParse(libRes.content, []) : [];
     library = bulkGeneratedContent.concat(library);
     await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-    await renderLibrary();
+    await displayLibraryContent();
 
     addLogEntry(`Bulk generated ${bulkGeneratedContent.length} AI videos using ${provider}`);
   }
@@ -2156,7 +2192,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     library = library.filter(item => item.id !== id);
     await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
 
-    await renderLibrary();
+    await displayLibraryContent();
     addLogEntry('Deleted from library');
   }
 
@@ -3182,7 +3218,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     });
 
     await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-    await renderLibrary();
+    await displayLibraryContent();
 
     addLogEntry('Video added to library');
   }
@@ -3329,7 +3365,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         contentType: 'meme'
       });
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-      await renderLibrary();
+      await displayLibraryContent();
 
       addLogEntry('AI image generated successfully!');
       hideSpinner();
@@ -3582,7 +3618,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         failCount: failCount
       });
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-      await renderLibrary();
+      await displayLibraryContent();
     }
 
     const message = `Posted successfully to ${successCount} platform(s)${failCount > 0 ? `, ${failCount} failed` : ''}`;
@@ -3850,23 +3886,70 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       clearError();
       e.preventDefault();
 
+      // Check if user selected content from library
+      if (!window.selectedContentForScheduling) {
+        displayValidationError({ message: 'Please select content from the library by clicking on a content card' }, 'scheduled post');
+        addLogEntry('⚠️ No content selected: Click on a content card in the Library to select it for scheduling', 'warning');
+        return;
+      }
+
+      // Load the selected content
+      const libRes = await readFileAsync(PATHS.LIBRARY);
+      if (!libRes.success) {
+        displayValidationError({ message: 'Failed to load library' }, 'scheduled post');
+        return;
+      }
+
+      const library = safeParse(libRes.content, []);
+      const selectedContent = library.find(item => item.id === window.selectedContentForScheduling);
+
+      if (!selectedContent) {
+        displayValidationError({ message: 'Selected content not found in library' }, 'scheduled post');
+        return;
+      }
+
       const dt = $('scheduleDateTime')?.value;
       if (!dt) {
         displayValidationError({ message: 'Schedule date/time is required' }, 'scheduled post');
         return;
       }
 
+      // Check if at least one platform is selected
+      const selectedPlatforms = [];
+      if ($('instagram')?.checked) selectedPlatforms.push('instagram');
+      if ($('tiktok')?.checked) selectedPlatforms.push('tiktok');
+      if ($('youtube')?.checked) selectedPlatforms.push('youtube');
+      if ($('twitter')?.checked) selectedPlatforms.push('twitter');
+
+      if (selectedPlatforms.length === 0) {
+        displayValidationError({ message: 'Please select at least one platform' }, 'scheduled post');
+        addLogEntry('⚠️ No platforms selected. Check at least one platform checkbox.', 'warning');
+        return;
+      }
+
       const form = $('settingsForm');
+
+      // Use content from library, optionally override caption/hashtags
+      const caption = $('captionText')?.value || selectedContent.caption || '';
+      const hashtags = $('hashtagsText')?.value || selectedContent.hashtags || '';
+
       const post = {
+        id: 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        contentId: selectedContent.id,
         createdAt: new Date().toISOString(),
         scheduleTime: dt,
-        status: 'scheduled',
+        status: 'pending',
+        posted: false,
+        platforms: selectedPlatforms,
         recurrence: $('recurrenceSelect')?.value || 'none',
         timezone: $('timezoneSelect')?.value || 'UTC',
+        content: selectedContent.url,
+        caption: caption,
+        hashtags: hashtags,
+        type: selectedContent.type,
+        metadata: selectedContent.metadata,
         source: {}
-      };
-
-      if (form) {
+      };      if (form) {
         const inputs = form.querySelectorAll('input,select,textarea');
         inputs.forEach((el) => {
           if (!el.id) return;
@@ -3887,7 +3970,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const w = await writeFileAsync(PATHS.SCHEDULED_POSTS, JSON.stringify(data, null, 2));
       if (w.success) {
         clearError();
-        addLogEntry(`Post scheduled for ${dt}`);
+        const scheduledDate = new Date(dt).toLocaleString();
+        addLogEntry(`✅ Post scheduled for ${scheduledDate} on ${selectedPlatforms.join(', ')}`, 'success');
         await populateScheduledPosts();
       } else {
         displayValidationError(w.error, 'scheduled post');
@@ -4226,16 +4310,62 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   // Handle OAuth callback
   if (window.api?.onOAuthToken) {
-    window.api.onOAuthToken((data) => {
+    window.api.onOAuthToken(async (data) => {
       if (data.token && data.provider) {
-        const tokenField = $(`${data.provider}Token`);
-        if (tokenField) {
-          tokenField.value = data.token;
-          addLogEntry(`Received OAuth token for ${data.provider}`);
-          clearError();
+        addLogEntry(`✅ ${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)} connected successfully!`, 'success');
+
+        // Load current settings
+        const settingsRes = await readFileAsync(PATHS.SETTINGS);
+        const settings = settingsRes.success ? safeParse(settingsRes.content, {}) : {};
+
+        // Save token to settings
+        const tokenField = `${data.provider}Token`;
+        settings[tokenField] = data.token;
+
+        // Encrypt and save settings
+        const encrypted = await encryptAsync(data.token);
+        if (encrypted.success) {
+          settings[tokenField] = encrypted.data;
         }
+
+        await writeFileAsync(PATHS.SETTINGS, JSON.stringify(settings, null, 2));
+
+        // Update button to show connected status
+        const btnId = `connect${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)}Btn`;
+        const btn = $(btnId);
+        if (btn) {
+          btn.textContent = `✓ ${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)} Connected`;
+          btn.style.backgroundColor = '#28a745';
+          btn.disabled = false;
+        }
+
+        clearError();
       }
     });
+  }
+
+  // Check OAuth connection status
+  async function checkOAuthStatus() {
+    const settingsRes = await readFileAsync(PATHS.SETTINGS);
+    if (!settingsRes.success) return;
+
+    const settings = safeParse(settingsRes.content, {});
+    const platforms = [
+      { name: 'instagram', token: settings.instagramToken },
+      { name: 'tiktok', token: settings.tiktokToken },
+      { name: 'youtube', token: settings.youtubeToken },
+      { name: 'twitter', token: settings.twitterToken }
+    ];
+
+    for (const platform of platforms) {
+      const btnId = `connect${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}Btn`;
+      const btn = $(btnId);
+
+      if (btn && platform.token) {
+        btn.textContent = `✓ ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)} Connected`;
+        btn.style.backgroundColor = '#28a745';
+      }
+    }
   }
 
   // INITIALIZATION
@@ -4254,6 +4384,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // Initialize video functionality
     await initializeVideoFeatures();
+
+    // Check OAuth connection status and update buttons
+    await checkOAuthStatus();
 
     // Set up event listeners for library display and filters
     displayLibraryContent();
@@ -4295,7 +4428,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         populateTimezones(),
         populateSavedConfigs(),
         populateScheduledPosts(),
-        renderLibrary(),
+        displayLibraryContent(),
         fetchMemeTemplates(),
         checkAiProviderConnections() // Check which AI providers are connected
       ]);

@@ -540,8 +540,7 @@ body.dark .feature-highlight p {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   transition: all 0.3s ease;
 }
 
@@ -553,6 +552,12 @@ body.dark .library-item {
 .library-item.selected-for-slideshow {
   border: 2px solid var(--primary-color);
   box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
+}
+
+.library-item.selected-for-scheduling {
+  border: 3px solid #48bb78;
+  box-shadow: 0 0 15px rgba(72, 187, 120, 0.5);
+  transform: scale(1.02);
 }
 
 .video-controls {
