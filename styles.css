@@ -249,8 +249,8 @@ body.dark fieldset legend {
   grid-template-columns: repeat(3, minmax(250px, 1fr));
   grid-auto-flow: row;
   /* Cards flow in exact DOM order - no auto gap-filling */
-  grid-auto-rows: 1fr;
-  /* Make all rows the same height */
+  grid-auto-rows: minmax(200px, auto);
+  /* Rows min 200px, grow to content */
   gap: 1px;
   margin: 0;
   margin-top: 0;
@@ -271,6 +271,12 @@ body.dark fieldset legend {
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Meme card spans 2 rows vertically */
+#memeFields {
+  grid-row: span 2;
+  min-height: 600px;
 }
 
 /* No fixed positioning - fieldsets auto-place based on HTML order */

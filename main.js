@@ -1,6 +1,6 @@
 // main.js - Electron main process with validation
 require('dotenv').config(); // Load environment variables
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -38,6 +38,84 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  // Zoom controls - Ctrl+Plus, Ctrl+Minus, Ctrl+0
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.control || input.meta) {
+      const currentZoom = mainWindow.webContents.getZoomLevel();
+
+      // Zoom In: Ctrl+Plus or Ctrl+=
+      if (input.key === '+' || input.key === '=') {
+        mainWindow.webContents.setZoomLevel(currentZoom + 0.5);
+        event.preventDefault();
+      }
+      // Zoom Out: Ctrl+Minus
+      else if (input.key === '-' || input.key === '_') {
+        mainWindow.webContents.setZoomLevel(currentZoom - 0.5);
+        event.preventDefault();
+      }
+      // Reset Zoom: Ctrl+0
+      else if (input.key === '0') {
+        mainWindow.webContents.setZoomLevel(0);
+        event.preventDefault();
+      }
+    }
+  });
+
+  // Create menu with View > Zoom options
+  const menuTemplate = [
+    {
+      label: 'File',
+      submenu: [
+        { role: 'quit' }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Zoom In',
+          accelerator: 'CmdOrCtrl+=',
+          click: () => {
+            const currentZoom = mainWindow.webContents.getZoomLevel();
+            mainWindow.webContents.setZoomLevel(currentZoom + 0.5);
+          }
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'CmdOrCtrl+-',
+          click: () => {
+            const currentZoom = mainWindow.webContents.getZoomLevel();
+            mainWindow.webContents.setZoomLevel(currentZoom - 0.5);
+          }
+        },
+        {
+          label: 'Reset Zoom',
+          accelerator: 'CmdOrCtrl+0',
+          click: () => {
+            mainWindow.webContents.setZoomLevel(0);
+          }
+        },
+        { type: 'separator' },
+        { role: 'toggleDevTools' }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 
   // Prevent garbage collection
   mainWindow.on('closed', () => {
