@@ -3,6 +3,7 @@ require('dotenv').config(); // Load environment variables
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { encrypt, decrypt } = require('./utils/encrypt');
 const { logInfo, logError } = require('./utils/logger');
 const { registerVideoHandlers } = require('./handlers/video-handlers');
@@ -14,8 +15,14 @@ const {
   validateActivityLog
 } = require('./utils/validators');
 
+// Initialize Express server for OAuth callbacks
+const express = require('express');
+const oauthApp = express();
+const PORT = 3000;
+
 let schedulerInterval = null;
 let mainWindow = null;  // Store window reference globally
+let oauthServer = null;  // Store server reference
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -71,6 +78,9 @@ app.whenReady().then(() => {
 
   createWindow();
 
+  // Start OAuth callback server
+  startOAuthServer();
+
   // Start auto-scheduler after window is created
   setTimeout(() => {
     startScheduler();
@@ -88,9 +98,74 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+// Start OAuth callback server
+function startOAuthServer() {
+  if (oauthServer) {
+    logInfo('OAuth server already running');
+    return;
+  }
+
+  // Handle OAuth callback
+  oauthApp.get('/oauth/callback', async (req, res) => {
+    try {
+      const code = req.query.code;
+      if (!code) {
+        res.send('<h1>Error: No authorization code received</h1>');
+        return;
+      }
+
+      // Send success page - the BrowserWindow will handle the code
+      res.send(`
+        <html>
+          <head><title>OAuth Success</title></head>
+          <body>
+            <h1>✅ Authorization successful!</h1>
+            <p>You can close this window and return to the app.</p>
+            <script>
+              // Close window after 2 seconds
+              setTimeout(() => window.close(), 2000);
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (err) {
+      logError('OAuth callback error:', err);
+      res.status(500).send(`<h1>Error: ${err.message}</h1>`);
+    }
+  });
+
+  oauthServer = oauthApp.listen(PORT, () => {
+    logInfo(`OAuth callback server running on http://localhost:${PORT}`);
+  });
+
+  oauthServer.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      logError(`Port ${PORT} is already in use. OAuth callbacks may not work.`);
+    } else {
+      logError('OAuth server error:', err);
+    }
+  });
+}
+
+// Stop OAuth server on quit
+app.on('before-quit', () => {
+  if (oauthServer) {
+    oauthServer.close();
+    logInfo('OAuth server stopped');
+  }
+});
+
 // OAuth Handler - Uses real credentials from .env
 ipcMain.handle('start-oauth', async (event, provider) => {
   const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/oauth/callback';
+
+  // Generate PKCE values for TikTok
+  let codeVerifier, codeChallenge;
+  if (provider === 'tiktok') {
+    codeVerifier = crypto.randomBytes(32).toString('base64url');
+    codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+  }
 
   const PROVIDERS = {
     instagram: {
@@ -102,8 +177,9 @@ ipcMain.handle('start-oauth', async (event, provider) => {
     tiktok: {
       clientId: process.env.TIKTOK_CLIENT_KEY,
       clientSecret: process.env.TIKTOK_CLIENT_SECRET,
-      authUrl: `https://open.tiktokapis.com/platform/oauth/connect/?client_key=${process.env.TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`,
-      tokenEndpoint: 'https://open.tiktokapis.com/oauth/access_token/'
+      authUrl: `https://www.tiktok.com/v2/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic,video.upload&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&code_challenge=${codeChallenge}&code_challenge_method=S256`,
+      tokenEndpoint: 'https://open-api.tiktok.com/oauth/access_token/',
+      codeVerifier: codeVerifier
     },
     youtube: {
       clientId: process.env.YOUTUBE_CLIENT_ID,
@@ -161,6 +237,11 @@ ipcMain.handle('start-oauth', async (event, provider) => {
         body.append('grant_type', 'authorization_code');
         body.append('redirect_uri', REDIRECT_URI);
         body.append('code', code);
+
+        // Add code_verifier for TikTok PKCE
+        if (provider === 'tiktok' && P.codeVerifier) {
+          body.append('code_verifier', P.codeVerifier);
+        }
 
         const tokenResp = await fetch(P.tokenEndpoint, {
           method: 'POST',

@@ -27,6 +27,7 @@
   "author": "CROTTY <Crottyjonathan@yahoo.com>",
   "dependencies": {
     "dotenv": "^17.2.2",
+    "express": "^5.1.0",
     "ffmpeg-static": "^5.2.0",
     "gif-encoder-2": "^1.0.5",
     "lru-cache": "^11.2.2",
