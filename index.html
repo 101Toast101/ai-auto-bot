@@ -8,7 +8,7 @@
       script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
-      connect-src 'self' https://api.memegen.link https://api.openai.com https://api.runwayml.com https://graph.facebook.com https://open.tiktokapis.com https://www.googleapis.com https://upload.twitter.com https://api.twitter.com https://cdn.jsdelivr.net;
+      connect-src 'self' https://api.memegen.link https://api.openai.com https://api.runwayml.com https://api.dev.runwayml.com https://graph.facebook.com https://open.tiktokapis.com https://www.googleapis.com https://upload.twitter.com https://api.twitter.com https://cdn.jsdelivr.net;
       font-src 'self' data:;
       media-src 'self' blob: data:;
       worker-src 'self' blob:;
@@ -39,6 +39,7 @@
         <input type="checkbox" id="darkModeToggle" />
         <span class="slider"></span>
       </label>
+      <!-- Hidden UI debug area (removed) -->
     </div>
 
     <!-- BULK GENERATION MODAL -->
@@ -268,8 +269,8 @@ Top Text 2|Bottom Text 2"></textarea>
 
     <!-- Settings Form -->
     <form id="settingsForm">
-      <!-- Content Type -->
-      <fieldset>
+  <!-- Content Type -->
+  <fieldset>
         <legend>Content Type</legend>
         <label>Type
           <select id="contentType">
@@ -350,6 +351,14 @@ Top Text 2|Bottom Text 2"></textarea>
           </select>
         </label>
 
+        <label id="videoAiProviderLabel">
+          AI Provider
+          <select id="videoAiProvider">
+            <option value="openai">OpenAI (DALL-E → Video)</option>
+            <option value="runway">Runway ML Gen-3 Alpha</option>
+          </select>
+        </label>
+
         <label id="videoPromptLabel">
           Video Prompt
           <textarea id="videoPrompt" placeholder="Describe your video..." rows="3"></textarea>
@@ -400,8 +409,8 @@ Top Text 2|Bottom Text 2"></textarea>
           Video</button>
       </fieldset>
 
-      <!-- AI Provider Authentication -->
-      <fieldset class="oauth-fieldset">
+  <!-- AI Provider Authentication -->
+  <fieldset class="oauth-fieldset">
         <legend>Connect AI Providers</legend>
         <div class="feature-highlight" style="margin-bottom: 15px;">
           <strong>🤖 Connect your AI providers to unlock content generation</strong>
@@ -427,8 +436,8 @@ Top Text 2|Bottom Text 2"></textarea>
         <input type="hidden" id="runwayApiKey" />
       </fieldset>
 
-      <!-- Platforms -->
-      <fieldset>
+  <!-- Platforms -->
+  <fieldset>
         <legend>Platforms</legend>
         <div class="platform-grid">
           <div class="checkbox-item">
@@ -450,13 +459,13 @@ Top Text 2|Bottom Text 2"></textarea>
         </div>
       </fieldset>
 
-      <!-- Activity Log -->
-      <fieldset>
+  <!-- Activity Log -->
+  <fieldset>
         <legend>Activity Log</legend>
         <div id="logContainer" class="log-container"></div>
       </fieldset>
 
-      <fieldset class="oauth-fieldset">
+  <fieldset class="oauth-fieldset">
         <legend>Connect Your Social Media Accounts</legend>
         <div class="oauth-buttons">
           <button type="button" id="connectInstagramBtn">🔗 Connect Instagram</button>
@@ -472,8 +481,8 @@ Top Text 2|Bottom Text 2"></textarea>
         <input type="hidden" id="twitterToken" />
       </fieldset>
 
-      <!-- Hashtags -->
-      <fieldset>
+  <!-- Hashtags -->
+  <fieldset>
         <legend>Hashtags</legend>
         <label>Hashtag Mode
           <select id="hashtagMode">

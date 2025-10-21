@@ -2167,6 +2167,22 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     addLogEntry(`Content type set to ${val}`);
+
+    // Debugging: log computed grid placement for meme/video fields
+    try {
+      const computedMeme = memeFields ? window.getComputedStyle(memeFields) : null;
+      const computedVideo = videoFields ? window.getComputedStyle(videoFields) : null;
+      const msg = `[DEBUG] Meme: grid-column=${computedMeme ? computedMeme.gridColumn : 'n/a'}, grid-row=${computedMeme ? computedMeme.gridRow : 'n/a'}\n` +
+                  `[DEBUG] Video: grid-column=${computedVideo ? computedVideo.gridColumn : 'n/a'}, grid-row=${computedVideo ? computedVideo.gridRow : 'n/a'}`;
+      console.log(msg);
+      const uiDebug = $('uiDebug');
+      if (uiDebug) {
+        uiDebug.style.display = 'block';
+        uiDebug.textContent = msg + '\n' + (uiDebug.textContent || '');
+      }
+    } catch (e) {
+      console.log('[DEBUG] error computing styles:', e);
+    }
   }
 
   // VIDEO GENERATION FUNCTIONS
@@ -2843,6 +2859,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   }
 
   async function generateAIVideo() {
+    // Get selected AI provider from video form (not global settings)
+    const provider = $('videoAiProvider')?.value || 'openai';
+
     // Get API key from settings (encrypted)
     const settingsResult = await readFileAsync(PATHS.SETTINGS);
     if (!settingsResult.success) {
@@ -2852,23 +2871,24 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     const settings = safeParse(settingsResult.content, {});
-    const provider = settings.aiProvider || 'openai';
     const encryptedKey = settings[`${provider}ApiKey`];
 
     if (!encryptedKey) {
-      $('errorContainer').textContent = `No API key found for ${provider}. Please connect ${provider} in settings.`;
+      $('errorContainer').textContent = `⚠️ ${provider.toUpperCase()} not connected! Please connect ${provider === 'openai' ? 'OpenAI' : 'Runway ML'} in the "Connect AI Providers" section below to generate videos.`;
       $('errorContainer').style.display = 'block';
-      addLogEntry('AI video generation failed — missing API Key');
+      addLogEntry(`AI video generation failed — no ${provider} API key configured`);
       return;
     }
 
     // Decrypt the API key
     const apiKey = await window.api.decrypt(encryptedKey);
-    if (!apiKey) {
+    if (!apiKey || !apiKey.success) {
       $('errorContainer').textContent = 'Failed to decrypt API key!';
       $('errorContainer').style.display = 'block';
       return;
     }
+
+    const actualKey = apiKey.data || apiKey;
 
     const prompt = $('videoPrompt')?.value?.trim();
     if (!prompt) {
@@ -2879,7 +2899,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     console.log('[AI Video] Generating with provider:', provider);
-    showSpinner('Generating AI video...');
+    addLogEntry(`🎬 Generating AI video using ${provider.toUpperCase()}...`);
+    showSpinner(`Generating AI video with ${provider.toUpperCase()}...`);
 
     try {
       const duration = parseInt($('videoDuration')?.value || '5');
@@ -2897,7 +2918,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${actualKey}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -2952,26 +2973,39 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         addLogEntry('AI video created successfully using OpenAI!');
 
       } else if (provider === 'runway') {
-        // Runway Gen-2 API
-        console.log('[AI Video] Using Runway ML API');
-        const motion = $('motionAmount')?.value || 'medium';
+        // Runway Gen-3 Alpha API
+        console.log('[AI Video] Using Runway ML Gen-3 Alpha API');
 
-        const response = await fetch('https://api.runwayml.com/v1/generate', {
+        // Create a generation task
+        const response = await fetch('https://api.dev.runwayml.com/v1/image_to_video', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Runway-Version': '2024-09-13'
           },
           body: JSON.stringify({
-            prompt: prompt,
-            duration: duration,
-            motion_amount: motion === 'low' ? 0.3 : motion === 'medium' ? 0.6 : 0.9
+            promptText: prompt,
+            duration: Math.min(duration, 10), // Runway max is 10 seconds
+            ratio: aspectRatio === '16:9' ? '16:9' : aspectRatio === '9:16' ? '9:16' : '1:1'
           })
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error?.message || `API error: ${response.status}`);
+          let errorMessage = `Runway API error: ${response.status}`;
+          try {
+            const error = await response.json();
+            errorMessage = error.error?.message || error.message || errorMessage;
+          } catch (e) {
+            // If response isn't JSON, try to get text
+            const text = await response.text();
+            if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+              errorMessage = `Runway API endpoint error. Please verify your API key is valid for Gen-3 Alpha. (Got HTML response instead of JSON)`;
+            } else {
+              errorMessage = text || errorMessage;
+            }
+          }
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -2980,21 +3014,46 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         let videoUrl = null;
         const taskId = data.id;
 
-        while (!videoUrl) {
-          updateSpinnerMessage('AI video processing...');
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        if (!taskId) {
+          throw new Error('No task ID returned from Runway API');
+        }
 
-          const statusResponse = await fetch(`https://api.runwayml.com/v1/tasks/${taskId}`, {
-            headers: { 'Authorization': `Bearer ${apiKey}` }
+        updateSpinnerMessage('Runway is generating your video...');
+
+        let attempts = 0;
+        const maxAttempts = 60; // 5 minutes max
+
+        while (!videoUrl && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+          attempts++;
+
+          const statusResponse = await fetch(`https://api.dev.runwayml.com/v1/tasks/${taskId}`, {
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'X-Runway-Version': '2024-09-13'
+            }
           });
+
+          if (!statusResponse.ok) {
+            throw new Error(`Failed to check Runway task status: ${statusResponse.status}`);
+          }
 
           const status = await statusResponse.json();
 
-          if (status.status === 'completed') {
-            videoUrl = status.video_url;
-          } else if (status.status === 'failed') {
-            throw new Error('Video generation failed');
+          if (status.status === 'SUCCEEDED') {
+            videoUrl = status.output?.[0] || status.video_url;
+          } else if (status.status === 'FAILED') {
+            throw new Error(status.error || 'Runway video generation failed');
           }
+
+          // Update progress
+          if (status.progress) {
+            updateSpinnerMessage(`Runway is generating your video... ${Math.round(status.progress * 100)}%`);
+          }
+        }
+
+        if (!videoUrl) {
+          throw new Error('Runway video generation timed out after 5 minutes');
         }
 
         // Download and display
@@ -3009,10 +3068,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         }
 
         hideSpinner();
-        addLogEntry('AI video generated successfully using Runway!');
+        addLogEntry('AI video generated successfully using Runway Gen-3 Alpha!');
 
       } else {
-        throw new Error(`Unknown provider: ${provider}`);
+        throw new Error(`Unknown AI provider: ${provider}. Please select OpenAI or Runway ML in the Connect AI Providers section.`);
       }
 
     } catch (error) {
@@ -3973,10 +4032,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       }
     });
 
-    $('contentType')?.dispatchEvent(new Event('change'));
+  $('contentType')?.dispatchEvent(new Event('change'));
     $('memeMode')?.dispatchEvent(new Event('change'));
-    $('videoMode')?.dispatchEvent(new Event('change'));
+  $('videoMode')?.dispatchEvent(new Event('change'));
     $('hashtagMode')?.dispatchEvent(new Event('change'));
+
+    // No diagnostic toggles in normal mode
 
     $('librarySearch')?.addEventListener('input', displayLibraryContent);
     $('libraryFilter')?.addEventListener('change', displayLibraryContent);
@@ -4266,6 +4327,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
         await writeFileAsync(PATHS.SETTINGS, JSON.stringify(settings, null, 2));
 
+        // Update hidden token field immediately so app knows connection is active
+        const tokenInput = $(`${data.provider}Token`);
+        if (tokenInput) {
+          tokenInput.value = encrypted.success ? encrypted.data : data.token;
+        }
+
         // Update button to show connected status
         const btnId = `connect${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)}Btn`;
         const btn = $(btnId);
@@ -4300,6 +4367,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       if (btn && platform.token) {
         btn.textContent = `✓ ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)} Connected`;
         btn.style.backgroundColor = '#28a745';
+
+        // Also populate the hidden token field so the app knows it's connected
+        const tokenInput = $(`${platform.name}Token`);
+        if (tokenInput) {
+          tokenInput.value = platform.token;
+        }
       }
     }
   }
@@ -4471,11 +4544,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const rowHeight = rect.height / 3;
       const row = Math.max(1, Math.min(3, Math.ceil(y / rowHeight)));
 
-      // Calculate preview position
-      const previewLeft = rect.left + (col - 1) * colWidth;
-      const previewTop = rect.top + (row - 1) * rowHeight;
-      const previewWidth = colWidth - 2; // account for gap
-      const previewHeight = rowHeight - 2;
+  // Calculate preview position
+  const previewLeft = rect.left + (col - 1) * colWidth;
+  const previewTop = rect.top + (row - 1) * rowHeight;
+  const previewWidth = colWidth - 2; // account for gap
+  const previewHeight = rowHeight - 2;
 
       dropPreview.style.left = `${previewLeft}px`;
       dropPreview.style.top = `${previewTop}px`;
@@ -4485,7 +4558,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       // Update label
       const label = dropPreview.querySelector('.grid-position-label');
       if (label) {
-        label.textContent = `Column ${col}, Row ${row}`;
+  label.textContent = `Column ${col}, Row ${row}`;
       }
     }
 
@@ -4589,6 +4662,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         gridRow: fs.style.gridRow || ''
       };
     });
+
+    // No special synchronization for meme/video - save literal styles
 
     console.log('Saving layout:', layout);
 
