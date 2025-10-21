@@ -52,7 +52,7 @@ jobs:
     - name: Install dependencies
       run: npm ci
     - name: Run ESLint
-      run: npm run lint
+      run: node --loader=esm ./node_modules/.bin/eslint .
 
   build:
     needs: [security, test, lint]
