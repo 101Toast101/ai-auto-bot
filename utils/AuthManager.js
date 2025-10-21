@@ -58,7 +58,7 @@ class AuthManager {
   }
 
   validateToken(token) {
-    if (!token) return false;
+    if (!token) {return false;}
 
     try {
       // Basic structure validation

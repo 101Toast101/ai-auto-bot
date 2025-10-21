@@ -6,7 +6,7 @@ function isNonEmptyString(v) {
 }
 
 function validateTimezone(v) {
-  if (!isNonEmptyString(v)) return false;
+  if (!isNonEmptyString(v)) {return false;}
   try {
     if (typeof Intl.supportedValuesOf === 'function') {
       return Intl.supportedValuesOf('timeZone').includes(v);

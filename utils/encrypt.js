@@ -13,7 +13,7 @@ const ALGORITHM = 'aes-256-gcm';
 const KEY = getMachineKey();
 
 function encrypt(text) {
-  if (!text) return '';
+  if (!text) {return '';}
   
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv);
@@ -28,11 +28,11 @@ function encrypt(text) {
 }
 
 function decrypt(encryptedData) {
-  if (!encryptedData) return '';
+  if (!encryptedData) {return '';}
   
   try {
     const parts = encryptedData.split(':');
-    if (parts.length !== 3) return encryptedData; // Return as-is if not encrypted
+    if (parts.length !== 3) {return encryptedData;} // Return as-is if not encrypted
     
     const iv = Buffer.from(parts[0], 'hex');
     const authTag = Buffer.from(parts[1], 'hex');

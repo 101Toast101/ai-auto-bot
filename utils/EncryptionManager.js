@@ -121,7 +121,7 @@ class EncryptionManager {
         64,
         'sha512',
         (err, derivedKey) => {
-          if (err) reject(err);
+          if (err) {reject(err);}
           resolve({
             hash: derivedKey.toString('hex'),
             salt: useSalt

@@ -2,7 +2,7 @@ const isNonEmptyString = (v) => typeof v === 'string' && v.trim().length > 0;
 
 
 const validateDateTime = (v) => {
-  if (!isNonEmptyString(v)) return false;
+  if (!isNonEmptyString(v)) {return false;}
   const date = new Date(v);
   return !isNaN(date.getTime()) && v.includes('T');
 };
@@ -18,9 +18,9 @@ const validateRecurrence = (v) => {
 };
 
 const validateTimezone = (v) => {
-  if (!isNonEmptyString(v)) return false;
-  if (v === 'UTC') return true;
-  if (v.indexOf('/') > -1) return true;
+  if (!isNonEmptyString(v)) {return false;}
+  if (v === 'UTC') {return true;}
+  if (v.indexOf('/') > -1) {return true;}
   try {
     if (typeof Intl !== 'undefined' && typeof Intl.supportedValuesOf === 'function') {
       return Intl.supportedValuesOf('timeZone').includes(v);
@@ -216,7 +216,7 @@ const validateLibrary = (obj) => {
 const validateActivityLog = (obj) => {
   const errors = [];
   const arr = Array.isArray(obj) ? obj : (obj && Array.isArray(obj.logs) ? obj.logs : null);
-  if (!arr) return { valid: false, errors: ['Missing "logs" array'] };
+  if (!arr) {return { valid: false, errors: ['Missing "logs" array'] };}
   arr.forEach((log, index) => {
     const prefix = `Log at index ${index}:`;
     if (!log || typeof log !== 'object') {

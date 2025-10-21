@@ -356,7 +356,7 @@ ipcMain.handle('start-oauth', async (event, provider) => {
   };
 
   const P = PROVIDERS[provider];
-  if (!P) throw new Error('Unknown provider');
+  if (!P) {throw new Error('Unknown provider');}
 
   // Debug logging
   console.log(`[OAuth Debug] Provider: ${provider}`);
@@ -408,8 +408,8 @@ ipcMain.handle('start-oauth', async (event, provider) => {
 
     const handleRedirect = async (event2, url) => {
       try {
-        if (!url || !url.startsWith(REDIRECT_URI)) return;
-        if (resolved) return; // Already handled
+        if (!url || !url.startsWith(REDIRECT_URI)) {return;}
+        if (resolved) {return;} // Already handled
 
         event2.preventDefault();
         const parsed = new URL(url);
@@ -584,7 +584,7 @@ function startScheduler() {
     try {
       const scheduledPostsPath = path.join(__dirname, 'data', 'scheduledPosts.json');
 
-      if (!fs.existsSync(scheduledPostsPath)) return;
+      if (!fs.existsSync(scheduledPostsPath)) {return;}
 
       const content = await fs.promises.readFile(scheduledPostsPath, 'utf-8');
       const data = JSON.parse(content);
@@ -592,7 +592,7 @@ function startScheduler() {
 
       const now = new Date();
       const postsToExecute = posts.filter(post => {
-        if (post.posted) return false;
+        if (post.posted) {return false;}
 
         const scheduledTime = new Date(post.scheduledTime);
         return scheduledTime <= now;

@@ -26,7 +26,7 @@ if (!ENCRYPTION_KEY_BUFFER) {
   // in development. This file is created with restrictive permissions when possible.
   try {
     const dataDir = './data';
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    if (!fs.existsSync(dataDir)) {fs.mkdirSync(dataDir, { recursive: true });}
 
     const keyFile = './data/.encryption_key';
     if (fs.existsSync(keyFile)) {
@@ -90,9 +90,9 @@ function saveToken(platform, token, expiresIn = null) {
 
 // 📤 Load token
 function loadToken(platform) {
-  if (!fs.existsSync(TOKEN_PATH)) return null;
+  if (!fs.existsSync(TOKEN_PATH)) {return null;}
   const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH));
-  if (!tokens[platform]) return null;
+  if (!tokens[platform]) {return null;}
   return decrypt(tokens[platform]);
 }
 

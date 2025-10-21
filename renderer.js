@@ -40,7 +40,7 @@
       document.body.appendChild(overlay);
     } else {
       const text = overlay.querySelector('.progress-text');
-      if (text) text.textContent = message;
+      if (text) {text.textContent = message;}
       overlay.style.display = 'flex';
     }
   }
@@ -282,7 +282,7 @@
   // Helper function to load a library item by ID
   async function loadLibraryItem(itemId) {
     const libRes = await readFileAsync(PATHS.LIBRARY);
-    if (!libRes.success) return null;
+    if (!libRes.success) {return null;}
 
     const library = safeParse(libRes.content, []);
     return library.find(item => item.id === itemId);
@@ -291,12 +291,12 @@
   // Update the library with a new video
   async function updateLibraryWithVideo(itemId, videoUrl) {
     const libRes = await readFileAsync(PATHS.LIBRARY);
-    if (!libRes.success) return false;
+    if (!libRes.success) {return false;}
 
-    let library = safeParse(libRes.content, []);
+    const library = safeParse(libRes.content, []);
     const index = library.findIndex(item => item.id === itemId);
 
-    if (index === -1) return false;
+    if (index === -1) {return false;}
 
     library[index] = {
       ...library[index],
@@ -479,7 +479,7 @@
       // Add click handler to select/deselect for scheduling
       itemDiv.addEventListener('click', (e) => {
         // Don't select if clicking a button
-        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {return;}
 
         const isCurrentlySelected = itemDiv.classList.contains('selected-for-scheduling');
 
@@ -490,7 +490,7 @@
 
           // Hide preview
           const preview = $('selectedContentPreview');
-          if (preview) preview.style.display = 'none';
+          if (preview) {preview.style.display = 'none';}
 
           addLogEntry(`❌ Deselected content`, 'info');
         } else {
@@ -684,7 +684,7 @@
 
       // Load existing library
       const libRes = await readFileAsync(PATHS.LIBRARY);
-      let library = libRes.success ? safeParse(libRes.content, []) : [];
+      const library = libRes.success ? safeParse(libRes.content, []) : [];
 
       // Add new item
       library.unshift(libraryItem); // Add to start of array
@@ -714,7 +714,7 @@
         throw new Error('Failed to load library');
       }
 
-      let library = safeParse(libRes.content, []);
+      const library = safeParse(libRes.content, []);
       const index = library.findIndex(item => item.id === itemId);
 
       if (index === -1) {
@@ -767,10 +767,10 @@
 
       // STEP 3: Validate platform selection
       const selectedPlatforms = [];
-      if ($('instagram')?.checked) selectedPlatforms.push('instagram');
-      if ($('tiktok')?.checked) selectedPlatforms.push('tiktok');
-      if ($('youtube')?.checked) selectedPlatforms.push('youtube');
-      if ($('twitter')?.checked) selectedPlatforms.push('twitter');
+      if ($('instagram')?.checked) {selectedPlatforms.push('instagram');}
+      if ($('tiktok')?.checked) {selectedPlatforms.push('tiktok');}
+      if ($('youtube')?.checked) {selectedPlatforms.push('youtube');}
+      if ($('twitter')?.checked) {selectedPlatforms.push('twitter');}
 
       if (selectedPlatforms.length === 0) {
         addLogEntry('⚠️ Please select at least one platform in the Platforms section', 'warning');
@@ -952,7 +952,7 @@
   // PHASE 3: ERROR HANDLING
   function displayValidationError(error, context) {
     const errorContainer = $('errorContainer');
-    if (!errorContainer) return;
+    if (!errorContainer) {return;}
 
     let message = `Failed to save ${context}`;
     if (error && error.message) {
@@ -987,7 +987,7 @@
     (async () => {
       const r = await readFileAsync(PATHS.ACTIVITY_LOG);
       let data = r.success ? safeParse(r.content, { logs: [] }) : { logs: [] };
-      if (Array.isArray(data)) data = { logs: data };
+      if (Array.isArray(data)) {data = { logs: data };}
       data.logs.unshift({ ts: new Date().toISOString(), text });
       await writeFileAsync(PATHS.ACTIVITY_LOG, JSON.stringify(data, null, 2));
     })();
@@ -998,9 +998,9 @@
   }
 
   function toDateTimeLocal(iso) {
-    if (!iso) return '';
+    if (!iso) {return '';}
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
+    if (isNaN(d.getTime())) {return '';}
     const Y = d.getFullYear();
     const M = String(d.getMonth() + 1).padStart(2, '0');
     const D = String(d.getDate()).padStart(2, '0');
@@ -1014,7 +1014,7 @@
     for (let i = arr.length - 1; i >= 0; i--) {
       const it = arr[i];
       const key = it?.createdAt ? String(it.createdAt) : (it?.name ? `name:${String(it.name)}` : JSON.stringify(it));
-      if (!seen.has(key)) seen.set(key, it);
+      if (!seen.has(key)) {seen.set(key, it);}
     }
     return Array.from(seen.values()).reverse();
   }
@@ -1053,12 +1053,12 @@
 
   function hideSpinner() {
     const spinner = document.getElementById('globalSpinner');
-    if (spinner) spinner.remove();
+    if (spinner) {spinner.remove();}
   }
 
   function updateSpinnerMessage(message) {
     const spinnerText = document.querySelector('.spinner-text');
-    if (spinnerText) spinnerText.textContent = message;
+    if (spinnerText) {spinnerText.textContent = message;}
   }
 
   // BULK GENERATION
@@ -1081,8 +1081,8 @@
     // Show/hide video-specific options
     const videoModeLabel = $('bulkVideoModeLabel');
     const videoDurationLabel = $('bulkVideoDurationLabel');
-    if (videoModeLabel) videoModeLabel.style.display = isVideo ? '' : 'none';
-    if (videoDurationLabel) videoDurationLabel.style.display = isVideo ? '' : 'none';
+    if (videoModeLabel) {videoModeLabel.style.display = isVideo ? '' : 'none';}
+    if (videoDurationLabel) {videoDurationLabel.style.display = isVideo ? '' : 'none';}
 
     // Keep template and text mode visible for meme-to-video mode
     // Only show/hide based on video mode selection
@@ -1090,8 +1090,8 @@
       // Meme mode - show all meme options
       const templateStrategyLabel = $('bulkTemplateStrategyLabel');
       const textModeLabel = $('bulkTextModeLabel');
-      if (templateStrategyLabel) templateStrategyLabel.style.display = '';
-      if (textModeLabel) textModeLabel.style.display = '';
+      if (templateStrategyLabel) {templateStrategyLabel.style.display = '';}
+      if (textModeLabel) {textModeLabel.style.display = '';}
       handleBulkTemplateStrategyChange();
       handleBulkTextModeChange();
     }
@@ -1112,8 +1112,8 @@
     const aiLabel = $('bulkAiPromptLabel');
     const manualLabel = $('bulkManualTextLabel');
 
-    if (aiLabel) aiLabel.style.display = mode === 'ai' ? '' : 'none';
-    if (manualLabel) manualLabel.style.display = mode === 'manual' ? '' : 'none';
+    if (aiLabel) {aiLabel.style.display = mode === 'ai' ? '' : 'none';}
+    if (manualLabel) {manualLabel.style.display = mode === 'manual' ? '' : 'none';}
   }
 
   function handleBulkHashtagModeChange() {
@@ -1157,10 +1157,10 @@
       hideSpinner();
 
       const platforms = [];
-      if ($('bulkInstagram')?.checked) platforms.push({ name: 'instagram', width: 1080, height: 1080 });
-      if ($('bulkTikTok')?.checked) platforms.push({ name: 'tiktok', width: 1080, height: 1920 });
-      if ($('bulkYouTube')?.checked) platforms.push({ name: 'youtube', width: 1280, height: 720 });
-      if ($('bulkTwitter')?.checked) platforms.push({ name: 'twitter', width: 1200, height: 675 });
+      if ($('bulkInstagram')?.checked) {platforms.push({ name: 'instagram', width: 1080, height: 1080 });}
+      if ($('bulkTikTok')?.checked) {platforms.push({ name: 'tiktok', width: 1080, height: 1920 });}
+      if ($('bulkYouTube')?.checked) {platforms.push({ name: 'youtube', width: 1280, height: 720 });}
+      if ($('bulkTwitter')?.checked) {platforms.push({ name: 'twitter', width: 1200, height: 675 });}
 
       if (platforms.length === 0) {
         platforms.push({ name: 'instagram', width: 1080, height: 1080 });
@@ -1254,10 +1254,10 @@
       $('bulkProgressBar').style.width = '0%';
 
       const platforms = [];
-      if ($('bulkInstagram')?.checked) platforms.push({ name: 'instagram', width: 1080, height: 1080 });
-      if ($('bulkTikTok')?.checked) platforms.push({ name: 'tiktok', width: 1080, height: 1920 });
-      if ($('bulkYouTube')?.checked) platforms.push({ name: 'youtube', width: 1280, height: 720 });
-      if ($('bulkTwitter')?.checked) platforms.push({ name: 'twitter', width: 1200, height: 675 });
+      if ($('bulkInstagram')?.checked) {platforms.push({ name: 'instagram', width: 1080, height: 1080 });}
+      if ($('bulkTikTok')?.checked) {platforms.push({ name: 'tiktok', width: 1080, height: 1920 });}
+      if ($('bulkYouTube')?.checked) {platforms.push({ name: 'youtube', width: 1280, height: 720 });}
+      if ($('bulkTwitter')?.checked) {platforms.push({ name: 'twitter', width: 1200, height: 675 });}
 
       if (platforms.length === 0) {
         platforms.push({ name: 'instagram', width: 1080, height: 1080 });
@@ -1712,10 +1712,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       // Get selected platforms to determine caption format
       const platforms = [];
-      if ($('postInstagram')?.checked) platforms.push('Instagram');
-      if ($('postTikTok')?.checked) platforms.push('TikTok');
-      if ($('postYouTube')?.checked) platforms.push('YouTube');
-      if ($('postTwitter')?.checked) platforms.push('Twitter');
+      if ($('postInstagram')?.checked) {platforms.push('Instagram');}
+      if ($('postTikTok')?.checked) {platforms.push('TikTok');}
+      if ($('postYouTube')?.checked) {platforms.push('YouTube');}
+      if ($('postTwitter')?.checked) {platforms.push('Twitter');}
 
       const caption = topText && bottomText
         ? `${topText} / ${bottomText}`
@@ -1767,11 +1767,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function fetchMemeTemplates() {
     const sel = $('memeTemplate');
-    if (!sel) return;
+    if (!sel) {return;}
 
     try {
       const resp = await fetch('https://api.memegen.link/templates/');
-      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+      if (!resp.ok) {throw new Error(`Status ${resp.status}`);}
 
       const data = await resp.json();
       allTemplates = Array.isArray(data)
@@ -1821,9 +1821,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if (form) {
       const inputs = form.querySelectorAll('input,select,textarea');
       inputs.forEach((el) => {
-        if (!el.id) return;
-        if (el.type === 'checkbox') data[el.id] = el.checked;
-        else data[el.id] = el.value;
+        if (!el.id) {return;}
+        if (el.type === 'checkbox') {data[el.id] = el.checked;}
+        else {data[el.id] = el.value;}
       });
     }
 
@@ -1844,14 +1844,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const res = await readFileAsync(PATHS.SAVED_CONFIGS);
     let configs = res.success ? safeParse(res.content, { configs: [] }) : { configs: [] };
 
-    if (Array.isArray(configs)) configs = { configs: configs };
-    if (!configs.configs || !Array.isArray(configs.configs)) configs = { configs: [] };
+    if (Array.isArray(configs)) {configs = { configs: configs };}
+    if (!configs.configs || !Array.isArray(configs.configs)) {configs = { configs: [] };}
 
     const index = configs.configs.findIndex((c) => c.name === name);
     const record = { name, createdAt: new Date().toISOString(), settings: encryptedData };
 
-    if (index >= 0) configs.configs[index] = record;
-    else configs.configs.unshift(record);
+    if (index >= 0) {configs.configs[index] = record;}
+    else {configs.configs.unshift(record);}
 
     const w = await writeFileAsync(PATHS.SAVED_CONFIGS, JSON.stringify(configs, null, 2));
     if (w.success) {
@@ -1879,7 +1879,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   }
 
   function populateFormFromObject(obj) {
-    if (!obj) return;
+    if (!obj) {return;}
 
     // Handle dark mode first if it exists
     if (typeof obj.isDarkMode === 'boolean') {
@@ -1924,22 +1924,22 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const topText = obj.metadata?.variation?.top || obj.topText || obj.caption?.split('\n')[0] || '';
       const bottomText = obj.metadata?.variation?.bottom || obj.bottomText || obj.caption?.split('\n')[1] || '';
 
-      if ($('memeTemplate')) $('memeTemplate').value = template;
-      if ($('memeTopText')) $('memeTopText').value = topText;
-      if ($('memeBottomText')) $('memeBottomText').value = bottomText;
+      if ($('memeTemplate')) {$('memeTemplate').value = template;}
+      if ($('memeTopText')) {$('memeTopText').value = topText;}
+      if ($('memeBottomText')) {$('memeBottomText').value = bottomText;}
 
       // Always update preview when setting meme content
       updateMemePreview();
     }
 
     // Set caption and hashtags
-    if ($('caption')) $('caption').value = obj.caption || '';
-    if ($('hashtags')) $('hashtags').value = obj.hashtags || '';
+    if ($('caption')) {$('caption').value = obj.caption || '';}
+    if ($('hashtags')) {$('hashtags').value = obj.hashtags || '';}
 
     // Handle form fields
     Object.keys(obj).forEach((key) => {
       const el = $(key);
-      if (!el) return;
+      if (!el) {return;}
 
       if (el.type === 'checkbox') {
         el.checked = !!obj[key];
@@ -1958,7 +1958,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function renderSavedConfigs(configs) {
     const ul = $('savedConfigsList');
-    if (!ul) return;
+    if (!ul) {return;}
 
     ul.innerHTML = '';
     configs.forEach((c, idx) => {
@@ -1985,8 +1985,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         let data = r.success ? safeParse(r.content, { configs: [] }) : { configs: [] };
 
         // Handle legacy flat array format
-        if (Array.isArray(data)) data = { configs: data };
-        if (!data.configs || !Array.isArray(data.configs)) data = { configs: [] };
+        if (Array.isArray(data)) {data = { configs: data };}
+        if (!data.configs || !Array.isArray(data.configs)) {data = { configs: [] };}
 
         let removeIdx = -1;
         if (c.createdAt) {
@@ -1996,7 +1996,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
           removeIdx = data.configs.findIndex(x => x && x.name === c.name);
         }
 
-        if (removeIdx >= 0) data.configs.splice(removeIdx, 1);
+        if (removeIdx >= 0) {data.configs.splice(removeIdx, 1);}
 
         const w = await writeFileAsync(PATHS.SAVED_CONFIGS, JSON.stringify(data, null, 2));
         if (w.success) {
@@ -2019,8 +2019,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const res = await readFileAsync(PATHS.SAVED_CONFIGS);
     let configs = res.success ? safeParse(res.content, { configs: [] }) : { configs: [] };
 
-    if (Array.isArray(configs)) configs = { configs: configs };
-    if (!configs.configs || !Array.isArray(configs.configs)) configs = { configs: [] };
+    if (Array.isArray(configs)) {configs = { configs: configs };}
+    if (!configs.configs || !Array.isArray(configs.configs)) {configs = { configs: [] };}
 
     const cleaned = dedupeSavedConfigs(configs.configs);
 
@@ -2034,7 +2034,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   // SCHEDULED POSTS
   function renderScheduledPosts(posts) {
     const ul = $('scheduledPostsList');
-    if (!ul) return;
+    if (!ul) {return;}
 
     ul.innerHTML = '';
     posts.forEach((p, idx) => {
@@ -2051,8 +2051,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         let data = r.success ? safeParse(r.content, { posts: [] }) : { posts: [] };
 
         // Handle legacy flat array format
-        if (Array.isArray(data)) data = { posts: data };
-        if (!data.posts || !Array.isArray(data.posts)) data = { posts: [] };
+        if (Array.isArray(data)) {data = { posts: data };}
+        if (!data.posts || !Array.isArray(data.posts)) {data = { posts: [] };}
 
         data.posts.splice(idx, 1);
 
@@ -2074,8 +2074,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     let data = r.success ? safeParse(r.content, { posts: [] }) : { posts: [] };
 
     // Handle legacy flat array format
-    if (Array.isArray(data)) data = { posts: data };
-    if (!data.posts || !Array.isArray(data.posts)) data = { posts: [] };
+    if (Array.isArray(data)) {data = { posts: data };}
+    if (!data.posts || !Array.isArray(data.posts)) {data = { posts: [] };}
 
     const cleaned = dedupeScheduledPosts(data.posts);
 
@@ -2088,7 +2088,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function populateTimezones() {
     const tzSelect = $('timezoneSelect');
-    if (!tzSelect) return;
+    if (!tzSelect) {return;}
 
     let zones = [];
     try {
@@ -2140,7 +2140,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // Also apply to container for full coverage
     const container = document.querySelector('.container');
-    if (container) container.classList.toggle('dark', on);
+    if (container) {container.classList.toggle('dark', on);}
 
     // Refresh library cards to apply dark mode immediately
     await displayLibraryContent();
@@ -2153,8 +2153,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const memeFields = $('memeFields');
     const videoFields = $('videoFields');
 
-    if (memeFields) memeFields.style.display = val === 'meme' ? '' : 'none';
-    if (videoFields) videoFields.style.display = val === 'video' ? '' : 'none';
+    if (memeFields) {memeFields.style.display = val === 'meme' ? '' : 'none';}
+    if (videoFields) {videoFields.style.display = val === 'video' ? '' : 'none';}
 
     // Trigger meme mode change if switching to meme
     if (val === 'meme') {
@@ -2198,13 +2198,13 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // Hide all sections first
     Object.values(sections).flat().forEach(id => {
-      if ($(id)) $(id).style.display = 'none';
+      if ($(id)) {$(id).style.display = 'none';}
     });
 
     // Show relevant sections
     if (sections[mode]) {
       sections[mode].forEach(id => {
-        if ($(id)) $(id).style.display = '';
+        if ($(id)) {$(id).style.display = '';}
       });
     }
 
@@ -2362,9 +2362,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const aiVideoOptions = $('aiVideoOptions');
 
     // Hide all option sections first
-    if (memeToVideoOptions) memeToVideoOptions.style.display = 'none';
-    if (slideshowOptions) slideshowOptions.style.display = 'none';
-    if (aiVideoOptions) aiVideoOptions.style.display = 'none';
+    if (memeToVideoOptions) {memeToVideoOptions.style.display = 'none';}
+    if (slideshowOptions) {slideshowOptions.style.display = 'none';}
+    if (aiVideoOptions) {aiVideoOptions.style.display = 'none';}
 
     // Show relevant section
     if (mode === 'meme-to-video' && memeToVideoOptions) {
@@ -2593,7 +2593,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     ctx.fillText(bottomText, width / 2, height - 20);
 
     ctx.globalAlpha = 1;
-    if (animation === 'slide-in') ctx.restore();
+    if (animation === 'slide-in') {ctx.restore();}
   }
 
   async function generateSlideshow() {
@@ -3160,7 +3160,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function updateSelectedMemesPreview() {
     const preview = $('selectedMemesPreview');
-    if (!preview) return;
+    if (!preview) {return;}
 
     preview.innerHTML = selectedMemesForSlideshow.map(meme => `
       <img src="${meme.url}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 4px;" />
@@ -3198,7 +3198,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const videoUrl = URL.createObjectURL(videoBlob);
 
     const libRes = await readFileAsync(PATHS.LIBRARY);
-    let library = libRes.success ? safeParse(libRes.content, []) : [];
+    const library = libRes.success ? safeParse(libRes.content, []) : [];
 
     library.unshift({
       url: videoUrl,
@@ -3232,32 +3232,32 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const varResults = $('variationResults');
 
     // Hide all optional fields first
-    if (promptLabel) promptLabel.style.display = 'none';
-    if (actionBtn) actionBtn.style.display = 'none';
-    if (sourceImageLabel) sourceImageLabel.style.display = 'none';
-    if (maskImageLabel) maskImageLabel.style.display = 'none';
-    if (createVarBtn) createVarBtn.style.display = 'none';
-    if (varResults) varResults.style.display = 'none';
+    if (promptLabel) {promptLabel.style.display = 'none';}
+    if (actionBtn) {actionBtn.style.display = 'none';}
+    if (sourceImageLabel) {sourceImageLabel.style.display = 'none';}
+    if (maskImageLabel) {maskImageLabel.style.display = 'none';}
+    if (createVarBtn) {createVarBtn.style.display = 'none';}
+    if (varResults) {varResults.style.display = 'none';}
 
     // Show/hide based on mode
     if (val === 'template') {
-      if (templateLabel) templateLabel.style.display = '';
-      if (topTextLabel) topTextLabel.style.display = '';
-      if (bottomTextLabel) bottomTextLabel.style.display = '';
+      if (templateLabel) {templateLabel.style.display = '';}
+      if (topTextLabel) {topTextLabel.style.display = '';}
+      if (bottomTextLabel) {bottomTextLabel.style.display = '';}
     } else if (val === 'generate') {
-      if (promptLabel) promptLabel.style.display = '';
-      if (actionBtn) actionBtn.style.display = '';
-      if (actionBtn) actionBtn.textContent = 'Generate';
+      if (promptLabel) {promptLabel.style.display = '';}
+      if (actionBtn) {actionBtn.style.display = '';}
+      if (actionBtn) {actionBtn.textContent = 'Generate';}
     } else if (val === 'edit') {
-      if (promptLabel) promptLabel.style.display = '';
-      if (sourceImageLabel) sourceImageLabel.style.display = '';
-      if (maskImageLabel) maskImageLabel.style.display = '';
-      if (actionBtn) actionBtn.style.display = '';
-      if (actionBtn) actionBtn.textContent = 'Edit Image';
+      if (promptLabel) {promptLabel.style.display = '';}
+      if (sourceImageLabel) {sourceImageLabel.style.display = '';}
+      if (maskImageLabel) {maskImageLabel.style.display = '';}
+      if (actionBtn) {actionBtn.style.display = '';}
+      if (actionBtn) {actionBtn.textContent = 'Edit Image';}
     } else if (val === 'variations') {
-      if (sourceImageLabel) sourceImageLabel.style.display = '';
-      if (createVarBtn) createVarBtn.style.display = '';
-      if (varResults) varResults.style.display = '';
+      if (sourceImageLabel) {sourceImageLabel.style.display = '';}
+      if (createVarBtn) {createVarBtn.style.display = '';}
+      if (varResults) {varResults.style.display = '';}
     }
 
     addLogEntry(`Meme mode: ${val}`);
@@ -3266,7 +3266,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   function handleHashtagModeChange(ev) {
     const val = ev.target.value;
     const manual = $('manualHashtagLabel');
-    if (manual) manual.style.display = val === 'manual' ? '' : 'none';
+    if (manual) {manual.style.display = val === 'manual' ? '' : 'none';}
     addLogEntry(`Hashtag mode: ${val}`);
   }
 
@@ -3348,7 +3348,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       // Save to library
       const libRes = await readFileAsync(PATHS.LIBRARY);
-      let library = libRes.success ? safeParse(libRes.content, []) : [];
+      const library = libRes.success ? safeParse(libRes.content, []) : [];
       library.unshift({
         url: imageUrl,
         caption: prompt,
@@ -3552,29 +3552,29 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if ($('instagram')?.checked && $('instagramToken')?.value) {
       updateSpinnerMessage('Posting to Instagram...');
       const result = await postToInstagram(memeUrl, fullCaption, $('instagramToken').value);
-      if (result.success) successCount++;
-      else failCount++;
+      if (result.success) {successCount++;}
+      else {failCount++;}
     }
 
     if ($('tiktok')?.checked && $('tiktokToken')?.value) {
       updateSpinnerMessage('Posting to TikTok...');
       const result = await postToTikTok(memeUrl, fullCaption, $('tiktokToken').value);
-      if (result.success) successCount++;
-      else failCount++;
+      if (result.success) {successCount++;}
+      else {failCount++;}
     }
 
     if ($('youtube')?.checked && $('youtubeToken')?.value) {
       updateSpinnerMessage('Posting to YouTube...');
       const result = await postToYouTube(memeUrl, fullCaption, $('youtubeToken').value);
-      if (result.success) successCount++;
-      else failCount++;
+      if (result.success) {successCount++;}
+      else {failCount++;}
     }
 
     if ($('twitter')?.checked && $('twitterToken')?.value) {
       updateSpinnerMessage('Posting to Twitter...');
       const result = await postToTwitter(memeUrl, fullCaption, $('twitterToken').value);
-      if (result.success) successCount++;
-      else failCount++;
+      if (result.success) {successCount++;}
+      else {failCount++;}
     }
 
     hideSpinner();
@@ -3599,7 +3599,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     // Save to library with posted status
     if (successCount > 0) {
       const libRes = await readFileAsync(PATHS.LIBRARY);
-      let library = libRes.success ? safeParse(libRes.content, []) : [];
+      const library = libRes.success ? safeParse(libRes.content, []) : [];
       library.unshift({
         url: memeUrl,
         caption: caption,
@@ -3801,10 +3801,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function addDownloadButton() {
     const preview = $('memePreview');
-    if (!preview || !preview.parentElement) return;
+    if (!preview || !preview.parentElement) {return;}
 
     const existing = $('downloadMemeBtn');
-    if (existing) return;
+    if (existing) {return;}
 
     const btn = document.createElement('button');
     btn.id = 'downloadMemeBtn';
@@ -3812,7 +3812,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     btn.style.cssText = 'margin-top: 10px; padding: 8px 16px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer;';
 
     btn.addEventListener('click', async () => {
-      if (!preview.src || preview.src.includes('svg')) return;
+      if (!preview.src || preview.src.includes('svg')) {return;}
 
       try {
         const response = await fetch(preview.src);
@@ -3911,10 +3911,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       // Check if at least one platform is selected
       const selectedPlatforms = [];
-      if ($('instagram')?.checked) selectedPlatforms.push('instagram');
-      if ($('tiktok')?.checked) selectedPlatforms.push('tiktok');
-      if ($('youtube')?.checked) selectedPlatforms.push('youtube');
-      if ($('twitter')?.checked) selectedPlatforms.push('twitter');
+      if ($('instagram')?.checked) {selectedPlatforms.push('instagram');}
+      if ($('tiktok')?.checked) {selectedPlatforms.push('tiktok');}
+      if ($('youtube')?.checked) {selectedPlatforms.push('youtube');}
+      if ($('twitter')?.checked) {selectedPlatforms.push('twitter');}
 
       if (selectedPlatforms.length === 0) {
         displayValidationError({ message: 'Please select at least one platform' }, 'scheduled post');
@@ -3947,9 +3947,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       };      if (form) {
         const inputs = form.querySelectorAll('input,select,textarea');
         inputs.forEach((el) => {
-          if (!el.id) return;
-          if (el.type === 'checkbox') post.source[el.id] = el.checked;
-          else post.source[el.id] = el.value;
+          if (!el.id) {return;}
+          if (el.type === 'checkbox') {post.source[el.id] = el.checked;}
+          else {post.source[el.id] = el.value;}
         });
       }
 
@@ -3957,8 +3957,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       let data = r.success ? safeParse(r.content, { posts: [] }) : { posts: [] };
 
       // Handle legacy flat array format
-      if (Array.isArray(data)) data = { posts: data };
-      if (!data.posts || !Array.isArray(data.posts)) data = { posts: [] };
+      if (Array.isArray(data)) {data = { posts: data };}
+      if (!data.posts || !Array.isArray(data.posts)) {data = { posts: [] };}
 
       data.posts.unshift(post);
 
@@ -4013,7 +4013,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     $('memeSearch')?.addEventListener('input', (e) => {
       const searchTerm = e.target.value.toLowerCase();
       const select = $('memeTemplate');
-      if (!select) return;
+      if (!select) {return;}
 
       const filtered = allTemplates.filter(t =>
         (t.name || t.id).toLowerCase().includes(searchTerm)
@@ -4115,7 +4115,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const modal = $('aiKeyModal');
     const info = aiProviderInfo[provider];
 
-    if (!modal || !info) return;
+    if (!modal || !info) {return;}
 
     // Update modal content
     $('aiModalTitle').textContent = `Connect to ${info.name}`;
@@ -4163,7 +4163,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     const info = aiProviderInfo[currentAiProvider];
-    if (!info) return;
+    if (!info) {return;}
 
     // Validate key format for OpenAI
     if (currentAiProvider === 'openai' && info.keyPattern && !info.keyPattern.test(apiKey)) {
@@ -4207,7 +4207,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     const info = aiProviderInfo[currentAiProvider];
-    if (!info) return;
+    if (!info) {return;}
 
     // Validate key format
     if (currentAiProvider === 'openai' && info.keyPattern && !info.keyPattern.test(apiKey)) {
@@ -4278,7 +4278,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   async function checkAiProviderConnections() {
     // Check which providers are connected and update button states
     const settingsResult = await readFileAsync(PATHS.SETTINGS);
-    if (!settingsResult.success) return;
+    if (!settingsResult.success) {return;}
 
     const settings = safeParse(settingsResult.content, {});
 
@@ -4288,7 +4288,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       if (encryptedKey) {
         // Key exists - mark as connected
-        if (keyField) keyField.value = encryptedKey;
+        if (keyField) {keyField.value = encryptedKey;}
 
         const info = aiProviderInfo[provider];
         const btn = $(`connect${info.name.replace(' ', '')}Btn`);
@@ -4301,7 +4301,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     // Set active provider
     if (settings.aiProvider) {
       const providerField = $('aiProvider');
-      if (providerField) providerField.value = settings.aiProvider;
+      if (providerField) {providerField.value = settings.aiProvider;}
     }
   }
 
@@ -4350,7 +4350,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   // Check OAuth connection status
   async function checkOAuthStatus() {
     const settingsRes = await readFileAsync(PATHS.SETTINGS);
-    if (!settingsRes.success) return;
+    if (!settingsRes.success) {return;}
 
     const settings = safeParse(settingsRes.content, {});
     const platforms = [
@@ -4482,11 +4482,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       window.api.onOAuthToken(async (data) => {
         const provider = data.provider; // 'instagram'|'tiktok'|'youtube'|'twitter'
         const token = data.token;
-        if (!provider || !token) return;
+        if (!provider || !token) {return;}
 
         // Fill hidden input so the UI and post flow see it
         const input = $(`${provider}Token`);
-        if (input) input.value = token;
+        if (input) {input.value = token;}
 
         // Persist token into settings
         const r = await readFileAsync(PATHS.SETTINGS);
@@ -4513,7 +4513,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   // Drag-and-drop functionality for rearranging fieldsets
   function initDragAndDrop() {
     const form = $('settingsForm');
-    if (!form) return;
+    if (!form) {return;}
 
     const fieldsets = Array.from(form.querySelectorAll('fieldset'));
     let draggedElement = null;
@@ -4530,7 +4530,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // Update drop preview position
     function updateDropPreview(e) {
-      if (!draggedElement || !dropPreview) return;
+      if (!draggedElement || !dropPreview) {return;}
 
       const rect = form.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -4590,7 +4590,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       });
 
       fieldset.addEventListener('drag', (e) => {
-        if (e.clientX === 0 && e.clientY === 0) return; // Ignore final drag event
+        if (e.clientX === 0 && e.clientY === 0) {return;} // Ignore final drag event
         updateDropPreview(e);
       });
 
@@ -4649,7 +4649,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function saveLayout() {
     const form = $('settingsForm');
-    if (!form) return;
+    if (!form) {return;}
 
     const fieldsets = Array.from(form.querySelectorAll('fieldset'));
     const layout = {};
@@ -4682,11 +4682,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function loadLayout() {
     const form = $('settingsForm');
-    if (!form) return;
+    if (!form) {return;}
 
     try {
       const r = await readFileAsync(PATHS.SETTINGS);
-      if (!r.success) return;
+      if (!r.success) {return;}
 
       const settings = safeParse(r.content, {});
       const decrypted = await decryptSensitiveFields(settings);
@@ -4694,7 +4694,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       console.log('Loading layout:', layout);
 
-      if (!layout || typeof layout !== 'object') return;
+      if (!layout || typeof layout !== 'object') {return;}
 
       const fieldsets = Array.from(form.querySelectorAll('fieldset'));
 
