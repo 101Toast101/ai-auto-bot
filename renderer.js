@@ -3978,8 +3978,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     $('videoMode')?.dispatchEvent(new Event('change'));
     $('hashtagMode')?.dispatchEvent(new Event('change'));
 
-    $('librarySearch')?.addEventListener('input', renderLibrary);
-    $('libraryFilter')?.addEventListener('change', renderLibrary);
+    $('librarySearch')?.addEventListener('input', displayLibraryContent);
+    $('libraryFilter')?.addEventListener('change', displayLibraryContent);
 
     // Setup AI Provider connection buttons
     $('connectOpenAIBtn')?.addEventListener('click', () => openAiKeyModal('openai'));
