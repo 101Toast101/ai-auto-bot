@@ -29,7 +29,7 @@ export default [
             'no-eval': 'error',
             'no-implied-eval': 'error',
             'no-new-func': 'error',
-            
+
             // Best Practices
             'no-var': 'error',
             'prefer-const': 'error',
@@ -45,13 +45,13 @@ export default [
                     allow: ['warn', 'error']
                 }
             ],
-            
+
             // Code Quality
             'eqeqeq': ['error', 'always'],
             'curly': ['error', 'all'],
             'no-throw-literal': 'error',
             'prefer-promise-reject-errors': 'error',
-            
+
             // Node.js
             'no-path-concat': 'error'
         }
