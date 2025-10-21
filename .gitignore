@@ -10,3 +10,9 @@
 /coverage/
 *.bak
 *.log
+
+# Sensitive credentials - NEVER commit these
+client_secret_*.json
+*.txt
+!README.txt
+!package.txtcredentials/
