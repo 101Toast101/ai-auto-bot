@@ -99,6 +99,9 @@ app.on('activate', () => {
   }
 });
 
+// Store pending OAuth requests (for system browser flow)
+const pendingOAuthRequests = new Map();
+
 // Start OAuth callback server
 function startOAuthServer() {
   if (oauthServer) {
@@ -110,8 +113,76 @@ function startOAuthServer() {
   oauthApp.get('/oauth/callback', async (req, res) => {
     try {
       const code = req.query.code;
+      const state = req.query.state;
+
       if (!code) {
         res.send('<h1>Error: No authorization code received</h1>');
+        return;
+      }
+
+      // Check if this is a Twitter callback (has state parameter and pending request)
+      let twitterRequest = null;
+      for (const [provider, data] of pendingOAuthRequests.entries()) {
+        if (provider === 'twitter' && data.state === state) {
+          twitterRequest = data;
+          break;
+        }
+      }
+
+      if (twitterRequest) {
+        // Handle Twitter token exchange
+        try {
+          const body = new URLSearchParams();
+          body.append('client_id', twitterRequest.clientId);
+          body.append('grant_type', 'authorization_code');
+          body.append('redirect_uri', process.env.REDIRECT_URI || 'http://localhost:3000/oauth/callback');
+          body.append('code', code);
+          body.append('code_verifier', twitterRequest.codeVerifier);
+
+          const tokenResp = await fetch('https://api.twitter.com/2/oauth2/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': `Basic ${Buffer.from(`${twitterRequest.clientId}:${twitterRequest.clientSecret}`).toString('base64')}`
+            },
+            body: body.toString()
+          });
+
+          if (!tokenResp.ok) {
+            const errorText = await tokenResp.text();
+            throw new Error(`Token exchange failed: ${errorText}`);
+          }
+
+          const tokenData = await tokenResp.json();
+          const token = tokenData.access_token;
+
+          if (!token) {
+            throw new Error('No access token in response');
+          }
+
+          // Send token to renderer
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('oauth-token', { provider: 'twitter', token });
+          }
+
+          pendingOAuthRequests.delete('twitter');
+
+          res.send(`
+            <html>
+              <head><title>Twitter Connected!</title></head>
+              <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                <h1 style="color: #1DA1F2;">✅ Twitter Connected!</h1>
+                <p>You can close this window and return to the app.</p>
+                <script>
+                  setTimeout(() => window.close(), 2000);
+                </script>
+              </body>
+            </html>
+          `);
+        } catch (tokenError) {
+          logError('Twitter token exchange error:', tokenError);
+          res.status(500).send(`<h1>Error: ${tokenError.message}</h1>`);
+        }
         return;
       }
 
@@ -160,11 +231,12 @@ app.on('before-quit', () => {
 ipcMain.handle('start-oauth', async (event, provider) => {
   const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/oauth/callback';
 
-  // Generate PKCE values for TikTok
-  let codeVerifier, codeChallenge;
-  if (provider === 'tiktok') {
+  // Generate PKCE values for TikTok and Twitter
+  let codeVerifier, codeChallenge, state;
+  if (provider === 'tiktok' || provider === 'twitter') {
     codeVerifier = crypto.randomBytes(32).toString('base64url');
     codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+    state = crypto.randomBytes(16).toString('hex');
   }
 
   const PROVIDERS = {
@@ -190,8 +262,10 @@ ipcMain.handle('start-oauth', async (event, provider) => {
     twitter: {
       clientId: process.env.TWITTER_CLIENT_ID,
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      authUrl: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=tweet.read%20tweet.write%20users.read`,
-      tokenEndpoint: 'https://api.twitter.com/2/oauth2/token'
+      authUrl: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`,
+      tokenEndpoint: 'https://api.twitter.com/2/oauth2/token',
+      codeVerifier: codeVerifier,
+      state: state
     }
   };
 
@@ -211,6 +285,33 @@ ipcMain.handle('start-oauth', async (event, provider) => {
   let resolved = false; // Track if promise has been resolved
 
   return new Promise((resolve, reject) => {
+    // For Twitter, use system browser (Electron has rendering issues with Twitter)
+    if (provider === 'twitter') {
+      const { shell } = require('electron');
+
+      // Store pending request info for callback handler
+      pendingOAuthRequests.set('twitter', {
+        clientId: P.clientId,
+        clientSecret: P.clientSecret,
+        codeVerifier: P.codeVerifier,
+        state: P.state,
+        resolve,
+        reject
+      });
+
+      shell.openExternal(P.authUrl);
+
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        if (pendingOAuthRequests.has('twitter')) {
+          pendingOAuthRequests.delete('twitter');
+          reject(new Error('Twitter OAuth timed out - please try again'));
+        }
+      }, 300000);
+
+      return; // Exit early, callback will be handled by server
+    }
+
     const authWin = new BrowserWindow({
       width: 900,
       height: 700,
@@ -243,8 +344,8 @@ ipcMain.handle('start-oauth', async (event, provider) => {
         body.append('redirect_uri', REDIRECT_URI);
         body.append('code', code);
 
-        // Add code_verifier for TikTok PKCE
-        if (provider === 'tiktok' && P.codeVerifier) {
+        // Add code_verifier for TikTok and Twitter PKCE
+        if ((provider === 'tiktok' || provider === 'twitter') && P.codeVerifier) {
           body.append('code_verifier', P.codeVerifier);
         }
 
