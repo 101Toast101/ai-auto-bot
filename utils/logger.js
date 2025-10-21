@@ -1,6 +1,6 @@
 // utils/logger.js
 function logInfo(msg) {
-  console.log(`[INFO] ${new Date().toISOString()} — ${msg}`);
+  console.warn(`[INFO] ${new Date().toISOString()} — ${msg}`);
 }
 
 function logError(msg, err) {

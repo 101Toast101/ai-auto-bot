@@ -7,7 +7,7 @@ let consoleLogSpy;
 let consoleErrorSpy;
 
 beforeEach(() => {
-  consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+  consoleLogSpy = jest.spyOn(console, 'warn').mockImplementation();
   consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 });
 
