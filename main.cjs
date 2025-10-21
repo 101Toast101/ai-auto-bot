@@ -3,7 +3,7 @@ const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { encrypt, decrypt } = require('./utils/encrypt');
+const { encrypt, decrypt } = require('./utils/encrypt.cjs');
 const { logInfo, logError } = require('./utils/logger');
 const { registerVideoHandlers } = require('./handlers/video-handlers');
 const {
