@@ -1,6 +1,6 @@
 // tests/logger.test.js - Tests for logger utilities
 
-const { logInfo, logError } = require('../utils/logger');
+const { logInfo, logError } = require('../utils/logger.cjs');
 
 // Mock console to capture output
 let consoleLogSpy;

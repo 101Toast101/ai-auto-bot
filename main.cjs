@@ -4,15 +4,15 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { encrypt, decrypt } = require('./utils/encrypt.cjs');
-const { logInfo, logError } = require('./utils/logger');
-const { registerVideoHandlers } = require('./handlers/video-handlers');
+const { logInfo, logError } = require('./utils/logger.cjs');
+const { registerVideoHandlers } = require('./handlers/video-handlers.cjs');
 const {
 	validateSettings,
 	validateScheduledPosts,
 	validateSavedConfigs,
 	validateLibrary,
 	validateActivityLog
-} = require('./utils/validators');
+} = require('./utils/validators.cjs');
 
 // Initialize Express server for OAuth callbacks
 const express = require('express');

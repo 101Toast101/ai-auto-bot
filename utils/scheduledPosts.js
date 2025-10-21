@@ -1,6 +1,6 @@
 // utils/scheduledposts.js
 const { readJson, writeJson } = require('./database');
-const { validateDateTime } = require('./validators');
+const { validateDateTime } = require('./validators.cjs');
 
 const SCHEDULED_POSTS_FILE = 'data/scheduledPosts.json';
 

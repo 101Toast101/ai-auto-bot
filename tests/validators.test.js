@@ -11,7 +11,7 @@ const {
   validateSavedConfigs,
   validateLibrary,
   validateActivityLog
-} = require('../utils/validators');
+} = require('../utils/validators.cjs');
 
 describe('Basic Validators', () => {
   describe('isNonEmptyString', () => {

@@ -1,5 +1,3 @@
-// utils/logger.js
-
 function logInfo(msg) {
   console.warn(`[INFO] ${new Date().toISOString()} — ${msg}`);
 }

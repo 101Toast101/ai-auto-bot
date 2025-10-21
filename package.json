@@ -4,7 +4,7 @@
   "productName": "AI Auto Bot",
   "version": "1.0.0",
   "description": "AI Auto Bot desktop application built with Electron",
-  "main": "main.js",
+  "main": "main.cjs",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",

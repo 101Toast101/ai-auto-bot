@@ -2157,18 +2157,17 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   // EVENT HANDLERS
   async function handleDarkModeToggle(ev) {
-    const on = ev.target.checked;
-    document.documentElement.classList.toggle('dark', on);
-    document.body.classList.toggle('dark', on);
+  const on = ev.target.checked;
+  document.documentElement.classList.toggle('dark', on);
+  document.body.classList.toggle('dark', on);
 
-    // Also apply to container for full coverage
-    const container = document.querySelector('.container');
-    if (container) {container.classList.toggle('dark', on);}
+  const container = document.querySelector('.container');
+  if (container) container.classList.toggle('dark', on);
 
-    // Refresh library cards to apply dark mode immediately
-    await displayLibraryContent();
+  // NEW: Refresh library cards immediately
+  await displayLibraryContent();
 
-    addLogEntry(`Dark mode ${on ? 'enabled' : 'disabled'}`);
+  addLogEntry(`Dark mode ${on ? 'enabled' : 'disabled'}`);
   }
 
   function handleContentTypeChange(ev) {
