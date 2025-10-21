@@ -18,7 +18,7 @@ function parseHashtagsFromText(text) {
 function generateAutoHashtags(contentType = 'meme', content = '') {
   // Get base hashtags for content type
   const baseHashtags = hashtagSets[contentType] || hashtagSets.meme;
-  
+
   // Add any meaningful words from content as hashtags (if text content exists)
   let contentWords = [];
   if (content) {
@@ -29,10 +29,10 @@ function generateAutoHashtags(contentType = 'meme', content = '') {
       .map(word => word.replace(/[^\w]/g, ''))
       .filter(word => !['this', 'that', 'when', 'what', 'where', 'which', 'with'].includes(word));
   }
-  
+
   // Combine and remove duplicates
   const allTags = [...new Set([...baseHashtags, ...contentWords])];
-  
+
   // Return top 10 hashtags
   return allTags.slice(0, 10);
 }
