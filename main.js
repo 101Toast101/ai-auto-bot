@@ -86,6 +86,14 @@ function createWindow() {
       label: 'View',
       submenu: [
         {
+          label: 'Reload',
+          accelerator: 'CmdOrCtrl+R',
+          click: () => {
+            mainWindow.webContents.reload();
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'Zoom In',
           accelerator: 'CmdOrCtrl+=',
           click: () => {
