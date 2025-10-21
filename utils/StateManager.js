@@ -107,10 +107,16 @@ class StateManager {
           ...action.values
         };
 
-      case 'DELETE_STATE':
-        const newState = { ...state };
-        delete newState[action.key];
-        return newState;
+      case 'DELETE_STATE': {
+        let deleted = false;
+        const key = action.key;
+        if (Object.prototype.hasOwnProperty.call(this.state, key)) {
+          delete this.state[key];
+          deleted = true;
+        }
+        return deleted;
+      }
+  // unreachable code removed
 
       case 'RESET_STATE':
         return {};

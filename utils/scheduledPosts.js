@@ -1,7 +1,6 @@
 // utils/scheduledposts.js
 const { readJson, writeJson } = require('./database');
 const { validateDateTime } = require('./validators');
-const path = require('path');
 
 const SCHEDULED_POSTS_FILE = 'data/scheduledPosts.json';
 
@@ -43,14 +42,14 @@ async function getScheduledPosts() {
 async function markPostAsPosted(postId) {
   const posts = await readJson(SCHEDULED_POSTS_FILE) || { posts: [] };
   const postIndex = posts.posts.findIndex(p => p.id === postId);
-  
+
   if (postIndex === -1) {
     throw new Error('Post not found');
   }
 
   posts.posts[postIndex].posted = true;
   posts.posts[postIndex].postedAt = new Date().toISOString();
-  
+
   await writeJson(SCHEDULED_POSTS_FILE, posts);
   return posts.posts[postIndex];
 }

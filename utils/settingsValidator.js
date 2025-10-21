@@ -11,7 +11,7 @@ function validateTimezone(v) {
     if (typeof Intl.supportedValuesOf === 'function') {
       return Intl.supportedValuesOf('timeZone').includes(v);
     }
-  } catch (e) {}
+  } catch { /* ignore */ }
   return v === 'UTC' || v.indexOf('/') > -1;
 }
 

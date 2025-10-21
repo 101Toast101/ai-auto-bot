@@ -356,12 +356,14 @@ ipcMain.handle('start-oauth', async (event, provider) => {
   };
 
   const P = PROVIDERS[provider];
-  if (!P) {throw new Error('Unknown provider');}
+  if (!P) {
+    throw new Error('Unknown provider');
+  }
 
   // Debug logging
-  console.log(`[OAuth Debug] Provider: ${provider}`);
-  console.log(`[OAuth Debug] Client ID: ${P.clientId}`);
-  console.log(`[OAuth Debug] Auth URL: ${P.authUrl}`);
+  console.warn(`[OAuth Debug] Provider: ${provider}`);
+  console.warn(`[OAuth Debug] Client ID: ${P.clientId}`);
+  console.warn(`[OAuth Debug] Auth URL: ${P.authUrl}`);
 
   // Check if credentials are configured
   if (!P.clientId || !P.clientSecret || P.clientId.startsWith('YOUR_') || P.clientId.includes('test')) {
@@ -372,7 +374,7 @@ ipcMain.handle('start-oauth', async (event, provider) => {
 
   return new Promise((resolve, reject) => {
     // For Twitter, use system browser (Electron has rendering issues with Twitter)
-    if (provider === 'twitter') {
+  if (provider === 'twitter') {
       const { shell } = require('electron');
 
       // Store pending request info for callback handler
@@ -408,8 +410,12 @@ ipcMain.handle('start-oauth', async (event, provider) => {
 
     const handleRedirect = async (event2, url) => {
       try {
-        if (!url || !url.startsWith(REDIRECT_URI)) {return;}
-        if (resolved) {return;} // Already handled
+        if (!url || !url.startsWith(REDIRECT_URI)) {
+          return;
+        }
+        if (resolved) {
+          return; // Already handled
+        }
 
         event2.preventDefault();
         const parsed = new URL(url);
@@ -493,24 +499,30 @@ function getValidatorForFile(filePath) {
   const filename = path.basename(filePath);
 
   switch (filename) {
-    case 'settings.json':
+    case 'settings.json': {
       return validateSettings;
-    case 'scheduledPosts.json':
+    }
+    case 'scheduledPosts.json': {
       return validateScheduledPosts;
-    case 'savedConfigs.json':
+    }
+    case 'savedConfigs.json': {
       return validateSavedConfigs;
-    case 'library.json':
+    }
+    case 'library.json': {
       return validateLibrary;
-    case 'activity_log.json':
+    }
+    case 'activity_log.json': {
       return validateActivityLog;
-    default:
+    }
+    default: {
       return null;
+    }
   }
 }
 
 // IPC handler: read a file
 ipcMain.handle('READ_FILE', async (_evt, filePath) => {
-  console.log('[IPC] READ_FILE:', filePath);
+  console.warn('[IPC] READ_FILE:', filePath);
   try {
     const content = await fs.promises.readFile(filePath, 'utf-8');
     return { success: true, content };
@@ -521,7 +533,7 @@ ipcMain.handle('READ_FILE', async (_evt, filePath) => {
 
 // IPC handler: write a file WITH VALIDATION
 ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
-  console.log('[IPC] WRITE_FILE:', filePath);
+  console.warn('[IPC] WRITE_FILE:', filePath);
   try {
     const validator = getValidatorForFile(filePath);
 
@@ -599,7 +611,7 @@ function startScheduler() {
       });
 
       for (const post of postsToExecute) {
-        console.log(`[Scheduler] Executing scheduled post: ${post.scheduledTime}`);
+  console.warn(`[Scheduler] Executing scheduled post: ${post.scheduledTime}`);
 
         // Mark as posted
         post.posted = true;
@@ -625,14 +637,14 @@ function startScheduler() {
     }
   }, 60000); // Check every minute
 
-  console.log('[Scheduler] Started - checking every 60 seconds');
+  console.warn('[Scheduler] Started - checking every 60 seconds');
 }
 
 function stopScheduler() {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.log('[Scheduler] Stopped');
+  console.warn('[Scheduler] Stopped');
   }
 }
 

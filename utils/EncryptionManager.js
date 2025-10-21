@@ -26,7 +26,7 @@ class EncryptionManager {
       const keys = JSON.parse(keyData);
       this.publicKey = keys.publicKey;
       this.privateKey = keys.privateKey;
-    } catch (error) {
+    } catch {
       // Generate new keypair if none exists
       await this.generateAndSaveKeyPair();
     }

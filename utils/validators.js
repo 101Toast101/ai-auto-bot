@@ -25,7 +25,7 @@ const validateTimezone = (v) => {
     if (typeof Intl !== 'undefined' && typeof Intl.supportedValuesOf === 'function') {
       return Intl.supportedValuesOf('timeZone').includes(v);
     }
-  } catch (e) {}
+  } catch { /* ignore */ }
   return false;
 };
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getToken, saveToken } = require('../tokenStore');
+const { saveToken } = require('../tokenStore');
 const axios = require('axios');
 
 // Unified OAuth callback handler

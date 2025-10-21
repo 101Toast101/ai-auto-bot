@@ -7,7 +7,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Debug logging
 function logDebug(msg) {
   const ts = new Date().toISOString();
-  console.log(`[Preload ${ts}] ${msg}`);
+  console.warn(`[Preload ${ts}] ${msg}`);
 }
 
 logDebug('Initializing IPC bridge...');

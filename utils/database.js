@@ -9,7 +9,7 @@ const DATA_DIR = path.join(__dirname, '..', 'data');
 async function ensureDataDir() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true });
-  } catch (e) {}
+  } catch { /* ignore */ }
 }
 
 async function readJson(relPath, fallback) {

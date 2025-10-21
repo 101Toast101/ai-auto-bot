@@ -1,5 +1,5 @@
 // AuthManager.js - Enhanced Authentication Management
-const crypto = require('crypto');
+// const crypto = require('crypto');
 const { loadToken, saveToken } = require('../tokenStore');
 
 class AuthManager {
@@ -21,7 +21,7 @@ class AuthManager {
 
     try {
       this.tokenRefreshQueue.set(platform, true);
-      const currentToken = loadToken(platform);
+          const currentToken = loadToken(platform);
 
       if (!currentToken) {
         throw new Error(`No token found for ${platform}`);
@@ -31,16 +31,16 @@ class AuthManager {
       let newToken;
       switch (platform) {
         case 'instagram':
-          newToken = await this.refreshInstagramToken(currentToken);
+            newToken = await this.refreshInstagramToken(currentToken);
           break;
         case 'youtube':
-          newToken = await this.refreshYoutubeToken(currentToken);
+            newToken = await this.refreshYoutubeToken(currentToken);
           break;
         case 'tiktok':
-          newToken = await this.refreshTikTokToken(currentToken);
+            newToken = await this.refreshTikTokToken(currentToken);
           break;
         case 'twitter':
-          newToken = await this.refreshTwitterToken(currentToken);
+            newToken = await this.refreshTwitterToken(currentToken);
           break;
         default:
           throw new Error(`Unknown platform: ${platform}`);
@@ -76,8 +76,8 @@ class AuthManager {
       }
 
       return true;
-    } catch (error) {
-      return false;
+      } catch {
+        return false;
     }
   }
 
@@ -123,22 +123,22 @@ class AuthManager {
   }
 
   // Platform-specific refresh implementations
-  async refreshInstagramToken(currentToken) {
+  async refreshInstagramToken(_token) {
     // Implementation based on Instagram's token refresh endpoint
     // return refreshed token
   }
 
-  async refreshYoutubeToken(currentToken) {
+  async refreshYoutubeToken(_token) {
     // Implementation based on YouTube's token refresh endpoint
     // return refreshed token
   }
 
-  async refreshTikTokToken(currentToken) {
+  async refreshTikTokToken(_token) {
     // Implementation based on TikTok's token refresh endpoint
     // return refreshed token
   }
 
-  async refreshTwitterToken(currentToken) {
+  async refreshTwitterToken(_token) {
     // Implementation based on Twitter's token refresh endpoint
     // return refreshed token
   }

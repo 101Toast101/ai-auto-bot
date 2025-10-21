@@ -21,7 +21,9 @@ module.exports = [
         ...globals.browser,
         ...globals.node,
         ...globals.es2021,
-        ...globals.jest
+        ...globals.jest,
+        JSZip: 'readonly',
+        GIF: 'readonly'
       }
     },
     rules: {

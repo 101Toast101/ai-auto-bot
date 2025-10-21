@@ -1,8 +1,8 @@
 const ffmpeg = require('ffmpeg-static');
-const GIFEncoder = require('gif-encoder-2');
 const { spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
+// const GIFEncoder = require('gif-encoder-2');
+// const fs = require('fs');
 const os = require('os');
 const crypto = require('crypto');
 
@@ -46,7 +46,7 @@ async function memeToVideo(imagePath, options) {
       if (code === 0) {
         resolve({ success: true, path: outputPath });
       } else {
-        reject({ success: false, error: error || 'FFmpeg process failed' });
+        reject(new Error(error || 'FFmpeg process failed'));
       }
     });
   });
@@ -67,7 +67,7 @@ async function createSlideshow(imagePaths, options) {
       duration = 3,
       outputPath,
       resolution = '1080x1080',
-      transition = 'fade',
+  // transition = 'fade',
       fps = 30
     } = options;
 
@@ -105,7 +105,7 @@ async function createSlideshow(imagePaths, options) {
       if (code === 0) {
         resolve({ success: true, path: outputPath });
       } else {
-        reject({ success: false, error: error || 'FFmpeg process failed' });
+        reject(new Error(error || 'FFmpeg process failed'));
       }
     });
   });
@@ -151,7 +151,7 @@ async function videoToGif(imagePath, options) {
       if (code === 0) {
         resolve({ success: true, path: outputPath });
       } else {
-        reject({ success: false, error: error || 'FFmpeg process failed' });
+        reject(new Error(error || 'FFmpeg process failed'));
       }
     });
   });

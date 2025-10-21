@@ -5,20 +5,23 @@ const sharp = require('sharp');
 parentPort.on('message', async (data) => {
   try {
     switch (data.type) {
-      case 'RESIZE':
+      case 'RESIZE': {
         const resized = await handleResize(data.image, data.options);
         parentPort.postMessage({ type: 'SUCCESS', result: resized });
         break;
+      }
 
-      case 'OPTIMIZE':
+      case 'OPTIMIZE': {
         const optimized = await handleOptimize(data.image, data.options);
         parentPort.postMessage({ type: 'SUCCESS', result: optimized });
         break;
+      }
 
-      case 'WATERMARK':
+      case 'WATERMARK': {
         const watermarked = await handleWatermark(data.image, data.watermark, data.options);
         parentPort.postMessage({ type: 'SUCCESS', result: watermarked });
         break;
+      }
 
       default:
         throw new Error(`Unknown operation type: ${data.type}`);

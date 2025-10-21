@@ -1,4 +1,6 @@
 // renderer.js - Complete Frontend Logic
+/* global JSZip GIF */
+/* exported handleImportSettings reuseLibraryItem deleteLibraryItem handleVideoGeneration handleMemeSelection handleVideoModeChange addDownloadButton */
 (function () {
   const $ = (id) => document.getElementById(id);
 
@@ -21,6 +23,13 @@
         errorContainer.style.display = 'none';
       }, 5000);
     }
+  }
+
+  // Helper to display errors consistently
+  function displayError(err) {
+    const message = err?.message || String(err);
+    console.error(message);
+    showNotification(message, 'error');
   }
 
   function showProgress(message) {
@@ -93,7 +102,7 @@
 
   // Initialize video features
   async function initializeVideoFeatures() {
-    console.log('Initializing video features...');
+  console.warn('Initializing video features...');
 
     // Use event delegation for dynamically created library items
     document.addEventListener('click', async function(e) {
@@ -136,7 +145,7 @@
     // Listen for video progress updates
     if (window.api && window.api.onVideoProgress) {
       window.api.onVideoProgress((progress) => {
-        console.log('Video progress:', progress);
+  console.warn('Video progress:', progress);
         if (progress.progress !== undefined) {
           updateProgress(progress.progress);
         }
@@ -147,14 +156,14 @@
   // Handle video conversion
   async function handleVideoConversion(itemId) {
     try {
-      console.log('Starting video conversion for item:', itemId);
+  console.warn('Starting video conversion for item:', itemId);
 
       const library = await loadLibraryItem(itemId);
       if (!library || !library.url) {
         throw new Error('Invalid library item - missing URL');
       }
 
-      console.log('Converting image to video:', library.url);
+  console.warn('Converting image to video:', library.url);
 
       // Show progress indicator
       showProgress('Converting to video...');
@@ -166,7 +175,7 @@
         fps: 30
       });
 
-      console.log('Video generation result:', result);
+  console.warn('Video generation result:', result);
 
       if (result && result.success) {
         // Update library with new video
@@ -343,7 +352,7 @@
         return { success: false, error: { message: 'API not available' } };
       }
       const result = await window.api.readFile(filePath);
-      console.log(`Read file ${filePath}:`, result.success ? 'success' : 'failed');
+  console.warn(`Read file ${filePath}:`, result.success ? 'success' : 'failed');
       return result;
     } catch (e) {
       console.error(`Error reading file ${filePath}:`, e);
@@ -358,7 +367,7 @@
         return { success: false, error: { message: 'API not available' } };
       }
       const result = await window.api.writeFile(filePath, content);
-      console.log(`Write file ${filePath}:`, result.success ? 'success' : 'failed');
+  console.warn(`Write file ${filePath}:`, result.success ? 'success' : 'failed');
       return result;
     } catch (e) {
       console.error(`Error writing file ${filePath}:`, e);
@@ -367,14 +376,7 @@
   }
 
     // IPC Channel constants (must match main process)
-  const IPC = {
-    READ_FILE: 'READ_FILE',
-    WRITE_FILE: 'WRITE_FILE',
-    ENCRYPT_DATA: 'ENCRYPT_DATA',
-    DECRYPT_DATA: 'DECRYPT_DATA',
-    START_OAUTH: 'start-oauth',
-    EXECUTE_SCHEDULED_POST: 'EXECUTE_SCHEDULED_POST'
-  };
+  // Legacy IPC channel constants kept for reference (not used directly in renderer)
 
   // File paths
   const PATHS = {
@@ -479,7 +481,9 @@
       // Add click handler to select/deselect for scheduling
       itemDiv.addEventListener('click', (e) => {
         // Don't select if clicking a button
-        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {return;}
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+          return;
+        }
 
         const isCurrentlySelected = itemDiv.classList.contains('selected-for-scheduling');
 
@@ -925,7 +929,7 @@
       // Load caption and hashtags
       if (item.caption) {
         // Caption field doesn't exist in current UI, but hashtags do
-        console.log('Caption:', item.caption);
+  console.warn('Caption:', item.caption);
       }
       if (item.hashtags) {
         $('hashtags').value = item.hashtags;
@@ -952,7 +956,9 @@
   // PHASE 3: ERROR HANDLING
   function displayValidationError(error, context) {
     const errorContainer = $('errorContainer');
-    if (!errorContainer) {return;}
+    if (!errorContainer) {
+      return;
+    }
 
     let message = `Failed to save ${context}`;
     if (error && error.message) {
@@ -1245,7 +1251,7 @@
         throw new Error('Duration must be between 3 and 30 seconds');
       }
 
-      console.log(`[Bulk Video] Starting generation: ${quantity} videos, ${duration}s each, mode: ${videoMode}`);
+  console.warn(`[Bulk Video] Starting generation: ${quantity} videos, ${duration}s each, mode: ${videoMode}`);
 
       bulkGeneratedContent = [];
       $('bulkProgress').style.display = 'block';
@@ -1270,7 +1276,7 @@
         // Mode: meme-to-video - Generate memes first, then convert to videos
         showSpinner('Generating meme variations...');
         const textVariations = await generateBulkTextVariations(quantity, textMode);
-        console.log(`[Bulk Video] Generated ${textVariations.length} text variations`);
+  console.warn(`[Bulk Video] Generated ${textVariations.length} text variations`);
         hideSpinner();
 
         const strategy = $('bulkTemplateStrategy')?.value || 'random';
@@ -1279,7 +1285,7 @@
           templateToUse = $('bulkSingleTemplate')?.value || 'tenguy';
         }
 
-        console.log(`[Bulk Video] Template strategy: ${strategy}, platforms: ${platforms.length}`);
+  console.warn(`[Bulk Video] Template strategy: ${strategy}, platforms: ${platforms.length}`);
 
         for (let i = 0; i < quantity; i++) {
           const variation = textVariations[i];
@@ -1287,13 +1293,13 @@
 
           for (const dims of platforms) {
             const memeUrl = `https://api.memegen.link/images/${template}/${formatMemeText(variation.top)}/${formatMemeText(variation.bottom)}.png`;
-            console.log(`[Bulk Video] Processing ${i + 1}/${quantity} - ${dims.name}: ${memeUrl.substring(0, 80)}...`);
+            console.warn(`[Bulk Video] Processing ${i + 1}/${quantity} - ${dims.name}: ${memeUrl.substring(0, 80)}...`);
 
             showSpinner(`Converting to video ${i * platforms.length + platforms.indexOf(dims) + 1}/${quantity * platforms.length}...`);
 
             try {
               // Convert meme to video using the correct IPC handler
-              console.log(`[Bulk Video] Calling generateVideo API...`);
+              console.warn(`[Bulk Video] Calling generateVideo API...`);
               const videoResult = await window.api.generateVideo({
                 imagePath: memeUrl,  // Correct parameter name
                 duration: duration,
@@ -1301,7 +1307,7 @@
                 fps: 30
               });
 
-              console.log(`[Bulk Video] Video result:`, videoResult);
+              console.warn(`[Bulk Video] Video result:`, videoResult);
 
               if (videoResult.success) {
                 // Format path correctly for file:// protocol (Windows compatibility)
@@ -1394,12 +1400,12 @@
       throw new Error('Failed to decrypt API key');
     }
 
-    console.log('[Bulk AI Video] Starting generation with provider:', provider);
+  console.warn('[Bulk AI Video] Starting generation with provider:', provider);
     showSpinner('Generating AI video prompts...');
 
     // Generate text variations for video prompts
     const textVariations = await generateBulkTextVariations(quantity, textMode);
-    console.log(`[Bulk AI Video] Generated ${textVariations.length} prompts`);
+  console.warn(`[Bulk AI Video] Generated ${textVariations.length} prompts`);
     hideSpinner();
 
     for (let i = 0; i < quantity; i++) {
@@ -1408,14 +1414,14 @@
 
       for (const dims of platforms) {
         showSpinner(`Generating AI video ${i * platforms.length + platforms.indexOf(dims) + 1}/${quantity * platforms.length}...`);
-        console.log(`[Bulk AI Video] Processing ${i + 1}/${quantity} - ${dims.name}: "${prompt}"`);
+  console.warn(`[Bulk AI Video] Processing ${i + 1}/${quantity} - ${dims.name}: "${prompt}"`);
 
         try {
           let videoResult;
 
           if (provider === 'openai') {
             // OpenAI doesn't have direct text-to-video yet, so we'll use DALL-E + video conversion
-            console.log('[Bulk AI Video] Using OpenAI DALL-E + video conversion workflow');
+            console.warn('[Bulk AI Video] Using OpenAI DALL-E + video conversion workflow');
 
             // Generate image with DALL-E
             const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -1443,7 +1449,7 @@
               throw new Error('No image URL returned from OpenAI');
             }
 
-            console.log('[Bulk AI Video] Image generated, converting to video...');
+            console.warn('[Bulk AI Video] Image generated, converting to video...');
 
             // Convert image to video
             videoResult = await window.api.generateVideo({
@@ -1455,13 +1461,13 @@
 
           } else if (provider === 'runway') {
             // Runway Gen-2 API (placeholder - update with real API when available)
-            console.log('[Bulk AI Video] Using Runway ML API');
+            console.warn('[Bulk AI Video] Using Runway ML API');
             throw new Error('Runway ML integration coming soon! Use OpenAI for now.');
           } else {
             throw new Error(`Unknown provider: ${provider}`);
           }
 
-          console.log(`[Bulk AI Video] Video result:`, videoResult);
+          console.warn(`[Bulk AI Video] Video result:`, videoResult);
 
           if (videoResult.success) {
             // Format path correctly for file:// protocol (Windows compatibility)
@@ -1767,7 +1773,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function fetchMemeTemplates() {
     const sel = $('memeTemplate');
-    if (!sel) {return;}
+    if (!sel) {
+      return;
+    }
 
     try {
       const resp = await fetch('https://api.memegen.link/templates/');
@@ -1821,7 +1829,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if (form) {
       const inputs = form.querySelectorAll('input,select,textarea');
       inputs.forEach((el) => {
-        if (!el.id) {return;}
+        if (!el.id) {
+          return;
+        }
         if (el.type === 'checkbox') {data[el.id] = el.checked;}
         else {data[el.id] = el.value;}
       });
@@ -1877,9 +1887,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     addLogEntry('Settings imported and decrypted from data/settings.json');
     clearError();
   }
+  window.handleImportSettings = handleImportSettings;
 
   function populateFormFromObject(obj) {
-    if (!obj) {return;}
+    if (!obj) {
+      return;
+    }
 
     // Handle dark mode first if it exists
     if (typeof obj.isDarkMode === 'boolean') {
@@ -1939,7 +1952,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     // Handle form fields
     Object.keys(obj).forEach((key) => {
       const el = $(key);
-      if (!el) {return;}
+      if (!el) {
+        return;
+      }
 
       if (el.type === 'checkbox') {
         el.checked = !!obj[key];
@@ -1958,7 +1973,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function renderSavedConfigs(configs) {
     const ul = $('savedConfigsList');
-    if (!ul) {return;}
+    if (!ul) {
+      return;
+    }
 
     ul.innerHTML = '';
     configs.forEach((c, idx) => {
@@ -2034,7 +2051,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   // SCHEDULED POSTS
   function renderScheduledPosts(posts) {
     const ul = $('scheduledPostsList');
-    if (!ul) {return;}
+    if (!ul) {
+      return;
+    }
 
     ul.innerHTML = '';
     posts.forEach((p, idx) => {
@@ -2088,14 +2107,16 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function populateTimezones() {
     const tzSelect = $('timezoneSelect');
-    if (!tzSelect) {return;}
+    if (!tzSelect) {
+      return;
+    }
 
     let zones = [];
     try {
       if (typeof Intl.supportedValuesOf === 'function') {
         zones = Intl.supportedValuesOf('timeZone');
       }
-    } catch (e) {
+    } catch {
       zones = [];
     }
 
@@ -2120,6 +2141,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       addLogEntry('Loaded content from library');
     }
   }
+  window.reuseLibraryItem = reuseLibraryItem;
 
   async function deleteLibraryItem(id) {
     const r = await readFileAsync(PATHS.LIBRARY);
@@ -2131,6 +2153,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     await displayLibraryContent();
     addLogEntry('Deleted from library');
   }
+  window.deleteLibraryItem = deleteLibraryItem;
 
   // EVENT HANDLERS
   async function handleDarkModeToggle(ev) {
@@ -2174,14 +2197,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const computedVideo = videoFields ? window.getComputedStyle(videoFields) : null;
       const msg = `[DEBUG] Meme: grid-column=${computedMeme ? computedMeme.gridColumn : 'n/a'}, grid-row=${computedMeme ? computedMeme.gridRow : 'n/a'}\n` +
                   `[DEBUG] Video: grid-column=${computedVideo ? computedVideo.gridColumn : 'n/a'}, grid-row=${computedVideo ? computedVideo.gridRow : 'n/a'}`;
-      console.log(msg);
+  console.warn(msg);
       const uiDebug = $('uiDebug');
       if (uiDebug) {
         uiDebug.style.display = 'block';
         uiDebug.textContent = msg + '\n' + (uiDebug.textContent || '');
       }
     } catch (e) {
-      console.log('[DEBUG] error computing styles:', e);
+  console.warn('[DEBUG] error computing styles:', e);
     }
   }
 
@@ -2303,6 +2326,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       displayError(error);
     }
   }
+  window.handleVideoGeneration = handleVideoGeneration;
 
   // Handle meme selection for video compilation
   function handleMemeSelection() {
@@ -2354,36 +2378,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       });
     };
   }
+  window.handleMemeSelection = handleMemeSelection;
 
-  function handleVideoModeChange() {
-    const mode = $('videoMode')?.value;
-    const memeToVideoOptions = $('memeToVideoOptions');
-    const slideshowOptions = $('slideshowOptions');
-    const aiVideoOptions = $('aiVideoOptions');
-
-    // Hide all option sections first
-    if (memeToVideoOptions) {memeToVideoOptions.style.display = 'none';}
-    if (slideshowOptions) {slideshowOptions.style.display = 'none';}
-    if (aiVideoOptions) {aiVideoOptions.style.display = 'none';}
-
-    // Show relevant section
-    if (mode === 'meme-to-video' && memeToVideoOptions) {
-      memeToVideoOptions.style.display = '';
-    } else if (mode === 'slideshow' && slideshowOptions) {
-      slideshowOptions.style.display = '';
-    } else if (mode === 'gif' && gifOptions) {
-      gifOptions.style.display = '';
-    } else if (mode === 'ai-video' && aiVideoOptions) {
-      aiVideoOptions.style.display = '';
-    }
-
-    addLogEntry(`Video mode: ${mode}`);
-  }
+  // The event-based `handleVideoModeChange(ev)` above handles video mode changes
 
   async function handleGenerateVideo() {
     const mode = $('videoMode')?.value;
 
-    console.log('[Generate Video] Mode selected:', mode);
+  console.warn('[Generate Video] Mode selected:', mode);
 
     if (mode === 'text') {
       // Text to Video using AI
@@ -2509,52 +2511,60 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function applyAnimation(ctx, style, progress, width, height, img) {
     switch (style) {
-      case 'zoom-in':
+      case 'zoom-in': {
         const zoomInScale = 1 + (progress * 0.5);
         ctx.translate(width / 2, height / 2);
         ctx.scale(zoomInScale, zoomInScale);
         ctx.translate(-width / 2, -height / 2);
         ctx.drawImage(img, 0, 0, width, height);
         break;
+      }
 
-      case 'zoom-out':
+      case 'zoom-out': {
         const zoomOutScale = 1.5 - (progress * 0.5);
         ctx.translate(width / 2, height / 2);
         ctx.scale(zoomOutScale, zoomOutScale);
         ctx.translate(-width / 2, -height / 2);
         ctx.drawImage(img, 0, 0, width, height);
         break;
+      }
 
-      case 'pan-left':
+      case 'pan-left': {
         const panLeftX = -(progress * width * 0.3);
         ctx.drawImage(img, panLeftX, 0, width * 1.3, height);
         break;
+      }
 
-      case 'pan-right':
+      case 'pan-right': {
         const panRightX = (progress * width * 0.3);
         ctx.drawImage(img, panRightX, 0, width * 1.3, height);
         break;
+      }
 
-      case 'slide-up':
+      case 'slide-up': {
         const slideUpY = height - (progress * height);
         ctx.drawImage(img, 0, slideUpY, width, height);
         break;
+      }
 
-      case 'slide-down':
+      case 'slide-down': {
         const slideDownY = -(height - (progress * height));
         ctx.drawImage(img, 0, slideDownY, width, height);
         break;
+      }
 
-      case 'fade':
+  case 'fade': {
         ctx.globalAlpha = progress < 0.5 ? progress * 2 : 2 - (progress * 2);
         ctx.drawImage(img, 0, 0, width, height);
         ctx.globalAlpha = 1;
         break;
+      }
 
-      case 'bounce':
+      case 'bounce': {
         const bounceY = Math.abs(Math.sin(progress * Math.PI * 4)) * 50;
         ctx.drawImage(img, 0, bounceY, width, height);
         break;
+      }
 
       default:
         ctx.drawImage(img, 0, 0, width, height);
@@ -2657,8 +2667,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       mediaRecorder.start();
 
-      const framesPerSlide = slideDuration * fps;
-      const transitionFrames = Math.floor(fps * 0.5); // 0.5 second transition
+  const framesPerSlide = slideDuration * fps;
       let currentFrame = 0;
       let currentSlide = 0;
 
@@ -2703,21 +2712,23 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function applyTransition(ctx, img1, img2, type, progress, width, height) {
     switch (type) {
-      case 'fade':
+      case 'fade': {
         ctx.globalAlpha = 1 - progress;
         ctx.drawImage(img1, 0, 0, width, height);
         ctx.globalAlpha = progress;
         ctx.drawImage(img2, 0, 0, width, height);
         ctx.globalAlpha = 1;
         break;
+      }
 
-      case 'slide':
+      case 'slide': {
         const slideOffset = progress * width;
         ctx.drawImage(img1, -slideOffset, 0, width, height);
         ctx.drawImage(img2, width - slideOffset, 0, width, height);
         break;
+      }
 
-      case 'zoom':
+      case 'zoom': {
         const zoomOut = 1 - (progress * 0.5);
         const zoomIn = 0.5 + (progress * 0.5);
 
@@ -2737,11 +2748,13 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         ctx.drawImage(img2, 0, 0, width, height);
         ctx.restore();
         break;
+      }
 
-      case 'wipe':
+  case 'wipe': {
         ctx.drawImage(img1, 0, 0, width, height);
         ctx.drawImage(img2, 0, 0, width * progress, height, 0, 0, width * progress, height);
         break;
+      }
     }
   }
 
@@ -2826,35 +2839,40 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function applyGIFEffect(ctx, effect, progress, width, height, img) {
     switch (effect) {
-      case 'shake':
+      case 'shake': {
         const shakeX = Math.sin(progress * Math.PI * 8) * 10;
         const shakeY = Math.cos(progress * Math.PI * 8) * 10;
         ctx.drawImage(img, shakeX, shakeY, width, height);
         break;
+      }
 
-      case 'bounce':
+      case 'bounce': {
         const bounceY = Math.abs(Math.sin(progress * Math.PI * 2)) * 30;
         ctx.drawImage(img, 0, bounceY, width, height);
         break;
+      }
 
-      case 'flash':
+      case 'flash': {
         ctx.globalAlpha = progress < 0.5 ? 1 : 0.5;
         ctx.drawImage(img, 0, 0, width, height);
         break;
+      }
 
-      case 'spin':
+      case 'spin': {
         ctx.translate(width / 2, height / 2);
         ctx.rotate(progress * Math.PI * 2);
         ctx.translate(-width / 2, -height / 2);
         ctx.drawImage(img, 0, 0, width, height);
         break;
+      }
 
-      case 'wave':
+      case 'wave': {
         for (let y = 0; y < height; y++) {
           const waveX = Math.sin((y + progress * height) * 0.05) * 20;
           ctx.drawImage(img, 0, y, width, 1, waveX, y, width, 1);
         }
         break;
+      }
     }
   }
 
@@ -2898,7 +2916,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       return;
     }
 
-    console.log('[AI Video] Generating with provider:', provider);
+  console.warn('[AI Video] Generating with provider:', provider);
     addLogEntry(`🎬 Generating AI video using ${provider.toUpperCase()}...`);
     showSpinner(`Generating AI video with ${provider.toUpperCase()}...`);
 
@@ -2911,7 +2929,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       if (provider === 'openai') {
         // OpenAI DALL-E + video conversion workflow
-        console.log('[AI Video] Using OpenAI DALL-E + video conversion');
+  console.warn('[AI Video] Using OpenAI DALL-E + video conversion');
 
         updateSpinnerMessage('Generating image with DALL-E...');
 
@@ -2940,7 +2958,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
           throw new Error('No image URL returned from OpenAI');
         }
 
-        console.log('[AI Video] Image generated, converting to video...');
+  console.warn('[AI Video] Image generated, converting to video...');
         updateSpinnerMessage('Converting image to video...');
 
         // Convert to video
@@ -2974,7 +2992,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
       } else if (provider === 'runway') {
         // Runway Gen-3 Alpha API
-        console.log('[AI Video] Using Runway ML Gen-3 Alpha API');
+  console.warn('[AI Video] Using Runway ML Gen-3 Alpha API');
 
         // Create a generation task
         const response = await fetch('https://api.dev.runwayml.com/v1/image_to_video', {
@@ -2996,7 +3014,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
           try {
             const error = await response.json();
             errorMessage = error.error?.message || error.message || errorMessage;
-          } catch (e) {
+          } catch {
             // If response isn't JSON, try to get text
             const text = await response.text();
             if (text.includes('<!DOCTYPE') || text.includes('<html')) {
@@ -3131,9 +3149,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       `).join('');
 
       // Add click handlers
-      document.querySelectorAll('.selectable-meme').forEach((el, idx) => {
+  document.querySelectorAll('.selectable-meme').forEach((el, _idx) => {
         el.addEventListener('click', () => {
-          const meme = memeLibrary[idx];
+          const meme = memeLibrary[_idx];
           const existingIndex = selectedMemesForSlideshow.findIndex(m => m.id === meme.id);
 
           if (existingIndex >= 0) {
@@ -3160,7 +3178,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function updateSelectedMemesPreview() {
     const preview = $('selectedMemesPreview');
-    if (!preview) {return;}
+    if (!preview) {
+      return;
+    }
 
     preview.innerHTML = selectedMemesForSlideshow.map(meme => `
       <img src="${meme.url}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 4px;" />
@@ -3295,7 +3315,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const mode = $('memeMode')?.value;
 
       if (mode === 'generate') {
-        await generateAIImage(apiKey, provider);
+  await generateAIImage(apiKey);
       } else if (mode === 'edit') {
         await editAIImage(apiKey, provider);
       }
@@ -3306,7 +3326,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
   }
 
-  async function generateAIImage(apiKey, provider = 'openai') {
+  async function generateAIImage(apiKey) {
     const prompt = $('aiPrompt')?.value?.trim();
     if (!prompt) {
       addLogEntry('Please enter a prompt for AI generation');
@@ -3372,7 +3392,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
   }
 
-  async function editAIImage(apiKey, provider = 'openai') {
+  async function editAIImage(apiKey) {
     const prompt = $('aiPrompt')?.value?.trim();
     const sourceImageFile = $('sourceImage')?.files[0];
 
@@ -3384,8 +3404,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     showSpinner('Editing image with AI...');
 
     try {
-      // Convert image to PNG and resize if needed
-      const imageBase64 = await fileToBase64(sourceImageFile);
+  // Convert image to PNG and resize if needed (result not used directly)
+  await fileToBase64(sourceImageFile);
 
       const formData = new FormData();
       formData.append('image', sourceImageFile);
@@ -3471,7 +3491,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       if (resultsDiv) {
         const grid = resultsDiv.querySelector('div');
         if (grid) {
-          grid.innerHTML = data.data.map((img, idx) => `
+          grid.innerHTML = data.data.map((img, _idx) => `
             <div style="border: 2px solid #4a90e2; border-radius: 8px; overflow: hidden;">
               <img src="${img.url}" style="width: 100%; height: auto;" />
               <button onclick="window.useVariation('${img.url}')" style="width: 100%; padding: 8px; background: #4a90e2; color: white; border: none; cursor: pointer;">
@@ -3623,8 +3643,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function postToInstagram(imageUrl, caption, token) {
     try {
-      // Download image first
-      const imageBlob = await fetch(imageUrl).then(r => r.blob());
+      // (No local image blob needed) Ensure URL is accessible before posting
 
       // Step 1: Create media container
       const formData = new FormData();
@@ -3801,10 +3820,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   function addDownloadButton() {
     const preview = $('memePreview');
-    if (!preview || !preview.parentElement) {return;}
+    if (!preview || !preview.parentElement) {
+      return;
+    }
 
     const existing = $('downloadMemeBtn');
-    if (existing) {return;}
+    if (existing) {
+      return;
+    }
 
     const btn = document.createElement('button');
     btn.id = 'downloadMemeBtn';
@@ -3812,7 +3835,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     btn.style.cssText = 'margin-top: 10px; padding: 8px 16px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer;';
 
     btn.addEventListener('click', async () => {
-      if (!preview.src || preview.src.includes('svg')) {return;}
+      if (!preview.src || preview.src.includes('svg')) {
+        return;
+      }
 
       try {
         const response = await fetch(preview.src);
@@ -3835,10 +3860,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     preview.parentElement.appendChild(btn);
   }
+  window.addDownloadButton = addDownloadButton;
 
   // UI BINDING
   function bindUi() {
-    console.log('Binding UI event handlers...');
+  console.warn('Binding UI event handlers...');
 
     // Core buttons
     const buttonBindings = {
@@ -3855,7 +3881,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const element = $(id);
       if (element) {
         element.addEventListener('click', handler);
-        console.log(`Bound handler to ${id}`);
+  console.warn(`Bound handler to ${id}`);
       } else {
         console.warn(`Element not found: ${id}`);
       }
@@ -3865,7 +3891,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const darkModeToggle = $('darkModeToggle');
     if (darkModeToggle) {
       darkModeToggle.addEventListener('change', handleDarkModeToggle);
-      console.log('Bound dark mode toggle handler');
+  console.warn('Bound dark mode toggle handler');
     }
 
     $('downloadBulkZip')?.addEventListener('click', downloadBulkZip);
@@ -3947,7 +3973,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       };      if (form) {
         const inputs = form.querySelectorAll('input,select,textarea');
         inputs.forEach((el) => {
-          if (!el.id) {return;}
+          if (!el.id) {
+            return;
+          }
           if (el.type === 'checkbox') {post.source[el.id] = el.checked;}
           else {post.source[el.id] = el.value;}
         });
@@ -4013,7 +4041,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     $('memeSearch')?.addEventListener('input', (e) => {
       const searchTerm = e.target.value.toLowerCase();
       const select = $('memeTemplate');
-      if (!select) {return;}
+      if (!select) {
+        return;
+      }
 
       const filtered = allTemplates.filter(t =>
         (t.name || t.id).toLowerCase().includes(searchTerm)
@@ -4115,7 +4145,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     const modal = $('aiKeyModal');
     const info = aiProviderInfo[provider];
 
-    if (!modal || !info) {return;}
+    if (!modal || !info) {
+      return;
+    }
 
     // Update modal content
     $('aiModalTitle').textContent = `Connect to ${info.name}`;
@@ -4163,7 +4195,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     const info = aiProviderInfo[currentAiProvider];
-    if (!info) {return;}
+    if (!info) {
+      return;
+    }
 
     // Validate key format for OpenAI
     if (currentAiProvider === 'openai' && info.keyPattern && !info.keyPattern.test(apiKey)) {
@@ -4207,7 +4241,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     const info = aiProviderInfo[currentAiProvider];
-    if (!info) {return;}
+    if (!info) {
+      return;
+    }
 
     // Validate key format
     if (currentAiProvider === 'openai' && info.keyPattern && !info.keyPattern.test(apiKey)) {
@@ -4278,7 +4314,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   async function checkAiProviderConnections() {
     // Check which providers are connected and update button states
     const settingsResult = await readFileAsync(PATHS.SETTINGS);
-    if (!settingsResult.success) {return;}
+    if (!settingsResult.success) {
+      return;
+    }
 
     const settings = safeParse(settingsResult.content, {});
 
@@ -4320,7 +4358,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         settings[tokenField] = data.token;
 
         // Encrypt and save settings
-        const encrypted = await encryptAsync(data.token);
+  const encrypted = await window.api.encrypt(data.token);
         if (encrypted.success) {
           settings[tokenField] = encrypted.data;
         }
@@ -4350,7 +4388,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   // Check OAuth connection status
   async function checkOAuthStatus() {
     const settingsRes = await readFileAsync(PATHS.SETTINGS);
-    if (!settingsRes.success) {return;}
+    if (!settingsRes.success) {
+      return;
+    }
 
     const settings = safeParse(settingsRes.content, {});
     const platforms = [
@@ -4379,7 +4419,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   // INITIALIZATION
   async function init() {
-    console.log('Initializing renderer...');
+  console.warn('Initializing renderer...');
 
     if (!window.api) {
       console.error('window.api is not available');
@@ -4423,14 +4463,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     }
 
     try {
-      console.log('Starting initialization sequence...');
+  console.warn('Starting initialization sequence...');
 
       // Initialize UI first
-      console.log('Binding UI elements...');
+  console.warn('Binding UI elements...');
       bindUi();
 
       // Load initial data
-      console.log('Loading initial data...');
+  console.warn('Loading initial data...');
       addLogEntry('AI Auto Bot initializing...');
 
       await Promise.all([
@@ -4443,7 +4483,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       ]);
 
       // Load settings last
-      console.log('Loading settings...');
+  console.warn('Loading settings...');
       const r = await readFileAsync(PATHS.SETTINGS);
 
       if (r.success) {
@@ -4453,7 +4493,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         addLogEntry('Settings loaded successfully');
       }
 
-      console.log('Initialization complete!');
+  console.warn('Initialization complete!');
     } catch (error) {
       console.error('Initialization error:', error);
       addLogEntry('Initialization failed: ' + error.message, 'error');
@@ -4482,7 +4522,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       window.api.onOAuthToken(async (data) => {
         const provider = data.provider; // 'instagram'|'tiktok'|'youtube'|'twitter'
         const token = data.token;
-        if (!provider || !token) {return;}
+        if (!provider || !token) {
+          return;
+        }
 
         // Fill hidden input so the UI and post flow see it
         const input = $(`${provider}Token`);
@@ -4513,7 +4555,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   // Drag-and-drop functionality for rearranging fieldsets
   function initDragAndDrop() {
     const form = $('settingsForm');
-    if (!form) {return;}
+    if (!form) {
+      return;
+    }
 
     const fieldsets = Array.from(form.querySelectorAll('fieldset'));
     let draggedElement = null;
@@ -4530,7 +4574,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // Update drop preview position
     function updateDropPreview(e) {
-      if (!draggedElement || !dropPreview) {return;}
+      if (!draggedElement || !dropPreview) {
+        return;
+      }
 
       const rect = form.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -4565,7 +4611,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     // Load saved layout
     loadLayout();
 
-    fieldsets.forEach((fieldset, index) => {
+  fieldsets.forEach((fieldset, _index) => {
       // Make fieldset draggable
       fieldset.setAttribute('draggable', 'true');
       fieldset.style.cursor = 'move';
@@ -4590,7 +4636,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       });
 
       fieldset.addEventListener('drag', (e) => {
-        if (e.clientX === 0 && e.clientY === 0) {return;} // Ignore final drag event
+        if (e.clientX === 0 && e.clientY === 0) {
+          return; // Ignore final drag event
+        }
         updateDropPreview(e);
       });
 
@@ -4649,7 +4697,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function saveLayout() {
     const form = $('settingsForm');
-    if (!form) {return;}
+    if (!form) {
+      return;
+    }
 
     const fieldsets = Array.from(form.querySelectorAll('fieldset'));
     const layout = {};
@@ -4665,7 +4715,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // No special synchronization for meme/video - save literal styles
 
-    console.log('Saving layout:', layout);
+  console.warn('Saving layout:', layout);
 
     try {
       const r = await readFileAsync(PATHS.SETTINGS);
@@ -4682,19 +4732,25 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
   async function loadLayout() {
     const form = $('settingsForm');
-    if (!form) {return;}
+    if (!form) {
+      return;
+    }
 
     try {
       const r = await readFileAsync(PATHS.SETTINGS);
-      if (!r.success) {return;}
+      if (!r.success) {
+        return;
+      }
 
       const settings = safeParse(r.content, {});
       const decrypted = await decryptSensitiveFields(settings);
       const layout = decrypted.fieldsetLayout;
 
-      console.log('Loading layout:', layout);
+  console.warn('Loading layout:', layout);
 
-      if (!layout || typeof layout !== 'object') {return;}
+      if (!layout || typeof layout !== 'object') {
+        return;
+      }
 
       const fieldsets = Array.from(form.querySelectorAll('fieldset'));
 

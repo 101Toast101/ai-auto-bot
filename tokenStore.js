@@ -16,7 +16,7 @@ if (process.env.ENCRYPTION_KEY) {
     } else {
       ENCRYPTION_KEY_BUFFER = buf;
     }
-  } catch (e) {
+  } catch {
     console.warn('[tokenStore] Invalid ENCRYPTION_KEY format. Expecting hex-encoded 32-byte key. Falling back to ephemeral key.');
   }
 }
@@ -41,14 +41,14 @@ if (!ENCRYPTION_KEY_BUFFER) {
       const generated = crypto.randomBytes(32);
       fs.writeFileSync(keyFile, generated.toString('hex'), { encoding: 'utf8', flag: 'w' });
       // Best-effort chmod (Windows may ignore)
-      try { fs.chmodSync(keyFile, 0o600); } catch (e) {}
+  try { fs.chmodSync(keyFile, 0o600); } catch { /* ignore */ }
       ENCRYPTION_KEY_BUFFER = generated;
       console.warn('[tokenStore] Generated development key and saved to data/.encryption_key. DO NOT commit this file.');
     }
-  } catch (e) {
+  } catch {
     // Fallback to ephemeral in case of any IO error
     ENCRYPTION_KEY_BUFFER = crypto.randomBytes(32);
-    console.warn('[tokenStore] Failed to persist key; using ephemeral key for this process. Error:', e.message);
+    console.warn('[tokenStore] Failed to persist key; using ephemeral key for this process.');
   }
 }
 
