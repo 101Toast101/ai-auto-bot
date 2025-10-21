@@ -2107,72 +2107,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
   }
 
   // CONTENT LIBRARY
-  async function renderLibrary() {
-    const r = await readFileAsync(PATHS.LIBRARY);
-    let library = r.success ? safeParse(r.content, []) : [];
-
-    const searchVal = ($('librarySearch')?.value || '').toLowerCase();
-    const filterVal = $('libraryFilter')?.value || 'all';
-
-    if (searchVal) {
-      library = library.filter(item =>
-        (item.caption || '').toLowerCase().includes(searchVal) ||
-        (item.hashtags || '').toLowerCase().includes(searchVal) ||
-        (item.platform || '').toLowerCase().includes(searchVal)
-      );
-    }
-
-    if (filterVal !== 'all') {
-      library = library.filter(item => {
-        if (filterVal === 'meme' || filterVal === 'video') {
-          return item.contentType === filterVal;
-        }
-        return item.status === filterVal;
-      });
-    }
-
-    const grid = $('libraryGrid');
-    if (!grid) return;
-
-    if (library.length === 0) {
-      grid.innerHTML = '<p style="text-align: center; color: #718096; padding: 40px; grid-column: 1/-1;">No content found</p>';
-      return;
-    }
-
-    grid.innerHTML = library.map(item => `
-      <div class="library-item" data-id="${item.id}" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
-        ${item.url ? `<img src="${item.url}" style="width: 100%; height: 150px; object-fit: cover;" />` : ''}
-        <div style="padding: 10px;">
-          <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">
-            ${item.platform || 'Unknown'} • ${item.status || 'draft'}
-          </div>
-          <div style="font-size: 13px; margin-bottom: 8px; max-height: 40px; overflow: hidden;">
-            ${item.caption || 'No caption'}
-          </div>
-          <div style="display: flex; gap: 5px;">
-            <button type="button" class="reuse-btn" style="flex: 1; padding: 6px; background: #4299e1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Reuse</button>
-            <button type="button" class="delete-btn" style="flex: 1; padding: 6px; background: #e53e3e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    // Event delegation for library buttons
-    grid.querySelectorAll('.reuse-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const id = btn.closest('.library-item').dataset.id;
-        reuseLibraryItem(id);
-        addLogEntry('Reusing content from library');
-      });
-    });
-    grid.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = btn.closest('.library-item').dataset.id;
-        deleteLibraryItem(id);
-      });
-    });
-  }
+  // Note: renderLibrary() function removed - replaced with displayLibraryContent()
+  // All calls updated to use the new function which includes Schedule buttons and proper dark mode support
 
   async function reuseLibraryItem(id) {
     const r = await readFileAsync(PATHS.LIBRARY);
