@@ -48,8 +48,10 @@ function decrypt(encryptedData) {
 
     let decrypted = decipher.update(encrypted, "hex", "utf8");
     decrypted += decipher.final("utf8");
+
     return decrypted;
   } catch (err) {
+    console.error('Decryption failed:', err);
     return encryptedData;
   }
 }
