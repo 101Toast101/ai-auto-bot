@@ -782,30 +782,31 @@
       }
 
       // STEP 4: Load settings to check for social media tokens and API keys
-      const settingsRes = await readFileAsync(PATHS.SETTINGS);
-      const settings = settingsRes.success ? safeParse(settingsRes.content, {}) : {};
+        const settingsRes = await readFileAsync(PATHS.SETTINGS);
+        let settings = settingsRes.success ? safeParse(settingsRes.content, {}) : {};
+        settings = await decryptSensitiveFields(settings);
 
-      // Check social media authentication for selected platforms
-      const missingAuth = [];
-      const warningMessages = [];
+        // Check social media authentication for selected platforms (using decrypted tokens)
+        const missingAuth = [];
+        const warningMessages = [];
 
-      if (selectedPlatforms.includes('instagram') && !settings.instagramToken) {
-        missingAuth.push('Instagram');
-      }
-      if (selectedPlatforms.includes('tiktok') && !settings.tiktokToken) {
-        missingAuth.push('TikTok');
-      }
-      if (selectedPlatforms.includes('youtube') && !settings.youtubeToken) {
-        missingAuth.push('YouTube');
-      }
-      if (selectedPlatforms.includes('twitter') && !settings.twitterToken) {
-        missingAuth.push('Twitter');
-      }
+        if (selectedPlatforms.includes('instagram') && !settings.instagramToken) {
+          missingAuth.push('Instagram');
+        }
+        if (selectedPlatforms.includes('tiktok') && !settings.tiktokToken) {
+          missingAuth.push('TikTok');
+        }
+        if (selectedPlatforms.includes('youtube') && !settings.youtubeToken) {
+          missingAuth.push('YouTube');
+        }
+        if (selectedPlatforms.includes('twitter') && !settings.twitterToken) {
+          missingAuth.push('Twitter');
+        }
 
-      if (missingAuth.length > 0) {
-        addLogEntry(`⚠️ Missing social media authentication for: ${missingAuth.join(', ')}. Please connect in the Platforms section.`, 'warning');
-        warningMessages.push(`Social media: ${missingAuth.join(', ')}`);
-      }
+        if (missingAuth.length > 0) {
+          addLogEntry(`⚠️ Missing social media authentication for: ${missingAuth.join(', ')}. Please connect in the Platforms section.`, 'warning');
+          warningMessages.push(`Social media: ${missingAuth.join(', ')}`);
+        }
 
       // STEP 5: Check AI provider API keys (if content was AI-generated)
       if (content.metadata?.generatedBy?.includes('ai') || content.metadata?.provider) {
@@ -1825,6 +1826,19 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if (darkModeToggle) {
       data.isDarkMode = darkModeToggle.checked;
     }
+
+      // Save all social media and AI API keys/tokens from UI fields
+      for (const field of SENSITIVE_FIELDS) {
+        const input = $(`${field}`);
+        if (input) {
+          // Support multiple tokens per platform (comma-separated)
+          if (input.value && input.value.includes(',')) {
+            data[field] = input.value.split(',').map(t => t.trim()).filter(Boolean);
+          } else {
+            data[field] = input.value;
+          }
+        }
+      }
 
     if (form) {
       const inputs = form.querySelectorAll('input,select,textarea');
@@ -4390,8 +4404,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     if (!settingsRes.success) {
       return;
     }
-
-    const settings = safeParse(settingsRes.content, {});
+    let settings = safeParse(settingsRes.content, {});
+    settings = await decryptSensitiveFields(settings);
     const platforms = [
       { name: 'instagram', token: settings.instagramToken },
       { name: 'tiktok', token: settings.tiktokToken },
@@ -4403,15 +4417,30 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       const btnId = `connect${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}Btn`;
       const btn = $(btnId);
 
-      if (btn && platform.token) {
-        btn.textContent = `✓ ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)} Connected`;
-        btn.style.backgroundColor = '#28a745';
+      // Support multiple tokens per platform (array)
+      let tokens = platform.token;
+      if (Array.isArray(tokens)) {
+        tokens = tokens.filter(Boolean);
+      } else if (tokens) {
+        tokens = [tokens];
+      } else {
+        tokens = [];
+      }
 
-        // Also populate the hidden token field so the app knows it's connected
-        const tokenInput = $(`${platform.name}Token`);
-        if (tokenInput) {
-          tokenInput.value = platform.token;
-        }
+      if (btn && tokens.length > 0) {
+        btn.textContent = `✓ ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)} Connected (${tokens.length})`;
+        btn.style.backgroundColor = '#28a745';
+        btn.classList.add('connected');
+      } else if (btn) {
+        btn.textContent = `Connect ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}`;
+        btn.style.backgroundColor = '';
+        btn.classList.remove('connected');
+      }
+
+      // Populate hidden token field with first token (for legacy compatibility)
+      const tokenInput = $(`${platform.name}Token`);
+      if (tokenInput) {
+        tokenInput.value = tokens[0] || '';
       }
     }
   }
@@ -4432,6 +4461,28 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
 
     // Initialize video functionality
     await initializeVideoFeatures();
+
+
+    // Reset all social media connections and AI provider UI on reload
+    const socialPlatforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
+    for (const name of socialPlatforms) {
+      const tokenInput = $(`${name}Token`);
+      if (tokenInput) tokenInput.value = '';
+      const btnId = `connect${name.charAt(0).toUpperCase() + name.slice(1)}Btn`;
+      const btn = $(btnId);
+      if (btn) {
+        btn.textContent = `Connect ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+        btn.style.backgroundColor = '';
+        btn.classList.remove('connected');
+      }
+    }
+    // Reset AI provider fields/buttons
+    if ($('aiKeyInput')) $('aiKeyInput').value = '';
+    Object.keys(aiProviderInfo).forEach(provider => {
+      const btn = $(`connect${aiProviderInfo[provider].name.replace(' ', '')}Btn`);
+      if (btn) btn.classList.remove('connected');
+    });
+    if ($('aiProvider')) $('aiProvider').value = '';
 
     // Check OAuth connection status and update buttons
     await checkOAuthStatus();
