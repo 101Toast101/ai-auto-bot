@@ -1,25 +1,29 @@
 // ImageProcessor.worker.js - Background image processing
-const { parentPort } = require('worker_threads');
-const sharp = require('sharp');
+const { parentPort } = require("worker_threads");
+const sharp = require("sharp");
 
-parentPort.on('message', async (data) => {
+parentPort.on("message", async (data) => {
   try {
     switch (data.type) {
-      case 'RESIZE': {
+      case "RESIZE": {
         const resized = await handleResize(data.image, data.options);
-        parentPort.postMessage({ type: 'SUCCESS', result: resized });
+        parentPort.postMessage({ type: "SUCCESS", result: resized });
         break;
       }
 
-      case 'OPTIMIZE': {
+      case "OPTIMIZE": {
         const optimized = await handleOptimize(data.image, data.options);
-        parentPort.postMessage({ type: 'SUCCESS', result: optimized });
+        parentPort.postMessage({ type: "SUCCESS", result: optimized });
         break;
       }
 
-      case 'WATERMARK': {
-        const watermarked = await handleWatermark(data.image, data.watermark, data.options);
-        parentPort.postMessage({ type: 'SUCCESS', result: watermarked });
+      case "WATERMARK": {
+        const watermarked = await handleWatermark(
+          data.image,
+          data.watermark,
+          data.options,
+        );
+        parentPort.postMessage({ type: "SUCCESS", result: watermarked });
         break;
       }
 
@@ -27,7 +31,7 @@ parentPort.on('message', async (data) => {
         throw new Error(`Unknown operation type: ${data.type}`);
     }
   } catch (error) {
-    parentPort.postMessage({ type: 'ERROR', error: error.message });
+    parentPort.postMessage({ type: "ERROR", error: error.message });
   }
 });
 
@@ -37,8 +41,8 @@ async function handleResize(imageBuffer, options) {
   if (options.width && options.height) {
     return image
       .resize(options.width, options.height, {
-        fit: options.fit || 'cover',
-        position: options.position || 'center'
+        fit: options.fit || "cover",
+        position: options.position || "center",
       })
       .toBuffer();
   }
@@ -51,7 +55,7 @@ async function handleResize(imageBuffer, options) {
     return image.resize(null, options.height).toBuffer();
   }
 
-  throw new Error('No valid resize dimensions provided');
+  throw new Error("No valid resize dimensions provided");
 }
 
 async function handleOptimize(imageBuffer, options) {
@@ -61,11 +65,11 @@ async function handleOptimize(imageBuffer, options) {
     .jpeg({
       quality: options.quality || 80,
       progressive: true,
-      force: false
+      force: false,
     })
     .png({
       compressionLevel: options.compressionLevel || 9,
-      force: false
+      force: false,
     })
     .toBuffer();
 }
@@ -85,8 +89,8 @@ async function handleWatermark(imageBuffer, watermarkBuffer, options) {
     .composite([
       {
         input: await watermark.toBuffer(),
-        gravity: options.position || 'southeast'
-      }
+        gravity: options.position || "southeast",
+      },
     ])
     .toBuffer();
 }

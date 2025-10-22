@@ -9,6 +9,7 @@ AI Auto Bot ("we", "our", or "the app") is a desktop application that helps user
 ## Data Collection and Storage
 
 ### What We Collect
+
 - **OAuth Tokens**: When you connect social media accounts (Instagram, TikTok, YouTube, Twitter), we receive access tokens to post on your behalf
 - **API Keys**: Your OpenAI and Runway ML API keys (if you choose to use AI features)
 - **Content Data**: Memes, videos, captions, and hashtags you create within the app
@@ -16,6 +17,7 @@ AI Auto Bot ("we", "our", or "the app") is a desktop application that helps user
 - **Activity Logs**: Records of actions performed within the app
 
 ### How We Store It
+
 - **ALL data is stored locally** on your computer in the `data/` folder
 - **Encryption**: All sensitive data (API keys, OAuth tokens) is encrypted using AES-256-GCM encryption
 - **No Cloud Storage**: We do NOT upload, sync, or store any of your data on external servers
@@ -24,6 +26,7 @@ AI Auto Bot ("we", "our", or "the app") is a desktop application that helps user
 ## Data Usage
 
 We use your data solely for the following purposes:
+
 - **OAuth Tokens**: To post content to your connected social media accounts when you explicitly request it
 - **API Keys**: To generate AI content (memes, videos) using OpenAI or Runway ML services
 - **Content Data**: To display your library and execute scheduled posts
@@ -32,12 +35,14 @@ We use your data solely for the following purposes:
 ## Data Sharing
 
 We do NOT:
+
 - Share your data with third parties
 - Sell your data
 - Use your data for advertising
 - Access your data remotely
 
 The only external communication occurs when:
+
 - You explicitly post content to social media platforms (Instagram, TikTok, YouTube, Twitter)
 - You use AI generation features (sends prompts to OpenAI/Runway ML with your API key)
 
@@ -46,22 +51,26 @@ The only external communication occurs when:
 The app integrates with the following third-party services (only when you choose to use them):
 
 ### Social Media Platforms
+
 - **Instagram/Facebook**: For posting images and videos
 - **TikTok**: For posting videos
 - **YouTube**: For uploading videos
 - **Twitter**: For posting tweets with media
 
 Each platform has its own privacy policy:
+
 - Instagram/Facebook: https://www.facebook.com/privacy/policy/
 - TikTok: https://www.tiktok.com/legal/privacy-policy
 - YouTube: https://policies.google.com/privacy
 - Twitter: https://twitter.com/privacy
 
 ### AI Services
+
 - **OpenAI**: For AI image generation (DALL-E)
 - **Runway ML**: For AI video generation
 
 Privacy policies:
+
 - OpenAI: https://openai.com/policies/privacy-policy
 - Runway ML: https://runwayml.com/privacy/
 
@@ -81,6 +90,7 @@ Privacy policies:
 ## Your Rights
 
 You have complete control over your data:
+
 - **Access**: All data is stored in plain JSON files in the `data/` folder
 - **Deletion**: You can delete any content from the library or clear all data
 - **Export**: You can manually copy the `data/` folder to backup your information
@@ -97,6 +107,7 @@ We may update this Privacy Policy from time to time. Changes will be reflected i
 ## Contact
 
 If you have questions about this Privacy Policy, please contact:
+
 - **Email**: Crottyjonathan@yahoo.com
 - **Developer**: CROTTY
 - **GitHub**: https://github.com/101Toast101/ai-auto-bot

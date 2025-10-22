@@ -5,14 +5,16 @@
   --glass-bg-dark: rgba(30, 30, 30, 0.85);
   --blur: blur(10px);
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --font-main: 'Segoe UI', Tahoma, Verdana, sans-serif;
+  --font-main: "Segoe UI", Tahoma, Verdana, sans-serif;
 }
 
 body {
   font-family: var(--font-main);
   background: var(--blue-gradient);
   color: #333;
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
   min-height: 100vh;
   min-width: 800px;
   overflow-x: auto;
@@ -89,7 +91,9 @@ body.dark .library-item {
   /* Tighter padding */
   margin-bottom: 1px;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .header:hover {
@@ -121,7 +125,9 @@ body.dark .library-item {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
 }
 
 #controls button:hover {
@@ -144,7 +150,9 @@ body.dark .library-item {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
 }
 
 #saveConfigBtn:hover {
@@ -180,12 +188,12 @@ body.dark .library-item {
   box-sizing: border-box;
 }
 
-.toggle input:checked+.slider {
+.toggle input:checked + .slider {
   background: #4a90e2;
 }
 
 .toggle .slider::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 2px;
   top: 2px;
@@ -197,7 +205,7 @@ body.dark .library-item {
   box-shadow: 0 2px 6px rgba(74, 144, 226, 0.15);
 }
 
-.toggle input:checked+.slider::before {
+.toggle input:checked + .slider::before {
   transform: translateX(24px);
 }
 
@@ -213,7 +221,9 @@ form fieldset,
   /* Tighter horizontal padding (was 6px) */
   margin-bottom: 1px;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
   position: relative;
   /* Create stacking context */
@@ -263,7 +273,7 @@ body.dark fieldset legend {
 
 /* Allow fieldsets to auto-place in the grid based on DOM order */
 /* This makes drag-and-drop reordering work naturally */
-#settingsForm>fieldset {
+#settingsForm > fieldset {
   /* All cards take exactly 1 cell (1 column × 1 row) */
   grid-column: span 1;
   grid-row: span 1;
@@ -278,7 +288,7 @@ body.dark fieldset legend {
 
 /* Explicit positioning for 8 cards in 3x3 grid (position 5 - center - is occupied by meme spanning) */
 /* Content Type - position 1 */
-#settingsForm>fieldset:nth-child(1) {
+#settingsForm > fieldset:nth-child(1) {
   grid-column: 1;
   grid-row: 1;
 }
@@ -312,37 +322,37 @@ body.dark fieldset legend {
 }
 
 /* AI Providers - position 3 */
-#settingsForm>fieldset:nth-child(3) {
+#settingsForm > fieldset:nth-child(3) {
   grid-column: 3;
   grid-row: 1;
 }
 
 /* Platforms - position 4 */
-#settingsForm>fieldset:nth-child(4) {
+#settingsForm > fieldset:nth-child(4) {
   grid-column: 1;
   grid-row: 2;
 }
 
 /* Activity Log - position 5 */
-#settingsForm>fieldset:nth-child(5) {
+#settingsForm > fieldset:nth-child(5) {
   grid-column: 3;
   grid-row: 2;
 }
 
 /* Social Media Connect - position 6 */
-#settingsForm>fieldset:nth-child(6) {
+#settingsForm > fieldset:nth-child(6) {
   grid-column: 1;
   grid-row: 3;
 }
 
 /* Hashtags - position 7 */
-#settingsForm>fieldset:nth-child(7) {
+#settingsForm > fieldset:nth-child(7) {
   grid-column: 2;
   grid-row: 3;
 }
 
 /* Scheduling - position 8 */
-#settingsForm>fieldset:nth-child(8) {
+#settingsForm > fieldset:nth-child(8) {
   grid-column: 3;
   grid-row: 3;
 }
@@ -358,7 +368,7 @@ body.dark fieldset legend {
 
 /* Center content in specific fieldsets with minimal content */
 /* Apply to all fieldsets by default, then override for specific ones */
-#settingsForm>fieldset {
+#settingsForm > fieldset {
   justify-content: flex-start;
   padding-top: 40px;
 }
@@ -373,23 +383,45 @@ body.dark fieldset legend {
 }
 
 /* Tighten spacing in centered cards to make them more compact */
-#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) label {
+#settingsForm
+  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
+    #libraryFieldset
+  )
+  label {
   margin-bottom: 8px;
 }
 
-#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) input,
-#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) select,
-#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) button {
+#settingsForm
+  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
+    #libraryFieldset
+  )
+  input,
+#settingsForm
+  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
+    #libraryFieldset
+  )
+  select,
+#settingsForm
+  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
+    #libraryFieldset
+  )
+  button {
   margin-bottom: 6px;
 }
 
-#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) .checkbox-item {
+#settingsForm
+  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
+    #libraryFieldset
+  )
+  .checkbox-item {
   margin-bottom: 6px;
 }
 
 /* Drag-and-Drop Styles */
 #settingsForm fieldset[draggable="true"] {
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 
 #settingsForm fieldset.dragging {
@@ -455,7 +487,10 @@ label textarea {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 0.8rem;
-  transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s,
+    transform 0.2s;
   background: white;
 }
 
@@ -482,13 +517,13 @@ textarea {
   font-family: inherit;
 }
 
-input[type='checkbox'] {
+input[type="checkbox"] {
   width: auto;
   margin-right: 6px;
   cursor: pointer;
 }
 
-input[type='file'] {
+input[type="file"] {
   padding: 4px;
   font-size: 0.8rem;
 }
@@ -537,7 +572,7 @@ body.dark .feature-highlight p {
   border-radius: 8px;
   max-height: 180px;
   overflow-y: auto;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.75rem;
 }
 
@@ -872,31 +907,31 @@ body.dark .spinner-text {
     grid-row: 1;
   }
 
-  #settingsForm>fieldset:nth-of-type(6) {
+  #settingsForm > fieldset:nth-of-type(6) {
     /* Smart Content */
     grid-column: 2;
     grid-row: 1;
   }
 
-  #settingsForm>fieldset:nth-of-type(7) {
+  #settingsForm > fieldset:nth-of-type(7) {
     /* Hashtags */
     grid-column: 2;
     grid-row: 2;
   }
 
-  #settingsForm>fieldset:nth-of-type(2) {
+  #settingsForm > fieldset:nth-of-type(2) {
     /* General */
     grid-column: 1;
     grid-row: 2;
   }
 
-  #settingsForm>fieldset:nth-of-type(4) {
+  #settingsForm > fieldset:nth-of-type(4) {
     /* Platforms */
     grid-column: 1;
     grid-row: 3;
   }
 
-  #settingsForm>fieldset:nth-of-type(5) {
+  #settingsForm > fieldset:nth-of-type(5) {
     /* Tokens */
     grid-column: 2;
     grid-row: 3;
@@ -921,7 +956,7 @@ body.dark .spinner-text {
 
   #memeFields,
   #videoFields,
-  #settingsForm>fieldset {
+  #settingsForm > fieldset {
     grid-column: 1 !important;
     grid-row: auto !important;
   }
@@ -958,7 +993,9 @@ body.dark .spinner-text {
   padding: 4px 6px;
   margin-bottom: 1px;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
 }
 
@@ -998,7 +1035,7 @@ body.dark .oauth-fieldset legend {
 
 .oauth-buttons button,
 .ai-connect-btn {
-  background-color: #007Bff;
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1049,7 +1086,7 @@ body.dark .oauth-fieldset legend {
   display: flex !important;
 }
 
-body.dark #aiKeyModal>div {
+body.dark #aiKeyModal > div {
   background: var(--glass-bg-dark);
   color: #e2e8f0;
 }

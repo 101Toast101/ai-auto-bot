@@ -1,4 +1,5 @@
 <!-- .github/copilot-instructions.md -->
+
 # Copilot / AI assistant instructions — AI Auto Bot
 
 This file contains concise, actionable guidance for AI coding agents working on this Electron-based desktop app.
@@ -85,7 +86,7 @@ This file contains concise, actionable guidance for AI coding agents working on 
 10. Development Standards & Quality Gates
     - Version Control:
       - Follow semantic versioning (MAJOR.MINOR.PATCH)
-      - Branch naming: feature/*, bugfix/*, release/*
+      - Branch naming: feature/_, bugfix/_, release/\*
       - Require signed commits
       - PR template requirements in `.github/pull_request_template.md`
 

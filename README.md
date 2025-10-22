@@ -20,6 +20,7 @@ AI-powered social media automation tool for creating and scheduling memes and vi
 ## What's New - Fully Functional! 🎉
 
 ### ✅ Now Working:
+
 - **AI Image Generation** - Generate custom images from text prompts
 - **AI Image Editing** - Edit images with AI-powered modifications
 - **AI Variations** - Create multiple variations of any image
@@ -29,7 +30,9 @@ AI-powered social media automation tool for creating and scheduling memes and vi
 - **Error Handling** - Detailed error messages for troubleshooting
 
 ### 🔧 Setup Required:
+
 See **[API-SETUP-GUIDE.md](API-SETUP-GUIDE.md)** for complete instructions on:
+
 - Getting OpenAI API key
 - Setting up Instagram Graph API
 - Configuring TikTok Developer account
@@ -45,16 +48,19 @@ npm install
 ## Usage
 
 ### Development
+
 ```bash
 npm start
 ```
 
 ### Build for Production
+
 ```bash
 npm run dist
 ```
 
 This creates installers in the `/dist` folder:
+
 - **macOS**: `.dmg` file
 - **Windows**: `.exe` installer
 - **Linux**: `.AppImage` file

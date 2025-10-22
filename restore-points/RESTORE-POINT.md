@@ -1,6 +1,7 @@
 # Restore Point - October 17, 2025 (Update 5 - VIDEO FEATURES)
 
 ## Current Working State
+
 All major functionality including video features are now fully implemented and working:
 
 1. Core Features:
@@ -61,40 +62,47 @@ All major functionality including video features are now fully implemented and w
 ## Files to Check When Resuming
 
 ### Core IPC Bridge (preload.js)
+
 Keep the complete IPC bridge with video features:
+
 ```javascript
-contextBridge.exposeInMainWorld('api', {
-  startOAuth: (provider) => ipcRenderer.invoke('start-oauth', provider),
-  onOAuthToken: (cb) => ipcRenderer.on('oauth-token', (ev, data) => cb(data)),
+contextBridge.exposeInMainWorld("api", {
+  startOAuth: (provider) => ipcRenderer.invoke("start-oauth", provider),
+  onOAuthToken: (cb) => ipcRenderer.on("oauth-token", (ev, data) => cb(data)),
 
   // File Operations
-  readFile: (filePath) => ipcRenderer.invoke('READ_FILE', filePath),
-  writeFile: (filePath, content) => ipcRenderer.invoke('WRITE_FILE', { filePath, content }),
+  readFile: (filePath) => ipcRenderer.invoke("READ_FILE", filePath),
+  writeFile: (filePath, content) =>
+    ipcRenderer.invoke("WRITE_FILE", { filePath, content }),
 
   // Encryption Operations
-  encrypt: (plaintext) => ipcRenderer.invoke('ENCRYPT_DATA', plaintext),
-  decrypt: (ciphertext) => ipcRenderer.invoke('DECRYPT_DATA', ciphertext),
+  encrypt: (plaintext) => ipcRenderer.invoke("ENCRYPT_DATA", plaintext),
+  decrypt: (ciphertext) => ipcRenderer.invoke("DECRYPT_DATA", ciphertext),
 
   // Video Operations (NEW)
-  generateVideo: (params) => ipcRenderer.invoke('GENERATE_VIDEO', params),
-  generateSlideshow: (params) => ipcRenderer.invoke('GENERATE_SLIDESHOW', params),
-  generateGif: (params) => ipcRenderer.invoke('GENERATE_GIF', params),
-  onVideoProgress: (callback) => ipcRenderer.on('VIDEO_PROGRESS', (event, progress) => callback(progress)),
+  generateVideo: (params) => ipcRenderer.invoke("GENERATE_VIDEO", params),
+  generateSlideshow: (params) =>
+    ipcRenderer.invoke("GENERATE_SLIDESHOW", params),
+  generateGif: (params) => ipcRenderer.invoke("GENERATE_GIF", params),
+  onVideoProgress: (callback) =>
+    ipcRenderer.on("VIDEO_PROGRESS", (event, progress) => callback(progress)),
 
   // Scheduler Listener
   onScheduledPost: (callback) => {
-    ipcRenderer.on('EXECUTE_SCHEDULED_POST', (_event, post) => callback(post));
-  }
+    ipcRenderer.on("EXECUTE_SCHEDULED_POST", (_event, post) => callback(post));
+  },
 });
 ```
 
 ### Main Process Setup (main.js)
+
 Ensure video handlers are registered:
+
 ```javascript
-const { registerVideoHandlers } = require('./handlers/video-handlers');
+const { registerVideoHandlers } = require("./handlers/video-handlers");
 
 app.whenReady().then(() => {
-  logInfo('Starting AI Auto Bot...');
+  logInfo("Starting AI Auto Bot...");
 
   // Register video handlers (IMPORTANT)
   registerVideoHandlers(ipcMain, BrowserWindow);
@@ -104,13 +112,16 @@ app.whenReady().then(() => {
 ```
 
 ### Video Handler Implementation (handlers/video-handlers.js)
+
 Key features:
+
 - Downloads remote URLs before FFmpeg processing
 - Sends progress updates via VIDEO_PROGRESS channel
 - Cleans up temporary downloaded files
 - Proper error handling with logError
 
 ### Renderer Video Integration (renderer.js)
+
 - `initializeVideoFeatures()` - Sets up event delegation for dynamic buttons
 - `handleVideoConversion()` - Converts images to videos
 - `handleSlideshowCreation()` - Creates slideshows from selected images
@@ -118,7 +129,9 @@ Key features:
 - `showProgress()` / `hideProgress()` - Progress indicator management
 
 ### UI Elements (index.html)
+
 Keep the slideshow button with counter:
+
 ```html
 <button type="button" id="createSlideshowBtn" style="display: none;">
   Create Slideshow (<span id="slideshowCount">0</span>)
@@ -126,6 +139,7 @@ Keep the slideshow button with counter:
 ```
 
 Keep OAuth buttons:
+
 ```html
 <div class="oauth-buttons">
   <button type="button" id="connectInstagramBtn">🔗 Connect Instagram</button>
@@ -136,25 +150,55 @@ Keep OAuth buttons:
 ```
 
 ### Dark Mode Styling (styles.css)
+
 Complete dark mode coverage:
+
 ```css
-body.dark .header { background: var(--glass-bg-dark); color: #e2e8f0; }
-body.dark .container { color: #e2e8f0; }
-body.dark #controls { color: #e2e8f0; }
-body.dark form fieldset { background: var(--glass-bg-dark); border-color: #4a5568; }
-body.dark .library-item { background: var(--glass-bg-dark); border-color: #4a5568; }
+body.dark .header {
+  background: var(--glass-bg-dark);
+  color: #e2e8f0;
+}
+body.dark .container {
+  color: #e2e8f0;
+}
+body.dark #controls {
+  color: #e2e8f0;
+}
+body.dark form fieldset {
+  background: var(--glass-bg-dark);
+  border-color: #4a5568;
+}
+body.dark .library-item {
+  background: var(--glass-bg-dark);
+  border-color: #4a5568;
+}
 ```
 
 Video controls styling:
+
 ```css
-.video-controls { display: flex; gap: 8px; padding: 8px; }
-.toolbar-btn { padding: 4px; border: none; background: transparent; cursor: pointer; }
-.progress-overlay { position: fixed; background: rgba(0, 0, 0, 0.7); z-index: 1000; }
+.video-controls {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+.toolbar-btn {
+  padding: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.progress-overlay {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+}
 ```
 
 ## Next Steps When Resuming
 
 ### Immediate Testing Checklist
+
 1. **Verify App Starts**: `npm start` - Should load without errors
 2. **Check Video Buttons**: Library items should show video/slideshow/GIF buttons
 3. **Test Video Conversion**: Click play button on any image
@@ -165,6 +209,7 @@ Video controls styling:
 8. **Verify Templates**: Template dropdown should populate on load
 
 ### Known Working Features
+
 - ✅ All core app functionality
 - ✅ Video conversion with FFmpeg
 - ✅ Slideshow creation
@@ -177,6 +222,7 @@ Video controls styling:
 - ✅ Bulk generation
 
 ### If Issues Arise
+
 1. **Video buttons missing**: Check `displayLibraryContent()` adds `data-item-id` to library items
 2. **Buttons don't respond**: Verify `initializeVideoFeatures()` is called in `init()`
 3. **FFmpeg errors**: Check `ffmpeg-static` is installed: `npm list ffmpeg-static`
@@ -185,6 +231,7 @@ Video controls styling:
 6. **Dark mode incomplete**: Verify all dark mode selectors in `styles.css`
 
 ### Future Enhancements to Consider
+
 - [ ] Add video preview before saving
 - [ ] Customizable video settings UI (duration, resolution, effects)
 - [ ] Audio track support for slideshows
@@ -196,12 +243,14 @@ Video controls styling:
 - [ ] Video analytics and performance tracking
 
 ### Critical Files - DO NOT DELETE
+
 - `handlers/video-handlers.js` - Video IPC handlers with URL download
 - `utils/video-manager.js` - FFmpeg processing functions
 - `utils/ipc.js` - IPC channel constants (includes video channels)
 - All files in `data/` directory - User data and tokens
 
 ### Package Dependencies - DO NOT REMOVE
+
 ```json
 {
   "ffmpeg-static": "^5.2.0",
@@ -214,21 +263,25 @@ Video controls styling:
 If starting fresh or reverting:
 
 1. **Checkout this commit**:
+
    ```bash
    git checkout b74e44a
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Verify FFmpeg**:
+
    ```bash
    npm list ffmpeg-static
    ```
 
 4. **Run the app**:
+
    ```bash
    npm start
    ```
@@ -242,6 +295,7 @@ If starting fresh or reverting:
 ## Session Summary
 
 This restore point captures a **fully functional AI Auto Bot** with complete video features:
+
 - **Started**: App with basic meme generation
 - **Added**: Complete FFmpeg video processing pipeline
 - **Fixed**: Template loading, dark mode coverage, initialization flow
@@ -249,6 +303,7 @@ This restore point captures a **fully functional AI Auto Bot** with complete vid
 - **Tested**: All features working without critical errors
 
 **Status**: ✅ PRODUCTION READY (with API keys configured)
+
 1. Revert the activity log debouncing changes in renderer.js
 2. Revert the OAuth environment changes in main.js
 3. Remove the window.unload handler
@@ -257,7 +312,9 @@ This restore point captures a **fully functional AI Auto Bot** with complete vid
 6. Only then proceed with optimizations one at a time
 
 ## Note on Testing
+
 When we resume, test these functions in order:
+
 1. Basic UI rendering
 2. File operations (read/write)
 3. Social media button display
@@ -265,6 +322,7 @@ When we resume, test these functions in order:
 5. Activity logging
 
 ## Critical Files to Not Touch
+
 - package.json
 - electron-builder configuration
 - CI/CD workflows

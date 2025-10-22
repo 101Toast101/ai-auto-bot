@@ -1,18 +1,10 @@
 \# Troubleshooting Guide
 
-
-
 Common issues and their solutions for AI Auto Bot.
-
-
 
 ---
 
-
-
 \## 🚫 App Won't Start
-
-
 
 \### Issue: "Error: Cannot find module"
 
@@ -27,8 +19,6 @@ rm -rf node\_modules
 npm install
 
 ```
-
-
 
 \### Issue: "ENOENT: no such file or directory, open 'data/settings.json'"
 
@@ -46,21 +36,13 @@ echo "{}" > data/settings.json
 
 ```
 
-
-
 ---
 
-
-
 \## 🔑 API Key Issues
-
-
 
 \### Issue: "API Key required for AI generation!"
 
 \*\*Cause:\*\* No OpenAI API key entered or key not saved
-
-
 
 \*\*Solution:\*\*
 
@@ -72,13 +54,9 @@ echo "{}" > data/settings.json
 
 4\. Key is automatically encrypted
 
-
-
 \### Issue: "OpenAI API error: 401 Unauthorized"
 
 \*\*Cause:\*\* Invalid or expired API key
-
-
 
 \*\*Solution:\*\*
 
@@ -90,13 +68,9 @@ echo "{}" > data/settings.json
 
 4\. Replace key in app and save config
 
-
-
 \### Issue: "OpenAI API error: 429 Rate Limit"
 
 \*\*Cause:\*\* Too many requests or insufficient credits
-
-
 
 \*\*Solution:\*\*
 
@@ -108,21 +82,13 @@ echo "{}" > data/settings.json
 
 4\. Upgrade tier if on free plan
 
-
-
 ---
 
-
-
 \## 📱 Social Media Posting Issues
-
-
 
 \### Issue: "Please provide at least one social media token!"
 
 \*\*Cause:\*\* No platform tokens configured
-
-
 
 \*\*Solution:\*\*
 
@@ -134,8 +100,6 @@ echo "{}" > data/settings.json
 
 4\. See API-SETUP-GUIDE.md for getting tokens
 
-
-
 \### Issue: "Instagram posting failed: Invalid access token"
 
 \*\*Causes:\*\*
@@ -146,31 +110,25 @@ echo "{}" > data/settings.json
 
 \- Missing permissions
 
-
-
 \*\*Solution:\*\*
 
 1\. Regenerate token via Facebook Graph API Explorer
 
 2\. Ensure these permissions:
 
-&nbsp;  - `instagram\_basic`
+&nbsp; - `instagram\_basic`
 
-&nbsp;  - `instagram\_content\_publish`
+&nbsp; - `instagram\_content\_publish`
 
-&nbsp;  - `pages\_read\_engagement`
+&nbsp; - `pages\_read\_engagement`
 
 3\. Use long-lived token (60 days vs 1 hour)
 
 4\. Verify Instagram is Business account
 
-
-
 \### Issue: "TikTok posting failed: App not approved"
 
 \*\*Cause:\*\* Developer app still pending approval
-
-
 
 \*\*Solution:\*\*
 
@@ -179,8 +137,6 @@ echo "{}" > data/settings.json
 \- Check status: https://developers.tiktok.com/apps
 
 \- Use other platforms while waiting
-
-
 
 \### Issue: "Twitter posting failed: Forbidden"
 
@@ -192,8 +148,6 @@ echo "{}" > data/settings.json
 
 \- Developer account suspended
 
-
-
 \*\*Solution:\*\*
 
 1\. Check app permissions in Twitter Developer Portal
@@ -204,21 +158,13 @@ echo "{}" > data/settings.json
 
 4\. Verify account is in good standing
 
-
-
 ---
 
-
-
 \## 🖼️ Image Generation Issues
-
-
 
 \### Issue: "AI generation failed: content policy violation"
 
 \*\*Cause:\*\* Prompt violates OpenAI's content policy
-
-
 
 \*\*Solution:\*\*
 
@@ -227,8 +173,6 @@ echo "{}" > data/settings.json
 \- Rephrase to be more general
 
 \- See: https://openai.com/policies/usage-policies
-
-
 
 \### Issue: "Image preview not showing"
 
@@ -240,8 +184,6 @@ echo "{}" > data/settings.json
 
 \- Invalid image URL
 
-
-
 \*\*Solution:\*\*
 
 1\. Check browser console for errors (F12)
@@ -252,13 +194,9 @@ echo "{}" > data/settings.json
 
 4\. Clear browser cache
 
-
-
 \### Issue: "Meme preview shows 'undefined'"
 
 \*\*Cause:\*\* Text fields empty
-
-
 
 \*\*Solution:\*\*
 
@@ -266,15 +204,9 @@ echo "{}" > data/settings.json
 
 \- Template memes require text to generate
 
-
-
 ---
 
-
-
 \## 📅 Scheduling Issues
-
-
 
 \### Issue: "Scheduled posts not executing"
 
@@ -286,8 +218,6 @@ echo "{}" > data/settings.json
 
 \- Time zone mismatch
 
-
-
 \*\*Solution:\*\*
 
 1\. Keep app running for auto-execution
@@ -298,13 +228,9 @@ echo "{}" > data/settings.json
 
 4\. Scheduler checks every 60 seconds
 
-
-
 \### Issue: "Post scheduled but disappeared"
 
 \*\*Cause:\*\* Post was executed and status changed
-
-
 
 \*\*Solution:\*\*
 
@@ -314,21 +240,13 @@ echo "{}" > data/settings.json
 
 \- Successful posts are automatically archived
 
-
-
 ---
 
-
-
 \## 💾 Configuration Issues
-
-
 
 \### Issue: "Config not saving"
 
 \*\*Cause:\*\* File permissions or disk space
-
-
 
 \*\*Solution:\*\*
 
@@ -352,13 +270,9 @@ chmod -R 755 data/
 
 ```
 
-
-
 \### Issue: "Config loads but tokens missing"
 
 \*\*Cause:\*\* Encryption/decryption mismatch
-
-
 
 \*\*Solution:\*\*
 
@@ -368,13 +282,9 @@ chmod -R 755 data/
 
 \- Encryption is machine-specific for security
 
-
-
 \### Issue: "All configs show same settings"
 
 \*\*Cause:\*\* Not saving properly or deduplication issue
-
-
 
 \*\*Solution:\*\*
 
@@ -384,15 +294,9 @@ chmod -R 755 data/
 
 3\. If corrupted, delete and recreate configs
 
-
-
 ---
 
-
-
 \## 📦 Bulk Generation Issues
-
-
 
 \### Issue: "Bulk generation stuck at 0%"
 
@@ -404,8 +308,6 @@ chmod -R 755 data/
 
 \- Text variation generation failed
 
-
-
 \*\*Solution:\*\*
 
 1\. Check internet connection
@@ -416,13 +318,9 @@ chmod -R 755 data/
 
 4\. Try smaller quantity first (10 instead of 100)
 
-
-
 \### Issue: "ZIP download fails"
 
 \*\*Cause:\*\* JSZip library not loaded or browser memory limit
-
-
 
 \*\*Solution:\*\*
 
@@ -434,13 +332,9 @@ chmod -R 755 data/
 
 4\. Clear browser cache and restart app
 
-
-
 \### Issue: "Generated images look identical"
 
 \*\*Cause:\*\* Using same template + text combination
-
-
 
 \*\*Solution:\*\*
 
@@ -452,21 +346,13 @@ chmod -R 755 data/
 
 4\. Verify text variations are being generated
 
-
-
 ---
 
-
-
 \## 🌙 Dark Mode Issues
-
-
 
 \### Issue: "Dark mode won't toggle"
 
 \*\*Cause:\*\* CSS not loaded or localStorage issue
-
-
 
 \*\*Solution:\*\*
 
@@ -478,13 +364,9 @@ chmod -R 755 data/
 
 4\. Restart app
 
-
-
 \### Issue: "Dark mode resets on restart"
 
 \*\*Cause:\*\* State not persisted
-
-
 
 \*\*Solution:\*\*
 
@@ -494,21 +376,13 @@ chmod -R 755 data/
 
 \- Future update will persist preference
 
-
-
 ---
 
-
-
 \## 🔍 Activity Log Issues
-
-
 
 \### Issue: "Activity log not showing"
 
 \*\*Cause:\*\* Log container not rendering
-
-
 
 \*\*Solution:\*\*
 
@@ -518,13 +392,9 @@ chmod -R 755 data/
 
 3\. Restart app if not visible
 
-
-
 \### Issue: "Log entries missing timestamps"
 
 \*\*Cause:\*\* System clock incorrect
-
-
 
 \*\*Solution:\*\*
 
@@ -534,15 +404,9 @@ chmod -R 755 data/
 
 3\. Restart app after fixing time
 
-
-
 ---
 
-
-
 \## 🗂️ Content Library Issues
-
-
 
 \### Issue: "Library shows 'No content found'"
 
@@ -554,8 +418,6 @@ chmod -R 755 data/
 
 \- Library file corrupted
 
-
-
 \*\*Solution:\*\*
 
 1\. Generate or post some content first
@@ -566,13 +428,9 @@ chmod -R 755 data/
 
 4\. Check `data/library.json` exists
 
-
-
 \### Issue: "Can't delete library item"
 
 \*\*Cause:\*\* File permissions or corrupted JSON
-
-
 
 \*\*Solution:\*\*
 
@@ -582,15 +440,9 @@ chmod -R 755 data/
 
 3\. Manually edit `data/library.json` if needed
 
-
-
 ---
 
-
-
 \## 💻 Performance Issues
-
-
 
 \### Issue: "App running slow"
 
@@ -602,8 +454,6 @@ chmod -R 755 data/
 
 \- Memory leak
 
-
-
 \*\*Solution:\*\*
 
 1\. Archive old content from library
@@ -614,13 +464,9 @@ chmod -R 755 data/
 
 4\. Close unused browser tabs
 
-
-
 \### Issue: "High CPU usage"
 
 \*\*Cause:\*\* Auto-scheduler or bulk generation running
-
-
 
 \*\*Solution:\*\*
 
@@ -630,15 +476,9 @@ chmod -R 755 data/
 
 \- If persistent, restart app
 
-
-
 ---
 
-
-
 \## 🔒 Security Concerns
-
-
 
 \### Issue: "Are my API keys safe?"
 
@@ -652,8 +492,6 @@ chmod -R 755 data/
 
 \- Never transmitted except to respective APIs
 
-
-
 \### Issue: "Can I backup my configs?"
 
 \*\*Answer:\*\* Yes, but carefully:
@@ -666,15 +504,9 @@ chmod -R 755 data/
 
 4\. Never commit data folder to Git
 
-
-
 ---
 
-
-
 \## 📞 Still Having Issues?
-
-
 
 \### Check These First:
 
@@ -690,8 +522,6 @@ chmod -R 755 data/
 
 6\. ✅ Platform tokens not expired
 
-
-
 \### Debug Mode:
 
 Open Developer Tools (F12) and check:
@@ -702,11 +532,7 @@ Open Developer Tools (F12) and check:
 
 \- Application tab for localStorage issues
 
-
-
 \### Common Error Patterns:
-
-
 
 \*\*"TypeError: Cannot read property 'X' of null"\*\*
 
@@ -714,15 +540,11 @@ Open Developer Tools (F12) and check:
 
 \- Refresh app or restart
 
-
-
 \*\*"CORS policy blocking"\*\*
 
 \- API endpoint blocked by browser
 
 \- Check Content Security Policy in index.html
-
-
 
 \*\*"Failed to fetch"\*\*
 
@@ -732,15 +554,9 @@ Open Developer Tools (F12) and check:
 
 \- Verify API endpoint is correct
 
-
-
 ---
 
-
-
 \## 🛠️ Manual Fixes
-
-
 
 \### Reset Everything:
 
@@ -754,8 +570,6 @@ npm start
 
 ```
 
-
-
 \### Reset Just Configs:
 
 ```bash
@@ -766,8 +580,6 @@ rm data/settings.json
 
 ```
 
-
-
 \### Reset Just Library:
 
 ```bash
@@ -775,8 +587,6 @@ rm data/settings.json
 rm data/library.json
 
 ```
-
-
 
 \### Check Data Integrity:
 
@@ -790,15 +600,9 @@ cat data/library.json | python -m json.tool
 
 ```
 
-
-
 ---
 
-
-
 \## 📚 Additional Resources
-
-
 
 \- \*\*OpenAI Status\*\*: https://status.openai.com
 
@@ -808,15 +612,9 @@ cat data/library.json | python -m json.tool
 
 \- \*\*Node.js Issues\*\*: https://nodejs.org/en/docs
 
-
-
 ---
 
-
-
 \## 🎯 Quick Fixes Checklist
-
-
 
 Before asking for help, try:
 
@@ -840,11 +638,6 @@ Before asking for help, try:
 
 \- \[ ] Read API-SETUP-GUIDE.md
 
-
-
 ---
 
-
-
 \*\*Still stuck?\*\* Check the Activity Log in the app - it usually tells you exactly what went wrong! 🔍
-

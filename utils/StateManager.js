@@ -11,7 +11,7 @@ class StateManager {
   // Initialize state with default values
   init(initialState = {}) {
     this.state = { ...initialState };
-    this.notifySubscribers('*', this.state);
+    this.notifySubscribers("*", this.state);
   }
 
   // Subscribe to state changes
@@ -51,15 +51,20 @@ class StateManager {
         action: enhancedAction,
         prevState,
         nextState,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       // Notify subscribers
-      this.notifySubscribers(enhancedAction.type, nextState, prevState, enhancedAction);
+      this.notifySubscribers(
+        enhancedAction.type,
+        nextState,
+        prevState,
+        enhancedAction,
+      );
 
       return true;
     } catch (error) {
-      console.error('Error in dispatch:', error);
+      console.error("Error in dispatch:", error);
       return false;
     }
   }
@@ -89,25 +94,25 @@ class StateManager {
   applyMiddlewares(action) {
     return this.middlewares.reduce(
       (enhancedAction, middleware) => middleware(enhancedAction),
-      action
+      action,
     );
   }
 
   reducer(state, action) {
     switch (action.type) {
-      case 'SET_STATE':
+      case "SET_STATE":
         return {
           ...state,
-          [action.key]: action.value
+          [action.key]: action.value,
         };
 
-      case 'MERGE_STATE':
+      case "MERGE_STATE":
         return {
           ...state,
-          ...action.values
+          ...action.values,
         };
 
-      case 'DELETE_STATE': {
+      case "DELETE_STATE": {
         let deleted = false;
         const key = action.key;
         if (Object.prototype.hasOwnProperty.call(this.state, key)) {
@@ -116,9 +121,9 @@ class StateManager {
         }
         return deleted;
       }
-  // unreachable code removed
+      // unreachable code removed
 
-      case 'RESET_STATE':
+      case "RESET_STATE":
         return {};
 
       default:
@@ -133,23 +138,23 @@ class StateManager {
     // Notify specific subscribers
     const specificSubscribers = this.subscribers.get(type);
     if (specificSubscribers) {
-      specificSubscribers.forEach(callback => {
+      specificSubscribers.forEach((callback) => {
         try {
           callback(nextState, prevState, action);
         } catch (error) {
-          console.error('Error in subscriber callback:', error);
+          console.error("Error in subscriber callback:", error);
         }
       });
     }
 
     // Notify global subscribers
-    const globalSubscribers = this.subscribers.get('*');
+    const globalSubscribers = this.subscribers.get("*");
     if (globalSubscribers) {
-      globalSubscribers.forEach(callback => {
+      globalSubscribers.forEach((callback) => {
         try {
           callback(nextState, prevState, action);
         } catch (error) {
-          console.error('Error in global subscriber callback:', error);
+          console.error("Error in global subscriber callback:", error);
         }
       });
     }
@@ -170,7 +175,7 @@ class StateManager {
   travelToState(index) {
     if (index >= 0 && index < this.history.length) {
       this.state = { ...this.history[index].nextState };
-      this.notifySubscribers('*', this.state);
+      this.notifySubscribers("*", this.state);
       return true;
     }
     return false;

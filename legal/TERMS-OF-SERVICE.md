@@ -9,6 +9,7 @@ By downloading, installing, or using AI Auto Bot ("the app"), you agree to be bo
 ## 2. Description of Service
 
 AI Auto Bot is a desktop application that provides:
+
 - Content creation tools (meme generation, video creation)
 - AI-powered content generation (using OpenAI and Runway ML)
 - Content library management
@@ -17,11 +18,13 @@ AI Auto Bot is a desktop application that provides:
 ## 3. User Responsibilities
 
 ### 3.1 Account Security
+
 - You are responsible for maintaining the security of your social media accounts
 - You must keep your OAuth tokens and API keys confidential
 - You are responsible for all activity that occurs under your connected accounts
 
 ### 3.2 Content Responsibility
+
 - You are solely responsible for all content you create and post using the app
 - You must ensure your content complies with each platform's Terms of Service:
   - Instagram: https://help.instagram.com/581066165581870
@@ -35,6 +38,7 @@ AI Auto Bot is a desktop application that provides:
   - Is misleading, fraudulent, or deceptive
 
 ### 3.3 API Usage
+
 - You are responsible for your own OpenAI and Runway ML API keys
 - You are responsible for any charges incurred from API usage
 - You must comply with OpenAI and Runway ML's Terms of Service
@@ -42,6 +46,7 @@ AI Auto Bot is a desktop application that provides:
 ## 4. Permitted Use
 
 You may use AI Auto Bot for:
+
 - Personal content creation and social media management
 - Commercial use (with proper rights to content)
 - Managing your own social media accounts
@@ -50,6 +55,7 @@ You may use AI Auto Bot for:
 ## 5. Prohibited Use
 
 You may NOT use AI Auto Bot for:
+
 - Posting spam or unsolicited content
 - Managing accounts you don't own or have permission to manage
 - Violating any platform's Terms of Service or API guidelines
@@ -60,6 +66,7 @@ You may NOT use AI Auto Bot for:
 ## 6. OAuth Permissions
 
 When you connect social media accounts:
+
 - You grant the app permission to post on your behalf
 - You can revoke access at any time through the app or platform settings
 - The app will only post when you explicitly schedule or request it
@@ -68,12 +75,14 @@ When you connect social media accounts:
 ## 7. Third-Party Services
 
 ### 7.1 Social Media Platforms
+
 - The app integrates with Instagram, TikTok, YouTube, and Twitter
 - Each platform's Terms of Service apply to content posted there
 - We are not responsible for changes to platform APIs or policies
 - Platform outages or API changes may affect app functionality
 
 ### 7.2 AI Services
+
 - OpenAI and Runway ML services are subject to their own terms
 - You need your own API keys to use AI features
 - We are not responsible for AI-generated content quality or costs
@@ -81,6 +90,7 @@ When you connect social media accounts:
 ## 8. Disclaimer of Warranties
 
 AI Auto Bot is provided "AS IS" without warranty of any kind:
+
 - We do not guarantee uninterrupted or error-free operation
 - We do not guarantee successful posting to all platforms
 - We are not responsible for content rejected by platforms
@@ -89,6 +99,7 @@ AI Auto Bot is provided "AS IS" without warranty of any kind:
 ## 9. Limitation of Liability
 
 To the maximum extent permitted by law:
+
 - We are not liable for any damages arising from use of the app
 - We are not responsible for account suspensions or bans
 - We are not liable for data loss (keep backups!)
@@ -110,6 +121,7 @@ To the maximum extent permitted by law:
 ## 12. Changes to Terms
 
 We may update these Terms of Service at any time:
+
 - Changes will be reflected in the app documentation
 - Continued use constitutes acceptance of new terms
 - Major changes will be highlighted in release notes
@@ -123,6 +135,7 @@ We may update these Terms of Service at any time:
 ## 14. Open Source
 
 AI Auto Bot is open-source software:
+
 - Source code available at: https://github.com/[yourusername]/ai-auto-bot
 - You may review, modify, or fork the code
 - Contributions are welcome under the project license
@@ -140,6 +153,7 @@ These terms are governed by the laws of [Your Jurisdiction], without regard to c
 ## 17. Contact
 
 For questions about these Terms of Service:
+
 - **Email**: Crottyjonathan@yahoo.com
 - **Developer**: CROTTY
 - **GitHub**: https://github.com/101Toast101/ai-auto-bot

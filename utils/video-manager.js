@@ -1,10 +1,10 @@
-const ffmpeg = require('ffmpeg-static');
-const { spawn } = require('child_process');
-const path = require('path');
+const ffmpeg = require("ffmpeg-static");
+const { spawn } = require("child_process");
+const path = require("path");
 // const GIFEncoder = require('gif-encoder-2');
 // const fs = require('fs');
-const os = require('os');
-const crypto = require('crypto');
+const os = require("os");
+const crypto = require("crypto");
 
 /**
  * Convert a static meme image to an animated video
@@ -17,36 +17,49 @@ const crypto = require('crypto');
  */
 async function memeToVideo(imagePath, options) {
   return new Promise((resolve, reject) => {
-    const { duration = 10, outputPath, resolution = '1080x1080', fps = 30 } = options;
+    const {
+      duration = 10,
+      outputPath,
+      resolution = "1080x1080",
+      fps = 30,
+    } = options;
 
     // Parse resolution
-    const [width, height] = resolution.split('x').map(Number);
+    const [width, height] = resolution.split("x").map(Number);
 
     const args = [
-      '-y', // Overwrite output file if exists
-      '-loop', '1', // Loop input
-      '-i', imagePath, // Input file
-      '-t', duration.toString(), // Duration
-      '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`, // Simple scale and center
-      '-c:v', 'libx264', // Video codec
-      '-pix_fmt', 'yuv420p', // Pixel format for compatibility
-      '-r', fps.toString(), // Frame rate
-      '-preset', 'fast', // Encoding speed
-      outputPath // Output file
+      "-y", // Overwrite output file if exists
+      "-loop",
+      "1", // Loop input
+      "-i",
+      imagePath, // Input file
+      "-t",
+      duration.toString(), // Duration
+      "-vf",
+      `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`, // Simple scale and center
+      "-c:v",
+      "libx264", // Video codec
+      "-pix_fmt",
+      "yuv420p", // Pixel format for compatibility
+      "-r",
+      fps.toString(), // Frame rate
+      "-preset",
+      "fast", // Encoding speed
+      outputPath, // Output file
     ];
 
     const ffmpegProcess = spawn(ffmpeg, args);
-    let error = '';
+    let error = "";
 
-    ffmpegProcess.stderr.on('data', (data) => {
+    ffmpegProcess.stderr.on("data", (data) => {
       error += data.toString();
     });
 
-    ffmpegProcess.on('close', (code) => {
+    ffmpegProcess.on("close", (code) => {
       if (code === 0) {
         resolve({ success: true, path: outputPath });
       } else {
-        reject(new Error(error || 'FFmpeg process failed'));
+        reject(new Error(error || "FFmpeg process failed"));
       }
     });
   });
@@ -66,13 +79,15 @@ async function createSlideshow(imagePaths, options) {
     const {
       duration = 3,
       outputPath,
-      resolution = '1080x1080',
-  // transition = 'fade',
-      fps = 30
+      resolution = "1080x1080",
+      // transition = 'fade',
+      fps = 30,
     } = options;
 
     // Build filter complex for transitions
-    const inputs = imagePaths.map(path => ['-loop', '1', '-t', duration.toString(), '-i', path]).flat();
+    const inputs = imagePaths
+      .map((path) => ["-loop", "1", "-t", duration.toString(), "-i", path])
+      .flat();
     const filterComplex = [];
     const outputs = [];
 
@@ -82,30 +97,34 @@ async function createSlideshow(imagePaths, options) {
     });
 
     // Add crossfade transitions
-    const finalFilter = `${filterComplex.join(';')};${outputs.join('')}concat=n=${imagePaths.length}:v=1:a=0,format=yuv420p[v]`;
+    const finalFilter = `${filterComplex.join(";")};${outputs.join("")}concat=n=${imagePaths.length}:v=1:a=0,format=yuv420p[v]`;
 
     const args = [
-      '-y',
+      "-y",
       ...inputs,
-      '-filter_complex', finalFilter,
-      '-map', '[v]',
-      '-c:v', 'libx264',
-      '-r', fps.toString(),
-      outputPath
+      "-filter_complex",
+      finalFilter,
+      "-map",
+      "[v]",
+      "-c:v",
+      "libx264",
+      "-r",
+      fps.toString(),
+      outputPath,
     ];
 
     const ffmpegProcess = spawn(ffmpeg, args);
-    let error = '';
+    let error = "";
 
-    ffmpegProcess.stderr.on('data', (data) => {
+    ffmpegProcess.stderr.on("data", (data) => {
       error += data.toString();
     });
 
-    ffmpegProcess.on('close', (code) => {
+    ffmpegProcess.on("close", (code) => {
       if (code === 0) {
         resolve({ success: true, path: outputPath });
       } else {
-        reject(new Error(error || 'FFmpeg process failed'));
+        reject(new Error(error || "FFmpeg process failed"));
       }
     });
   });
@@ -127,31 +146,36 @@ async function videoToGif(imagePath, options) {
       height = 480,
       duration = 3,
       outputPath,
-      fps = 15
+      fps = 15,
     } = options;
 
     const args = [
-      '-y',
-      '-loop', '1',
-      '-i', imagePath,
-      '-t', duration.toString(),
-      '-vf', `scale=${width}:${height},zoompan=z='min(zoom+0.0015,1.1)':d=${duration*fps}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
-      '-f', 'gif',
-      outputPath
+      "-y",
+      "-loop",
+      "1",
+      "-i",
+      imagePath,
+      "-t",
+      duration.toString(),
+      "-vf",
+      `scale=${width}:${height},zoompan=z='min(zoom+0.0015,1.1)':d=${duration * fps}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
+      "-f",
+      "gif",
+      outputPath,
     ];
 
     const ffmpegProcess = spawn(ffmpeg, args);
-    let error = '';
+    let error = "";
 
-    ffmpegProcess.stderr.on('data', (data) => {
+    ffmpegProcess.stderr.on("data", (data) => {
       error += data.toString();
     });
 
-    ffmpegProcess.on('close', (code) => {
+    ffmpegProcess.on("close", (code) => {
       if (code === 0) {
         resolve({ success: true, path: outputPath });
       } else {
-        reject(new Error(error || 'FFmpeg process failed'));
+        reject(new Error(error || "FFmpeg process failed"));
       }
     });
   });
@@ -164,7 +188,7 @@ module.exports = {
   // Helper function exports
   getTempPath: (ext) => {
     const tmpdir = os.tmpdir();
-    const hash = crypto.randomBytes(6).toString('hex');
+    const hash = crypto.randomBytes(6).toString("hex");
     return path.join(tmpdir, `video_${hash}.${ext}`);
-  }
+  },
 };

@@ -6,31 +6,37 @@
 ## Issues Found & Fixed
 
 ### ❌ Issue 1: Wrong API Method
+
 **Problem:** Code was calling `window.api.invoke('meme-to-video')` which doesn't exist
 **Fix:** Changed to `window.api.generateVideo()` - the correct method from preload.js
 **File:** renderer.js line ~1060
 
 ### ❌ Issue 2: Wrong Parameter Name
+
 **Problem:** Passing `imageUrl` but handler expects `imagePath`
 **Fix:** Changed parameter name to `imagePath`
 **File:** renderer.js line ~1062
 
 ### ❌ Issue 3: Template/Text Fields Hidden
+
 **Problem:** When video mode selected, template and text mode fields were hidden - but meme-to-video mode still needs them!
 **Fix:** Removed the logic that hides these fields in video mode
 **File:** renderer.js `handleBulkContentTypeChange()` function
 
 ### ❌ Issue 4: No Validation
+
 **Problem:** No validation of quantity or duration values
 **Fix:** Added validation checks (1-100 quantity, 3-30 seconds duration)
 **File:** renderer.js `startBulkVideoGeneration()` start
 
 ### ❌ Issue 5: No Debug Logging
+
 **Problem:** Can't see what's happening during video generation
 **Fix:** Added comprehensive console.log statements throughout the process
 **File:** renderer.js throughout video generation
 
 ### ❌ Issue 6: Error Not Thrown
+
 **Problem:** If `videoResult.success` is false, code just silently continues
 **Fix:** Added `else` block to throw error with message
 **File:** renderer.js line ~1079
@@ -55,6 +61,7 @@
 ## How to Test Now
 
 ### Test 1: Basic Video Generation
+
 1. Open the app
 2. Click "Bulk Generation" button
 3. Select "Video" content type
@@ -78,11 +85,13 @@
    ```
 
 ### Test 2: Error Handling
+
 1. Set quantity to 200 (invalid)
 2. Click "Start Generation"
 3. **Should show:** "Quantity must be between 1 and 100"
 
 ### Test 3: Multiple Platforms
+
 1. Quantity: 3
 2. Check Instagram, TikTok, YouTube
 3. Click "Start Generation"
@@ -91,6 +100,7 @@
 6. Check library for 9 video entries
 
 ### Test 4: Manual Text Mode
+
 1. Video content type selected
 2. Text Mode: Manual Entry
 3. Enter in text area:
@@ -121,22 +131,26 @@
 ## Common Issues to Check
 
 ### If No Console Logs Appear:
+
 - Check if `startBulkVideoGeneration()` is being called
 - Verify content type dropdown is set to "Video"
 - Check if `startBulkGeneration()` routing is working
 
 ### If "generateVideo is not a function":
+
 - Check preload.js has `generateVideo` exposed
 - Restart app to reload preload.js changes
 - Check main.js has `registerVideoHandlers()` called
 
 ### If Videos Don't Generate:
+
 - Check FFmpeg is installed: `node_modules/ffmpeg-static`
 - Check temp directory permissions
 - Look for error in main process console
 - Check if meme URL is valid (try opening in browser)
 
 ### If Preview Shows Broken Video:
+
 - Video file path might be incorrect
 - Check `file://` protocol in src
 - Verify video file exists at reported path
@@ -145,16 +159,18 @@
 ## API Reference
 
 ### Correct Video Generation Call:
+
 ```javascript
 const result = await window.api.generateVideo({
-  imagePath: 'https://api.memegen.link/images/...',  // URL or local path
-  duration: 10,                                       // seconds
-  resolution: '1080x1080',                            // WIDTHxHEIGHT
-  fps: 30                                             // frames per second
+  imagePath: "https://api.memegen.link/images/...", // URL or local path
+  duration: 10, // seconds
+  resolution: "1080x1080", // WIDTHxHEIGHT
+  fps: 30, // frames per second
 });
 ```
 
 ### Expected Result Object:
+
 ```javascript
 {
   success: true,

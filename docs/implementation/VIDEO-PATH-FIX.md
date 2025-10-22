@@ -9,6 +9,7 @@
 ## 🐛 Problem Description
 
 When meme-to-video conversions were generated through bulk generation:
+
 - Videos displayed correctly in the **bulk preview window** ✅
 - Videos saved to content library appeared as **blank images** ❌
 - Video elements couldn't load the files properly
@@ -18,12 +19,14 @@ When meme-to-video conversions were generated through bulk generation:
 Windows file paths were being incorrectly formatted for the `file://` protocol:
 
 **WRONG:**
+
 ```javascript
-url: `file://${videoResult.path}`
+url: `file://${videoResult.path}`;
 // Result: file://C:\Users\...\video.mp4 ❌
 ```
 
 This format doesn't work because:
+
 1. Windows uses backslashes (`\`) which need to be forward slashes (`/`) for URLs
 2. The `file://` protocol on Windows requires **three slashes** for absolute paths: `file:///C:/...`
 
@@ -37,16 +40,20 @@ Added proper Windows path-to-URL conversion:
 
 ```javascript
 // Format path correctly for file:// protocol (Windows compatibility)
-const videoPath = videoResult.path.replace(/\\/g, '/');
-const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+const videoPath = videoResult.path.replace(/\\/g, "/");
+const videoUrl = videoPath.startsWith("/")
+  ? `file://${videoPath}`
+  : `file:///${videoPath}`;
 ```
 
 **How it works:**
+
 1. Replace all backslashes with forward slashes
 2. Add triple slash for Windows absolute paths (C:/...)
 3. Use double slash for Unix-style paths (/home/...)
 
 **Example transformations:**
+
 - `C:\Users\Name\AppData\Local\Temp\video_abc123.mp4`
 - → `C:/Users/Name/AppData/Local/Temp/video_abc123.mp4`
 - → `file:///C:/Users/Name/AppData/Local/Temp/video_abc123.mp4` ✅
@@ -58,15 +65,18 @@ const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${
 ### renderer.js (3 locations)
 
 #### 1. Bulk Meme-to-Video Generation (~line 1100)
+
 ```javascript
 if (videoResult.success) {
   // Format path correctly for file:// protocol (Windows compatibility)
-  const videoPath = videoResult.path.replace(/\\/g, '/');
-  const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+  const videoPath = videoResult.path.replace(/\\/g, "/");
+  const videoUrl = videoPath.startsWith("/")
+    ? `file://${videoPath}`
+    : `file:///${videoPath}`;
 
   await addToLibrary({
-    url: videoUrl,  // Now properly formatted
-    type: 'video',
+    url: videoUrl, // Now properly formatted
+    type: "video",
     // ... rest of library entry
   });
 
@@ -78,15 +88,18 @@ if (videoResult.success) {
 ```
 
 #### 2. Bulk AI Text-to-Video Generation (~line 1270)
+
 ```javascript
 if (videoResult.success) {
   // Format path correctly for file:// protocol (Windows compatibility)
-  const videoPath = videoResult.path.replace(/\\/g, '/');
-  const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+  const videoPath = videoResult.path.replace(/\\/g, "/");
+  const videoUrl = videoPath.startsWith("/")
+    ? `file://${videoPath}`
+    : `file:///${videoPath}`;
 
   await addToLibrary({
-    url: videoUrl,  // Now properly formatted
-    type: 'video',
+    url: videoUrl, // Now properly formatted
+    type: "video",
     // ... rest of library entry
   });
 
@@ -98,17 +111,20 @@ if (videoResult.success) {
 ```
 
 #### 3. Single AI Video Generation (~line 2690)
+
 ```javascript
 if (!videoResult.success) {
-  throw new Error(videoResult.error || 'Video conversion failed');
+  throw new Error(videoResult.error || "Video conversion failed");
 }
 
 // Format path correctly for file:// protocol (Windows compatibility)
-const videoPath = videoResult.path.replace(/\\/g, '/');
-const videoFileUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+const videoPath = videoResult.path.replace(/\\/g, "/");
+const videoFileUrl = videoPath.startsWith("/")
+  ? `file://${videoPath}`
+  : `file:///${videoPath}`;
 
 // Download and display
-videoBlob = await fetch(videoFileUrl).then(r => r.blob());
+videoBlob = await fetch(videoFileUrl).then((r) => r.blob());
 ```
 
 ---
@@ -132,6 +148,7 @@ videoBlob = await fetch(videoFileUrl).then(r => r.blob());
 ### Why This Matters
 
 HTML5 `<video>` elements require properly formatted URLs:
+
 - HTTP URLs: `https://example.com/video.mp4`
 - Data URLs: `data:video/mp4;base64,...`
 - Blob URLs: `blob:http://localhost/uuid`
@@ -142,9 +159,9 @@ HTML5 `<video>` elements require properly formatted URLs:
 This fix handles both Windows and Unix-style paths:
 
 ```javascript
-videoPath.startsWith('/')
-  ? `file://${videoPath}`     // Unix: /home/user/video.mp4 → file:///home/user/video.mp4
-  : `file:///${videoPath}`    // Windows: C:/Users/.../video.mp4 → file:///C:/Users/.../video.mp4
+videoPath.startsWith("/")
+  ? `file://${videoPath}` // Unix: /home/user/video.mp4 → file:///home/user/video.mp4
+  : `file:///${videoPath}`; // Windows: C:/Users/.../video.mp4 → file:///C:/Users/.../video.mp4
 ```
 
 ### Alternative Solutions Considered
@@ -177,11 +194,13 @@ videoPath.startsWith('/')
 ## 🎯 Impact
 
 ### Before Fix
+
 - ❌ Videos in library showed as blank images
 - ❌ No playback controls visible
 - ❌ Confusing user experience
 
 ### After Fix
+
 - ✅ Videos display with proper thumbnails
 - ✅ Play icons show on hover
 - ✅ Videos play correctly when clicked
@@ -192,6 +211,7 @@ videoPath.startsWith('/')
 ## 💡 Future Improvements
 
 ### Consider for Later
+
 1. **Persistent Storage**
    - Copy videos to app data directory
    - Update library URLs to point to permanent locations
@@ -217,26 +237,31 @@ videoPath.startsWith('/')
 ## ⚠️ Important Notes
 
 ### Don't Break This
+
 - Always format Windows paths before using in `file://` URLs
 - Use the helper pattern for consistency
 - Test on both Windows and Unix systems
 
 ### Known Limitations
+
 - Videos stored in Windows temp directory may be cleaned by OS
 - File URLs don't work in web browsers (security restriction)
 - Electron is required to access local file:// URLs
 
 ### Best Practices
+
 ```javascript
 // ✅ GOOD - Always format paths
-const videoPath = path.replace(/\\/g, '/');
-const videoUrl = videoPath.startsWith('/') ? `file://${videoPath}` : `file:///${videoPath}`;
+const videoPath = path.replace(/\\/g, "/");
+const videoUrl = videoPath.startsWith("/")
+  ? `file://${videoPath}`
+  : `file:///${videoPath}`;
 
 // ❌ BAD - Don't use raw Windows paths
-const videoUrl = `file://${path}`;  // Won't work!
+const videoUrl = `file://${path}`; // Won't work!
 
 // ❌ BAD - Don't forget the triple slash
-const videoUrl = `file://${path.replace(/\\/g, '/')}`;  // Still wrong!
+const videoUrl = `file://${path.replace(/\\/g, "/")}`; // Still wrong!
 ```
 
 ---

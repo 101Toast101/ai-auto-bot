@@ -9,12 +9,14 @@
 ## What's Working
 
 ### ✅ Completed OAuth Integrations
+
 1. **TikTok** - Submitted for review (commit 455125e), PKCE implementation
 2. **Instagram** - Fully functional (commit 455125e)
 3. **YouTube** - Fully functional (commit 81bfaa5)
 4. **Twitter** - Implemented with system browser flow (commit ffa6d0f) ⭐ NEW
 
 ### ✅ OAuth Infrastructure
+
 - Express server running on port 3000
 - Callback endpoint: `http://localhost:3000/oauth/callback`
 - Debug logging active in main.js for troubleshooting
@@ -27,6 +29,7 @@
 ## Twitter OAuth Configuration
 
 ### Twitter Developer Portal
+
 - **App Name**: FateOnDeck
 - **App ID**: 31702169
 - **OAuth Type**: OAuth 2.0 with PKCE
@@ -34,12 +37,14 @@
 - **Permissions**: Read and write (tweet.read, tweet.write, users.read, offline.access)
 
 ### Credentials (Stored in .env - NOT COMMITTED)
+
 ```properties
 TWITTER_CLIENT_ID=QzRrdUxBSGhyY3V4UkQ4RGhKWGU6MTpjaQ
 TWITTER_CLIENT_SECRET=LY0kpBf19jSwlOu1Lco6nsdQLKCuAzihGA9SDUN14_F90jKlpK
 ```
 
 ### OAuth Scopes
+
 - `tweet.read` - Read tweets
 - `tweet.write` - Post tweets (required for posting)
 - `users.read` - Read user information
@@ -50,31 +55,33 @@ TWITTER_CLIENT_SECRET=LY0kpBf19jSwlOu1Lco6nsdQLKCuAzihGA9SDUN14_F90jKlpK
 ## Technical Implementation
 
 ### System Browser Flow (Twitter-Specific)
+
 Twitter OAuth pages don't render properly in Electron BrowserWindow, so Twitter uses the system default browser:
 
 **main.js - Twitter OAuth Handler (Lines ~270-290)**:
+
 ```javascript
 // For Twitter, use system browser (Electron has rendering issues with Twitter)
-if (provider === 'twitter') {
-  const { shell } = require('electron');
+if (provider === "twitter") {
+  const { shell } = require("electron");
 
   // Store pending request info for callback handler
-  pendingOAuthRequests.set('twitter', {
+  pendingOAuthRequests.set("twitter", {
     clientId: P.clientId,
     clientSecret: P.clientSecret,
     codeVerifier: P.codeVerifier,
     state: P.state,
     resolve,
-    reject
+    reject,
   });
 
   shell.openExternal(P.authUrl);
 
   // Timeout after 5 minutes
   setTimeout(() => {
-    if (pendingOAuthRequests.has('twitter')) {
-      pendingOAuthRequests.delete('twitter');
-      reject(new Error('Twitter OAuth timed out - please try again'));
+    if (pendingOAuthRequests.has("twitter")) {
+      pendingOAuthRequests.delete("twitter");
+      reject(new Error("Twitter OAuth timed out - please try again"));
     }
   }, 300000);
 
@@ -83,14 +90,16 @@ if (provider === 'twitter') {
 ```
 
 ### OAuth Callback Server Enhancement
+
 The callback server now handles Twitter token exchange directly (since no BrowserWindow intercepts it):
 
 **main.js - Callback Handler (Lines ~110-180)**:
+
 ```javascript
 // Check if this is a Twitter callback (has state parameter and pending request)
 let twitterRequest = null;
 for (const [provider, data] of pendingOAuthRequests.entries()) {
-  if (provider === 'twitter' && data.state === state) {
+  if (provider === "twitter" && data.state === state) {
     twitterRequest = data;
     break;
   }
@@ -99,43 +108,49 @@ for (const [provider, data] of pendingOAuthRequests.entries()) {
 if (twitterRequest) {
   // Handle Twitter token exchange
   const body = new URLSearchParams();
-  body.append('client_id', twitterRequest.clientId);
-  body.append('grant_type', 'authorization_code');
-  body.append('redirect_uri', REDIRECT_URI);
-  body.append('code', code);
-  body.append('code_verifier', twitterRequest.codeVerifier);
+  body.append("client_id", twitterRequest.clientId);
+  body.append("grant_type", "authorization_code");
+  body.append("redirect_uri", REDIRECT_URI);
+  body.append("code", code);
+  body.append("code_verifier", twitterRequest.codeVerifier);
 
-  const tokenResp = await fetch('https://api.twitter.com/2/oauth2/token', {
-    method: 'POST',
+  const tokenResp = await fetch("https://api.twitter.com/2/oauth2/token", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
     },
-    body: body.toString()
+    body: body.toString(),
   });
 
   // Send token to renderer
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('oauth-token', { provider: 'twitter', token });
+    mainWindow.webContents.send("oauth-token", { provider: "twitter", token });
   }
 }
 ```
 
 ### PKCE Implementation
+
 Twitter requires PKCE (Proof Key for Code Exchange) for security:
 
 **main.js - PKCE Generation (Lines ~222-228)**:
+
 ```javascript
 // Generate PKCE values for TikTok and Twitter
 let codeVerifier, codeChallenge, state;
-if (provider === 'tiktok' || provider === 'twitter') {
-  codeVerifier = crypto.randomBytes(32).toString('base64url');
-  codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
-  state = crypto.randomBytes(16).toString('hex');
+if (provider === "tiktok" || provider === "twitter") {
+  codeVerifier = crypto.randomBytes(32).toString("base64url");
+  codeChallenge = crypto
+    .createHash("sha256")
+    .update(codeVerifier)
+    .digest("base64url");
+  state = crypto.randomBytes(16).toString("hex");
 }
 ```
 
 **Twitter OAuth Config (Lines ~245-252)**:
+
 ```javascript
 twitter: {
   clientId: process.env.TWITTER_CLIENT_ID,
@@ -169,22 +184,26 @@ twitter: {
 ## Key Issues Resolved
 
 ### Issue 1: Twitter Pages Not Rendering in Electron
+
 - **Problem**: Twitter OAuth pages show login button but go blank when clicked in Electron BrowserWindow
 - **Root Cause**: Twitter's OAuth pages use features not compatible with Electron's Chromium build
 - **Solution**: Open Twitter OAuth in system default browser using `shell.openExternal()`
 - **Impact**: User completes OAuth flow in their normal browser, app receives token via callback
 
 ### Issue 2: PKCE Required for Twitter
+
 - **Problem**: Twitter OAuth 2.0 requires PKCE for security
 - **Solution**: Generate code_verifier and code_challenge, include in OAuth URL and token exchange
 - **Implementation**: Reused TikTok PKCE pattern, added state parameter for CSRF protection
 
 ### Issue 3: Token Exchange Without BrowserWindow
+
 - **Problem**: With system browser flow, no BrowserWindow to intercept callback
 - **Solution**: Enhanced OAuth callback server to handle full token exchange for Twitter
 - **Implementation**: Store pending requests in Map, match by state parameter, exchange code for token
 
 ### Issue 4: Sending Token to Renderer
+
 - **Problem**: Initially used undefined `windows` array
 - **Solution**: Use existing `mainWindow` reference to send token via IPC
 - **Fixed Line**: `mainWindow.webContents.send('oauth-token', { provider: 'twitter', token })`
@@ -220,6 +239,7 @@ npm start
 ## Testing Status
 
 ### Twitter OAuth Flow ✅
+
 - [x] App generates PKCE parameters correctly
 - [x] System browser opens with Twitter OAuth URL
 - [x] URL contains all required parameters (client_id, redirect_uri, scope, state, code_challenge)
@@ -231,6 +251,7 @@ npm start
 - [ ] App shows "✓ Connected" status (needs successful flow)
 
 ### All Platforms Integration
+
 - [x] TikTok connection works (pending review)
 - [x] Instagram connection works
 - [x] YouTube connection works
@@ -244,23 +265,27 @@ npm start
 ## Next Steps
 
 ### 1. Test Twitter Connection (5 minutes)
+
 - Click "Connect Twitter" button
 - Complete OAuth flow in browser
 - Verify "✓ Connected" appears in app
 - Check Activity Log for confirmation
 
 ### 2. Test All Four Platforms Together (5 minutes)
+
 - Verify all buttons show "✓ Connected"
 - Create a test post
 - Schedule it for all four platforms
 - Verify no errors in Activity Log
 
 ### 3. Create Final Restore Point (2 minutes)
+
 - Commit any final tweaks
 - Create RESTORE-POINT-ALL-OAUTH-COMPLETE.md
 - Document all four platform credentials (redacted)
 
 ### 4. Distribution Build (10 minutes)
+
 - Run `npm run dist`
 - Test built executable
 - Verify OAuth still works in built app
@@ -271,6 +296,7 @@ npm start
 ## Deployment Readiness
 
 ### Current Status: 95% Ready
+
 - ✅ Four OAuth platforms implemented
 - ✅ OAuth callback server operational
 - ✅ Token encryption working

@@ -8,6 +8,7 @@
 ## What's Working
 
 ### Core Features
+
 ✅ Meme generation (memegen.link integration)
 ✅ AI image generation (OpenAI DALL-E)
 ✅ Video generation (FFmpeg integration)
@@ -18,6 +19,7 @@
 ✅ Settings with encrypted API keys
 
 ### Video Features (Recently Fixed)
+
 ✅ Meme-to-video conversion (bulk and single)
 ✅ Videos show content correctly (not blank)
 ✅ Main window "Generate Video" button functional
@@ -27,6 +29,7 @@
 ✅ FFmpeg working with simplified filters
 
 ### Security Features
+
 ✅ Encrypted API key storage
 ✅ Secure IPC bridge (preload.js)
 ✅ OAuth token encryption
@@ -49,6 +52,7 @@
 ## File States
 
 ### Key Files (Current State)
+
 - `main.js` - Backend logic, IPC handlers, scheduler
 - `renderer.js` - 3803 lines, all features implemented
 - `preload.js` - Secure IPC bridge, video handlers exposed
@@ -59,6 +63,7 @@
 - `utils/api-manager.js` - API integrations
 
 ### Data Files
+
 - `data/settings.json` - User settings, encrypted keys
 - `data/library.json` - Content library
 - `data/scheduledPosts.json` - Scheduled posts
@@ -114,12 +119,14 @@ git diff v1.0-video-working HEAD
 ## Configuration
 
 ### Dependencies Working
+
 - electron: 31.0.1
 - ffmpeg-static: Latest (installed)
 - gif-encoder-2: Installed
 - All other deps from package.json
 
 ### Environment
+
 - Node.js version: Compatible
 - Windows OS
 - PowerShell terminal

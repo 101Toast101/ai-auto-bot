@@ -1,18 +1,10 @@
 \# API Setup Guide
 
-
-
 Complete guide to getting all API keys and tokens for AI Auto Bot.
-
-
 
 \## 🤖 OpenAI API (For AI Image Generation)
 
-
-
 \*\*Cost:\*\* Pay-as-you-go (~$0.04-0.08 per image)
-
-
 
 \### Setup Steps:
 
@@ -30,8 +22,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 7\. \*\*Paste into AI Auto Bot\*\* → General section → API Key field
 
-
-
 \### Test Your Key:
 
 \- Select Content Type: \*\*Meme\*\*
@@ -44,17 +34,11 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- If successful, image appears in preview
 
-
-
 ---
-
-
 
 \## 📸 Instagram Graph API
 
-
-
-\*\*Requirements:\*\* 
+\*\*Requirements:\*\*
 
 \- Facebook Business account
 
@@ -62,11 +46,7 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Facebook Developer account
 
-
-
 \### Setup Steps:
-
-
 
 \#### 1. Convert Instagram to Business Account:
 
@@ -76,8 +56,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 3\. Choose "Business" or "Creator"
 
-
-
 \#### 2. Create Facebook Page:
 
 1\. Go to https://www.facebook.com/pages/create
@@ -86,9 +64,7 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 3\. Link Instagram to this page:
 
-&nbsp;  - Page Settings → Instagram → Connect Account
-
-
+&nbsp; - Page Settings → Instagram → Connect Account
 
 \#### 3. Get Facebook Developer Account:
 
@@ -102,8 +78,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 5\. Fill in app details
 
-
-
 \#### 4. Get Access Token:
 
 1\. In your app dashboard, go to \*\*Graph API Explorer\*\*
@@ -112,19 +86,17 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 3\. Add permissions:
 
-&nbsp;  - `instagram\_basic`
+&nbsp; - `instagram\_basic`
 
-&nbsp;  - `instagram\_content\_publish`
+&nbsp; - `instagram\_content\_publish`
 
-&nbsp;  - `pages\_read\_engagement`
+&nbsp; - `pages\_read\_engagement`
 
 4\. Click "Generate Access Token"
 
 5\. Copy the token
 
 6\. \*\*Paste into AI Auto Bot\*\* → Tokens section → Instagram Token
-
-
 
 \### Important Notes:
 
@@ -134,15 +106,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Must be page admin
 
-
-
 ---
 
-
-
 \## 🎵 TikTok API
-
-
 
 \*\*Requirements:\*\*
 
@@ -150,11 +116,7 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- App approval (takes 1-2 weeks)
 
-
-
 \### Setup Steps:
-
-
 
 \#### 1. Register as Developer:
 
@@ -166,8 +128,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 4\. Complete developer registration
 
-
-
 \#### 2. Create App:
 
 1\. Go to "Manage Apps"
@@ -176,15 +136,13 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 3\. Fill in details:
 
-&nbsp;  - App Name
+&nbsp; - App Name
 
-&nbsp;  - Description
+&nbsp; - Description
 
-&nbsp;  - Website URL
+&nbsp; - Website URL
 
 4\. Submit for review (takes 1-2 weeks)
-
-
 
 \#### 3. Get Access Token:
 
@@ -194,25 +152,23 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 3\. Follow OAuth flow:
 
-&nbsp;  ```
+&nbsp; ```
 
-&nbsp;  https://www.tiktok.com/auth/authorize/
+&nbsp; https://www.tiktok.com/auth/authorize/
 
-&nbsp;  ?client\_key=YOUR\_CLIENT\_KEY
+&nbsp; ?client_key=YOUR_CLIENT_KEY
 
-&nbsp;  \&response\_type=code
+&nbsp; \&response_type=code
 
-&nbsp;  \&scope=user.info.basic,video.upload
+&nbsp; \&scope=user.info.basic,video.upload
 
-&nbsp;  \&redirect\_uri=YOUR\_REDIRECT\_URI
+&nbsp; \&redirect_uri=YOUR_REDIRECT_URI
 
-&nbsp;  ```
+&nbsp; ```
 
 4\. Exchange code for token
 
 5\. \*\*Paste into AI Auto Bot\*\* → Tokens section → TikTok Token
-
-
 
 \### Important Notes:
 
@@ -222,15 +178,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Requires app approval
 
-
-
 ---
 
-
-
 \## 📺 YouTube Data API
-
-
 
 \*\*Requirements:\*\*
 
@@ -238,11 +188,7 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- YouTube channel
 
-
-
 \### Setup Steps:
-
-
 
 \#### 1. Enable YouTube API:
 
@@ -256,8 +202,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 5\. Click "Enable"
 
-
-
 \#### 2. Create OAuth Credentials:
 
 1\. Go to "APIs \& Services" → "Credentials"
@@ -267,8 +211,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 3\. Choose "Desktop app"
 
 4\. Download credentials JSON
-
-
 
 \#### 3. Get Access Token:
 
@@ -284,8 +226,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 6\. \*\*Paste into AI Auto Bot\*\* → Tokens section → YouTube Token
 
-
-
 \### Important Notes:
 
 \- Tokens expire every hour (refresh required)
@@ -294,15 +234,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Community posts require 1,000+ subscribers
 
-
-
 ---
 
-
-
 \## 🐦 Twitter API v2
-
-
 
 \*\*Requirements:\*\*
 
@@ -310,11 +244,7 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- App approval
 
-
-
 \### Setup Steps:
-
-
 
 \#### 1. Apply for Developer Account:
 
@@ -326,8 +256,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 4\. Wait for approval (instant to 24 hours)
 
-
-
 \#### 2. Create App:
 
 1\. Go to Developer Portal: https://developer.twitter.com/en/portal/dashboard
@@ -336,13 +264,11 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 3\. Save your API keys:
 
-&nbsp;  - API Key
+&nbsp; - API Key
 
-&nbsp;  - API Secret Key
+&nbsp; - API Secret Key
 
-&nbsp;  - Bearer Token
-
-
+&nbsp; - Bearer Token
 
 \#### 3. Enable OAuth 2.0:
 
@@ -351,8 +277,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 2\. Set permissions: "Read and Write"
 
 3\. Add redirect URL (for OAuth flow)
-
-
 
 \#### 4. Get Access Token:
 
@@ -364,8 +288,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 4\. \*\*Paste Access Token into AI Auto Bot\*\* → Tokens section → Twitter Token
 
-
-
 \### Important Notes:
 
 \- Free tier: 1,500 tweets/month
@@ -374,15 +296,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Must explain bot purpose in application
 
-
-
 ---
 
-
-
 \## 🔒 Security Best Practices
-
-
 
 \### ✅ DO:
 
@@ -394,8 +310,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Use environment-specific tokens (dev/prod)
 
-
-
 \### ❌ DON'T:
 
 \- Commit `data/\*.json` to Git (already in .gitignore)
@@ -406,15 +320,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Use production tokens for testing
 
-
-
 ---
 
-
-
 \## 📊 Cost Summary
-
-
 
 | Service | Free Tier | Paid Plans |
 
@@ -430,77 +338,55 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 | \*\*Twitter\*\* | 1,500 tweets/month | Basic: $100/mo (50K tweets) |
 
-
-
 ---
-
-
 
 \## 🧪 Testing Your Setup
 
-
-
 \### Quick Test Checklist:
-
-
 
 1\. \*\*OpenAI API\*\*
 
-&nbsp;  - \[ ] Generate AI image successfully
+&nbsp; - \[ ] Generate AI image successfully
 
-&nbsp;  - \[ ] Image appears in preview
+&nbsp; - \[ ] Image appears in preview
 
-&nbsp;  - \[ ] No API errors
-
-
+&nbsp; - \[ ] No API errors
 
 2\. \*\*Instagram\*\*
 
-&nbsp;  - \[ ] Post a test meme
+&nbsp; - \[ ] Post a test meme
 
-&nbsp;  - \[ ] Check Instagram feed
+&nbsp; - \[ ] Check Instagram feed
 
-&nbsp;  - \[ ] Verify post caption/hashtags
-
-
+&nbsp; - \[ ] Verify post caption/hashtags
 
 3\. \*\*TikTok\*\*
 
-&nbsp;  - \[ ] Upload test content
+&nbsp; - \[ ] Upload test content
 
-&nbsp;  - \[ ] Check TikTok profile
+&nbsp; - \[ ] Check TikTok profile
 
-&nbsp;  - \[ ] Verify video is live
-
-
+&nbsp; - \[ ] Verify video is live
 
 4\. \*\*YouTube\*\*
 
-&nbsp;  - \[ ] Post community update
+&nbsp; - \[ ] Post community update
 
-&nbsp;  - \[ ] Check YouTube community tab
+&nbsp; - \[ ] Check YouTube community tab
 
-&nbsp;  - \[ ] Verify post visibility
-
-
+&nbsp; - \[ ] Verify post visibility
 
 5\. \*\*Twitter\*\*
 
-&nbsp;  - \[ ] Tweet test meme
+&nbsp; - \[ ] Tweet test meme
 
-&nbsp;  - \[ ] Check Twitter profile
+&nbsp; - \[ ] Check Twitter profile
 
-&nbsp;  - \[ ] Verify media uploaded
-
-
+&nbsp; - \[ ] Verify media uploaded
 
 ---
 
-
-
 \## ❓ Troubleshooting
-
-
 
 \### "Invalid API Key"
 
@@ -510,8 +396,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Ensure billing is set up (OpenAI)
 
-
-
 \### "Insufficient Permissions"
 
 \- Review required scopes for each platform
@@ -519,8 +403,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 \- Re-authorize with correct permissions
 
 \- Check account type (Business vs Personal)
-
-
 
 \### "Rate Limit Exceeded"
 
@@ -530,8 +412,6 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Reduce posting frequency
 
-
-
 \### "Token Expired"
 
 \- Some platforms require token refresh
@@ -540,15 +420,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- Implement refresh token logic
 
-
-
 ---
 
-
-
 \## 📞 Support Resources
-
-
 
 \- \*\*OpenAI\*\*: https://help.openai.com
 
@@ -560,15 +434,9 @@ Complete guide to getting all API keys and tokens for AI Auto Bot.
 
 \- \*\*Twitter\*\*: https://developer.twitter.com/en/support
 
-
-
 ---
 
-
-
 \## 🎉 You're All Set!
-
-
 
 Once all APIs are configured, you can:
 
@@ -582,7 +450,4 @@ Once all APIs are configured, you can:
 
 \- ✅ Track everything in your content library
 
-
-
 Happy automating! 🚀
-

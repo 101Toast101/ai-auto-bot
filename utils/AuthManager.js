@@ -1,6 +1,6 @@
 // AuthManager.js - Enhanced Authentication Management
 // const crypto = require('crypto');
-const { loadToken, saveToken } = require('../tokenStore');
+const { loadToken, saveToken } = require("../tokenStore");
 
 class AuthManager {
   constructor() {
@@ -10,7 +10,7 @@ class AuthManager {
       instagram: 60 * 24 * 60 * 1000, // 60 days
       youtube: 60 * 60 * 1000, // 1 hour
       tiktok: 24 * 60 * 60 * 1000, // 24 hours
-      twitter: 7 * 24 * 60 * 60 * 1000 // 7 days
+      twitter: 7 * 24 * 60 * 60 * 1000, // 7 days
     };
   }
 
@@ -21,7 +21,7 @@ class AuthManager {
 
     try {
       this.tokenRefreshQueue.set(platform, true);
-          const currentToken = loadToken(platform);
+      const currentToken = loadToken(platform);
 
       if (!currentToken) {
         throw new Error(`No token found for ${platform}`);
@@ -30,17 +30,17 @@ class AuthManager {
       // Platform-specific refresh logic
       let newToken;
       switch (platform) {
-        case 'instagram':
-            newToken = await this.refreshInstagramToken(currentToken);
+        case "instagram":
+          newToken = await this.refreshInstagramToken(currentToken);
           break;
-        case 'youtube':
-            newToken = await this.refreshYoutubeToken(currentToken);
+        case "youtube":
+          newToken = await this.refreshYoutubeToken(currentToken);
           break;
-        case 'tiktok':
-            newToken = await this.refreshTikTokToken(currentToken);
+        case "tiktok":
+          newToken = await this.refreshTikTokToken(currentToken);
           break;
-        case 'twitter':
-            newToken = await this.refreshTwitterToken(currentToken);
+        case "twitter":
+          newToken = await this.refreshTwitterToken(currentToken);
           break;
         default:
           throw new Error(`Unknown platform: ${platform}`);
@@ -58,26 +58,28 @@ class AuthManager {
   }
 
   validateToken(token) {
-    if (!token) {return false;}
+    if (!token) {
+      return false;
+    }
 
     try {
       // Basic structure validation
-      const decoded = Buffer.from(token, 'base64').toString();
-      const parts = decoded.split('.');
+      const decoded = Buffer.from(token, "base64").toString();
+      const parts = decoded.split(".");
 
       if (parts.length !== 3) {
         return false;
       }
 
       // Timestamp validation if token includes exp claim
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+      const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
       if (payload.exp) {
         return payload.exp > Date.now() / 1000;
       }
 
       return true;
-      } catch {
-        return false;
+    } catch {
+      return false;
     }
   }
 
@@ -89,7 +91,7 @@ class AuthManager {
     if (!this.rateLimiter.has(key)) {
       this.rateLimiter.set(key, {
         count: 1,
-        resetAt: now + 3600000 // 1 hour window
+        resetAt: now + 3600000, // 1 hour window
       });
       return true;
     }
@@ -98,7 +100,7 @@ class AuthManager {
     if (now > limiter.resetAt) {
       this.rateLimiter.set(key, {
         count: 1,
-        resetAt: now + 3600000
+        resetAt: now + 3600000,
       });
       return true;
     }
@@ -116,7 +118,7 @@ class AuthManager {
       instagram: { post: 25, read: 200 },
       tiktok: { post: 50, read: 500 },
       youtube: { post: 10, read: 100 },
-      twitter: { post: 300, read: 1000 }
+      twitter: { post: 300, read: 1000 },
     };
 
     return limits[platform]?.[operation] || 100;

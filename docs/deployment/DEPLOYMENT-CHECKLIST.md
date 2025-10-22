@@ -1,6 +1,7 @@
 # 🚀 AI Auto Bot - Full Production Deployment Checklist
 
 ## Overview
+
 This checklist ensures your app is 100% production-ready with full social media OAuth integration.
 
 **Estimated Total Time**: 3.5 - 4.5 hours
@@ -10,6 +11,7 @@ This checklist ensures your app is 100% production-ready with full social media 
 ## ✅ PHASE 1: OAuth App Registration (1-2 hours)
 
 ### Instagram (via Facebook/Meta)
+
 - [ ] Go to https://developers.facebook.com/
 - [ ] Create new app (Business type)
 - [ ] Add "Instagram Basic Display" product
@@ -20,6 +22,7 @@ This checklist ensures your app is 100% production-ready with full social media 
 - [ ] Note: Submit for review later for production users
 
 **Credentials Needed**:
+
 ```
 INSTAGRAM_CLIENT_ID=<App ID>
 INSTAGRAM_CLIENT_SECRET=<App Secret>
@@ -28,6 +31,7 @@ INSTAGRAM_CLIENT_SECRET=<App Secret>
 ---
 
 ### TikTok
+
 - [ ] Go to https://developers.tiktok.com/
 - [ ] Create new app
 - [ ] Add "Login Kit" and "Content Posting API" products
@@ -37,6 +41,7 @@ INSTAGRAM_CLIENT_SECRET=<App Secret>
 - [ ] Copy **Client Secret** → Save for `.env`
 
 **Credentials Needed**:
+
 ```
 TIKTOK_CLIENT_KEY=<Client Key>
 TIKTOK_CLIENT_SECRET=<Client Secret>
@@ -45,6 +50,7 @@ TIKTOK_CLIENT_SECRET=<Client Secret>
 ---
 
 ### YouTube (via Google Cloud)
+
 - [ ] Go to https://console.cloud.google.com/
 - [ ] Create new project: "AI Auto Bot"
 - [ ] Enable "YouTube Data API v3"
@@ -56,6 +62,7 @@ TIKTOK_CLIENT_SECRET=<Client Secret>
 - [ ] Copy **Client Secret** → Save for `.env`
 
 **Credentials Needed**:
+
 ```
 YOUTUBE_CLIENT_ID=<Client ID>.apps.googleusercontent.com
 YOUTUBE_CLIENT_SECRET=<Client Secret>
@@ -64,6 +71,7 @@ YOUTUBE_CLIENT_SECRET=<Client Secret>
 ---
 
 ### Twitter
+
 - [ ] Go to https://developer.twitter.com/
 - [ ] Apply for developer account (if needed)
 - [ ] Create new project: "AI Auto Bot"
@@ -75,6 +83,7 @@ YOUTUBE_CLIENT_SECRET=<Client Secret>
 - [ ] Copy **Client Secret** → Save for `.env`
 
 **Credentials Needed**:
+
 ```
 TWITTER_CLIENT_ID=<Client ID>
 TWITTER_CLIENT_SECRET=<Client Secret>
@@ -85,6 +94,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 ## ✅ PHASE 2: Update Configuration (30 minutes)
 
 ### Step 2.1: Update `.env` File
+
 - [x] `.env` file cleaned up (already done)
 - [ ] Replace `YOUR_INSTAGRAM_APP_ID` with real Instagram App ID
 - [ ] Replace `YOUR_INSTAGRAM_APP_SECRET` with real Instagram App Secret
@@ -100,6 +110,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 - [ ] Verify `ENCRYPTION_KEY` is set (64-character hex string)
 
 ### Step 2.2: Update `package.json`
+
 - [ ] Edit line 27: Change `"author": "Your Name <you@example.com>"` to your real name and email
 
 ---
@@ -107,6 +118,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 ## ✅ PHASE 3: Code Fixes (COMPLETED ✅)
 
 ### Step 3.1: Fix OAuth Implementation
+
 - [x] Added `require('dotenv').config()` to `main.js`
 - [x] Updated OAuth handler to use `process.env` variables
 - [x] Fixed token exchange with real client credentials
@@ -114,6 +126,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 - [x] Fixed `resolved` variable issue
 
 ### Step 3.2: (Optional) Clean Up Console Logs
+
 - [ ] Review `renderer.js` console.log statements
 - [ ] Replace with `addLogEntry()` calls for production logging
 - [ ] Remove debug console.logs (search for `console.log`)
@@ -125,6 +138,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 ## ✅ PHASE 4: Testing (1 hour)
 
 ### Test OAuth Flows
+
 - [ ] Start app: `npm start`
 - [ ] Test Instagram connection:
   - [ ] Click "Connect Instagram"
@@ -148,12 +162,14 @@ TWITTER_CLIENT_SECRET=<Client Secret>
   - [ ] Button shows "✓ Connected"
 
 ### Test Content Generation
+
 - [ ] Generate a meme
 - [ ] Save meme to library
 - [ ] Generate a video (if OpenAI/Runway configured)
 - [ ] Save video to library
 
 ### Test Posting
+
 - [ ] Create test post with meme
 - [ ] Select platforms (all 4)
 - [ ] Click "Post Now"
@@ -161,6 +177,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 - [ ] Check Activity Log for success messages
 
 ### Test Scheduling
+
 - [ ] Create scheduled post (5 minutes in future)
 - [ ] Select platforms
 - [ ] Click "Schedule Post"
@@ -169,6 +186,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 - [ ] Check Activity Log
 
 ### Test Data Persistence
+
 - [ ] Restart app
 - [ ] Verify layout saved correctly
 - [ ] Verify OAuth connections still show "✓ Connected"
@@ -180,12 +198,14 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 ## ✅ PHASE 5: Build & Deploy (30 minutes)
 
 ### Production Build
+
 - [ ] Stop development app if running
 - [ ] Run: `npm run dist`
 - [ ] Wait for build to complete (may take 5-10 minutes)
 - [ ] Check `dist/` folder for output files
 
 ### Test Final Build
+
 - [ ] Run built executable from `dist/`
 - [ ] Test OAuth connections
 - [ ] Test content generation
@@ -193,6 +213,7 @@ TWITTER_CLIENT_SECRET=<Client Secret>
 - [ ] Verify all features work in built version
 
 ### Create Release Documentation
+
 - [ ] Update `change-log.md` with v1.0 features
 - [ ] Document known limitations (if any)
 - [ ] Create user guide for OAuth setup
@@ -221,6 +242,7 @@ Once all checkboxes are complete:
 **Status**: ✅ **READY FOR PRODUCTION DEPLOYMENT**
 
 All critical and medium issues resolved:
+
 - ✅ OAuth credentials configured
 - ✅ Token exchange working
 - ✅ Environment variables in use
@@ -233,25 +255,23 @@ All critical and medium issues resolved:
 ## 📝 NOTES
 
 **Time Spent**:
-- Phase 1: _____ hours
-- Phase 2: _____ minutes
-- Phase 3: _____ minutes (mostly automated)
-- Phase 4: _____ hour
-- Phase 5: _____ minutes
 
-**Total**: _____ hours
+- Phase 1: **\_** hours
+- Phase 2: **\_** minutes
+- Phase 3: **\_** minutes (mostly automated)
+- Phase 4: **\_** hour
+- Phase 5: **\_** minutes
 
-**Issues Encountered**:
--
--
--
+**Total**: **\_** hours
 
-**Resolved By**:
--
--
--
+## **Issues Encountered**:
 
----
+-
+- **Resolved By**:
+
+-
+-
+- ***
 
 ## 🚀 NEXT STEPS AFTER DEPLOYMENT
 

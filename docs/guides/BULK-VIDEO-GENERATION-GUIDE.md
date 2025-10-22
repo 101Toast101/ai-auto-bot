@@ -5,12 +5,14 @@
 ## Overview
 
 Bulk video generation now supports two modes:
+
 1. **Meme-to-Video** (Available Now) - Generates memes and converts them to animated videos
 2. **AI Text-to-Video** (Coming Soon) - Direct text-to-video using OpenAI/Runway ML APIs
 
 ## Features Implemented
 
 ### 1. UI Updates (`index.html`)
+
 - ✅ Removed "Coming Soon" label from video option
 - ✅ Added `bulkVideoMode` dropdown with two options:
   - Convert Memes to Videos
@@ -21,12 +23,14 @@ Bulk video generation now supports two modes:
 ### 2. Backend Logic (`renderer.js`)
 
 #### New Functions Added:
+
 - **`handleBulkContentTypeChange()`** - Toggles UI visibility based on meme vs video selection
 - **`startBulkGeneration()`** - Router function that delegates to meme or video generator
 - **`startBulkMemeGeneration()`** - Original meme bulk logic (unchanged, preserves all functionality)
 - **`startBulkVideoGeneration()`** - New video bulk generation logic
 
 #### Video Generation Flow:
+
 1. User selects "Video" content type
 2. UI shows video-specific options (mode, duration)
 3. Hides meme-specific options (template strategy, text mode)
@@ -37,18 +41,22 @@ Bulk video generation now supports two modes:
 8. Shows video previews with 📹 icon
 
 ### 3. Video Conversion Integration
+
 Uses existing `video-manager.js` through IPC handler:
+
 ```javascript
-const videoResult = await window.api.invoke('meme-to-video', {
+const videoResult = await window.api.invoke("meme-to-video", {
   imageUrl: memeUrl,
   duration: duration,
   resolution: `${dims.width}x${dims.height}`,
-  fps: 30
+  fps: 30,
 });
 ```
 
 ### 4. Platform Support
+
 Works with all platform variations:
+
 - ✅ Instagram (1080x1080)
 - ✅ TikTok (1080x1920)
 - ✅ YouTube (1280x720)
@@ -59,6 +67,7 @@ Each platform generates video with correct aspect ratio.
 ## How to Use
 
 ### Bulk Meme Generation (Original - Still Works)
+
 1. Click "Bulk Generation" button
 2. Select "Meme" as content type
 3. Configure quantity, template strategy, text mode
@@ -67,6 +76,7 @@ Each platform generates video with correct aspect ratio.
 6. Downloads meme images to library
 
 ### Bulk Video Generation (NEW!)
+
 1. Click "Bulk Generation" button
 2. Select "Video" as content type
 3. Choose "Convert Memes to Videos" mode
@@ -79,12 +89,15 @@ Each platform generates video with correct aspect ratio.
 ## Technical Details
 
 ### Video Preview Grid
+
 - Videos show with purple border (`#9f7aea`) vs blue for memes
 - Video tag displays first frame as thumbnail
 - Shows platform name and duration in overlay
 
 ### Library Metadata
+
 Each bulk video includes:
+
 ```javascript
 {
   url: 'file:///path/to/video.mp4',
@@ -106,6 +119,7 @@ Each bulk video includes:
 ```
 
 ### Error Handling
+
 - Individual video conversion failures don't stop batch
 - Errors logged to activity log
 - Progress continues for remaining videos
@@ -114,6 +128,7 @@ Each bulk video includes:
 ## What's NOT Breaking
 
 ### ✅ Preserved Functionality:
+
 - Original bulk meme generation - 100% intact
 - All UI handlers - no changes to existing meme logic
 - Template system - still works exactly the same
@@ -124,6 +139,7 @@ Each bulk video includes:
 - Activity logging - tracks both operations
 
 ### 🔒 Safety Measures:
+
 - Content type check at start of `startBulkGeneration()`
 - Separate functions for meme vs video generation
 - No modifications to existing meme generation code
@@ -133,25 +149,29 @@ Each bulk video includes:
 ## Future Enhancements
 
 ### AI Text-to-Video Mode (Placeholder)
+
 When ready to implement:
+
 1. Add OpenAI/Runway ML API integration
 2. Generate videos directly from text prompts
 3. Skip meme generation step
 4. Store AI-generated videos in library
 
 Example implementation:
+
 ```javascript
 // In startBulkVideoGeneration(), replace meme-to-video section with:
-const aiPrompt = $('bulkAiPrompt')?.value;
-const videoResult = await window.api.invoke('ai-text-to-video', {
+const aiPrompt = $("bulkAiPrompt")?.value;
+const videoResult = await window.api.invoke("ai-text-to-video", {
   prompt: aiPrompt,
   duration: duration,
   resolution: `${dims.width}x${dims.height}`,
-  platform: dims.name
+  platform: dims.name,
 });
 ```
 
 ### Potential Additions:
+
 - Custom video effects (transitions, filters)
 - Audio/music overlay options
 - Text overlay customization
@@ -162,12 +182,14 @@ const videoResult = await window.api.invoke('ai-text-to-video', {
 ## Testing Checklist
 
 ### ✅ Completed Tests:
+
 - [x] Code syntax validation (no errors)
 - [x] App starts without crashes
 - [x] UI switches between meme/video modes correctly
 - [x] Event listeners properly attached
 
 ### 🧪 User Tests Required:
+
 - [ ] Generate 5 bulk memes - verify original functionality
 - [ ] Generate 5 bulk videos (single platform)
 - [ ] Generate bulk videos for multiple platforms
@@ -180,17 +202,20 @@ const videoResult = await window.api.invoke('ai-text-to-video', {
 ## Troubleshooting
 
 ### Videos Not Generating
+
 1. Check FFmpeg is installed (`ffmpeg-static` package)
 2. Verify `meme-to-video` IPC handler registered in `main.js`
 3. Check temp directory permissions
 4. Review activity log for specific errors
 
 ### UI Fields Not Showing/Hiding
+
 1. Check browser console for JavaScript errors
 2. Verify `bulkContentType` dropdown has event listener
 3. Ensure all field IDs match between HTML and JS
 
 ### Preview Not Displaying
+
 1. Video tags require `file://` protocol
 2. Check video file actually exists at path
 3. Browser security may block local file access
@@ -200,10 +225,12 @@ const videoResult = await window.api.invoke('ai-text-to-video', {
 
 **Branch:** feature/video-functionality
 **Files Changed:** 2
+
 - `index.html` - Added video-specific UI controls
 - `renderer.js` - Added video bulk generation logic
 
 **Lines Changed:**
+
 - +150 lines (renderer.js)
 - +20 lines (index.html)
 

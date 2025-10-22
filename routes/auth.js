@@ -1,17 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { saveToken } = require('../tokenStore');
-const axios = require('axios');
+const { saveToken } = require("../tokenStore");
+const axios = require("axios");
 
 // Unified OAuth callback handler
-router.get('/:provider/callback', async (req, res) => {
+router.get("/:provider/callback", async (req, res) => {
   const { provider } = req.params;
   const { code } = req.query;
 
   try {
     let token;
     switch (provider) {
-      case 'instagram':
+      case "instagram":
         token = await handleInstagramAuth(code);
         break;
       // Add other providers here
@@ -20,7 +20,9 @@ router.get('/:provider/callback', async (req, res) => {
     }
 
     await saveToken(provider, token);
-    res.send(`<script>window.opener.postMessage({ type: 'oauth-success', provider: '${provider}', token: '${token}' }, '*');</script>`);
+    res.send(
+      `<script>window.opener.postMessage({ type: 'oauth-success', provider: '${provider}', token: '${token}' }, '*');</script>`,
+    );
   } catch (error) {
     console.error(`Auth error for ${provider}:`, error);
     res.status(500).send(`Authentication failed: ${error.message}`);
@@ -28,14 +30,18 @@ router.get('/:provider/callback', async (req, res) => {
 });
 
 async function handleInstagramAuth(code) {
-  const tokenRes = await axios.post('https://graph.facebook.com/v18.0/oauth/access_token', null, {
-    params: {
-      client_id: process.env.INSTAGRAM_APP_ID,
-      client_secret: process.env.INSTAGRAM_APP_SECRET,
-      redirect_uri: `${process.env.BASE_URL}/auth/instagram/callback`,
-      code,
+  const tokenRes = await axios.post(
+    "https://graph.facebook.com/v18.0/oauth/access_token",
+    null,
+    {
+      params: {
+        client_id: process.env.INSTAGRAM_APP_ID,
+        client_secret: process.env.INSTAGRAM_APP_SECRET,
+        redirect_uri: `${process.env.BASE_URL}/auth/instagram/callback`,
+        code,
+      },
     },
-  });
+  );
   return tokenRes.data.access_token;
 }
 

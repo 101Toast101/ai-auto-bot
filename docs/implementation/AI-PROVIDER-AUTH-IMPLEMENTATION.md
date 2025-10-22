@@ -1,6 +1,7 @@
 # AI Provider Authentication System Implementation
 
 ## Overview
+
 Replaced the plain-text API key input field with a secure, login-style authentication system similar to the social media OAuth flow.
 
 ## Changes Made
@@ -8,11 +9,13 @@ Replaced the plain-text API key input field with a secure, login-style authentic
 ### 1. UI Updates (`index.html`)
 
 #### Removed:
+
 - Plain text "General" fieldset with:
   - AI Provider dropdown (visible)
   - API Key input field (plain text)
 
 #### Added:
+
 - **New "Connect AI Providers" fieldset** with:
   - Feature highlight explaining encryption
   - Connection buttons for each provider (OpenAI, Runway ML)
@@ -30,6 +33,7 @@ Replaced the plain-text API key input field with a secure, login-style authentic
 ### 2. Styling (`styles.css`)
 
 Added styles for:
+
 - `.ai-connect-btn` - Connection button styling
 - `.connected` state - Visual feedback when connected
 - `#aiKeyModal` - Modal dialog styling
@@ -41,16 +45,19 @@ Added styles for:
 #### New Functions:
 
 **AI Provider Management:**
+
 - `openAiKeyModal(provider)` - Opens modal for specific provider
 - `closeAiKeyModal()` - Closes the modal
 - `showAiKeyStatus(message, type)` - Shows status messages
 
 **API Key Validation:**
+
 - `testAiConnection()` - Tests API key before saving
-  - For OpenAI: Validates format (sk-*) and makes test API call
+  - For OpenAI: Validates format (sk-\*) and makes test API call
   - For Runway: Validates format only (no public test endpoint)
 
 **Storage & Security:**
+
 - `saveAiKey()` - Encrypts and saves API key
   - Uses `window.api.encrypt()` for encryption
   - Stores in hidden input fields
@@ -58,25 +65,30 @@ Added styles for:
   - Updates button visual state
 
 **UI Helpers:**
+
 - `toggleAiKeyVisibility()` - Show/hide API key in input
 - `checkAiProviderConnections()` - Checks which providers are connected on app load
 
 #### Updated Functions:
 
 **`handleMemeActionClick()`:**
+
 - Now retrieves API key from encrypted storage
 - Decrypts key before use
 - Shows helpful error if provider not connected
 
 **`generateAIImage(apiKey, provider)`:**
+
 - Added `provider` parameter
 - Updated function signature
 
 **`editAIImage(apiKey, provider)`:**
+
 - Added `provider` parameter
 - Updated function signature
 
 **`init()`:**
+
 - Calls `checkAiProviderConnections()` on startup
 - Restores connection status from saved settings
 
@@ -85,20 +97,22 @@ Added styles for:
 ```javascript
 const aiProviderInfo = {
   openai: {
-    name: 'OpenAI',
-    helpText: 'Instructions for getting OpenAI API key',
-    testEndpoint: 'https://api.openai.com/v1/models',
-    keyPattern: /^sk-/
+    name: "OpenAI",
+    helpText: "Instructions for getting OpenAI API key",
+    testEndpoint: "https://api.openai.com/v1/models",
+    keyPattern: /^sk-/,
   },
   runway: {
-    name: 'Runway ML',
-    helpText: 'Instructions for getting Runway API key'
-  }
-}
+    name: "Runway ML",
+    helpText: "Instructions for getting Runway API key",
+  },
+};
 ```
 
 #### Sensitive Fields:
+
 Updated `SENSITIVE_FIELDS` array to include:
+
 - `openaiApiKey`
 - `runwayApiKey`
 - Legacy `apiKey` (for backwards compatibility)
@@ -106,12 +120,14 @@ Updated `SENSITIVE_FIELDS` array to include:
 ## User Experience
 
 ### Before:
+
 1. User enters API key in plain text field
 2. Key visible to anyone looking at screen
 3. No validation before save
 4. No visual feedback about connection status
 
 ### After:
+
 1. User clicks "Connect OpenAI" button
 2. Modal opens with secure password field
 3. Provider-specific help text with links to get API keys
@@ -150,6 +166,7 @@ Updated `SENSITIVE_FIELDS` array to include:
 ## Migration Path
 
 Existing users with `apiKey` in settings:
+
 - Old key will still be decrypted and usable
 - System will prompt to re-enter via new modal
 - Once re-entered, stored as `openaiApiKey` with better encryption
@@ -157,6 +174,7 @@ Existing users with `apiKey` in settings:
 ## Future Enhancements
 
 Potential improvements:
+
 - [ ] Add more AI providers (Claude, Stable Diffusion, etc.)
 - [ ] API usage tracking
 - [ ] Rate limit warnings
@@ -169,12 +187,14 @@ Potential improvements:
 ## Provider-Specific Notes
 
 ### OpenAI
+
 - API keys start with `sk-`
 - Test endpoint: `GET https://api.openai.com/v1/models`
 - Requires billing enabled
 - Get keys at: https://platform.openai.com/api-keys
 
 ### Runway ML
+
 - No standard key format
 - No public test endpoint (validation on first use)
 - Requires paid subscription
@@ -183,22 +203,26 @@ Potential improvements:
 ## Troubleshooting
 
 **Modal doesn't open:**
+
 - Check console for errors
 - Verify `bindUi()` is called in init
 - Check if button click handler is attached
 
 **Test connection fails:**
+
 - Verify API key format (OpenAI must start with `sk-`)
 - Check internet connection
 - Verify API key is valid on provider's website
 - Check browser console for CORS errors
 
 **Key not persisting:**
+
 - Check `data/settings.json` file permissions
 - Verify encryption is working (`window.api.encrypt`)
 - Check for validation errors in console
 
 **Connected state not showing after restart:**
+
 - Check `checkAiProviderConnections()` is called in `init()`
 - Verify settings file contains encrypted keys
 - Check if decryption is successful
