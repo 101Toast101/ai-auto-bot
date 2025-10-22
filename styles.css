@@ -555,6 +555,12 @@ body.dark .library-item {
   box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
 }
 
+.library-item.selected-for-scheduling {
+  border: 2px solid #48bb78;
+  box-shadow: 0 0 10px rgba(72, 187, 120, 0.3);
+  cursor: pointer;
+}
+
 .video-controls {
   display: flex;
   gap: 8px;

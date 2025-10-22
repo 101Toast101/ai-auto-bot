@@ -490,6 +490,43 @@ Top Text 2|Bottom Text 2"></textarea>
       <!-- Scheduling & Scheduled Posts (Combined) -->
       <fieldset id="schedulingFieldset">
         <legend>Scheduling & Scheduled Posts</legend>
+
+        <!-- Selected Content Preview -->
+        <div
+          id="selectedContentPreview"
+          style="
+            display: none;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(72, 187, 120, 0.1);
+            border: 2px solid #48bb78;
+            border-radius: 8px;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 12px">
+            <img
+              id="selectedContentImg"
+              style="
+                width: 80px;
+                height: 80px;
+                object-fit: cover;
+                border-radius: 4px;
+              "
+            />
+            <div style="flex: 1">
+              <div
+                style="font-weight: bold; color: #48bb78; margin-bottom: 4px"
+              >
+                ✓ Content Selected
+              </div>
+              <div
+                id="selectedContentInfo"
+                style="font-size: 0.85em; color: var(--text-color, #666)"
+              ></div>
+            </div>
+          </div>
+        </div>
+
         <label>Post At
           <input type="datetime-local" id="scheduleDateTime" />
         </label>

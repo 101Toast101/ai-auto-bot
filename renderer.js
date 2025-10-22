@@ -491,6 +491,51 @@
       const itemDiv = document.createElement('div');
       itemDiv.className = 'library-item';
       itemDiv.dataset.itemId = item.id;
+
+      // Add click handler to select/deselect for scheduling
+      itemDiv.addEventListener('click', (e) => {
+        // Don't select if clicking a button
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+          return;
+        }
+
+        const isCurrentlySelected = itemDiv.classList.contains('selected-for-scheduling');
+
+        if (isCurrentlySelected) {
+          // Deselect if clicking the same card again
+          itemDiv.classList.remove('selected-for-scheduling');
+          window.selectedContentForScheduling = null;
+
+          // Hide preview
+          const preview = $('selectedContentPreview');
+          if (preview) {
+            preview.style.display = 'none';
+          }
+
+          addLogEntry(`❌ Deselected content`, 'info');
+        } else {
+          // Select new card
+          document.querySelectorAll('.library-item').forEach(el => el.classList.remove('selected-for-scheduling'));
+          itemDiv.classList.add('selected-for-scheduling');
+
+          // Store selected content ID globally
+          window.selectedContentForScheduling = item.id;
+
+          // Show preview in scheduling section
+          const preview = $('selectedContentPreview');
+          const previewImg = $('selectedContentImg');
+          const previewInfo = $('selectedContentInfo');
+
+          if (preview && previewImg && previewInfo) {
+            preview.style.display = 'block';
+            previewImg.src = item.url;
+            previewInfo.textContent = `${item.type.toUpperCase()} • Created ${new Date(item.createdAt).toLocaleString()}`;
+          }
+
+          addLogEntry(`📌 Selected content for scheduling: ${item.type}`, 'success');
+        }
+      });
+
       // REMOVED inline styles to let CSS handle dark mode
       // itemDiv.style.cssText = 'border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: var(--glass-bg);';
 
@@ -747,10 +792,10 @@
 
       // STEP 3: Validate platform selection
       const selectedPlatforms = [];
-      if ($('postInstagram')?.checked) selectedPlatforms.push('instagram');
-      if ($('postTikTok')?.checked) selectedPlatforms.push('tiktok');
-      if ($('postYouTube')?.checked) selectedPlatforms.push('youtube');
-      if ($('postTwitter')?.checked) selectedPlatforms.push('twitter');
+      if ($('instagram')?.checked) selectedPlatforms.push('instagram');
+      if ($('tiktok')?.checked) selectedPlatforms.push('tiktok');
+      if ($('youtube')?.checked) selectedPlatforms.push('youtube');
+      if ($('twitter')?.checked) selectedPlatforms.push('twitter');
 
       if (selectedPlatforms.length === 0) {
         addLogEntry('⚠️ Please select at least one platform in the Platforms section', 'warning');
