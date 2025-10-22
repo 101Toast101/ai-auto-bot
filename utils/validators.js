@@ -55,12 +55,7 @@ const validateSettings = (obj) => {
       errors.push(`Invalid memeMode. Must be one of: ${validMemeModes.join(', ')}`);
     }
   }
-  if ('aiProvider' in obj) {
-    const validProviders = ['openai', 'runway'];
-    if (!validProviders.includes(String(obj.aiProvider))) {
-      errors.push(`Invalid aiProvider. Must be one of: ${validProviders.join(', ')}`);
-    }
-  }
+
   if ('platforms' in obj) {
     if (!Array.isArray(obj.platforms)) {
       errors.push('platforms must be an array');
@@ -96,12 +91,6 @@ const validateScheduledPost = (post) => {
   const required = ['id', 'scheduleTime', 'content', 'createdAt'];
   for (const field of required) {
     if (!isNonEmptyString(post[field])) {
-      errors.push(`Missing or invalid ${field}`);
-    }
-  }
-  if ('scheduleTime' in post && !validateDateTime(post.scheduleTime)) {
-    errors.push('Invalid scheduleTime format - must be ISO 8601');
-  }
   if ('createdAt' in post && !validateDateTime(post.createdAt)) {
     errors.push('Invalid createdAt format - must be ISO 8601');
   }
