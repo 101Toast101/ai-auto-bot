@@ -894,7 +894,7 @@
           (warningMessages.length > 0 ? ' (with warnings)' : ''),
           'success'
         );
-        await displayScheduledPosts();
+        await populateScheduledPosts();
       } else {
         throw new Error(result.error?.message || 'Failed to save scheduled post');
       }
@@ -1244,7 +1244,7 @@
       let library = libRes.success ? safeParse(libRes.content, []) : [];
       library = bulkGeneratedContent.concat(library);
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-      await renderLibrary();
+      await displayLibraryContent();
 
       addLogEntry(`Bulk generated ${bulkGeneratedContent.length} memes`);
     } catch (error) {
@@ -1386,7 +1386,7 @@
         let library = libRes.success ? safeParse(libRes.content, []) : [];
         library = bulkGeneratedContent.concat(library);
         await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-        await renderLibrary();
+        await displayLibraryContent();
 
         addLogEntry(`Bulk generated ${bulkGeneratedContent.length} videos from memes`);
       }
@@ -1547,7 +1547,7 @@
     let library = libRes.success ? safeParse(libRes.content, []) : [];
     library = bulkGeneratedContent.concat(library);
     await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-    await renderLibrary();
+    await displayLibraryContent();
 
     addLogEntry(`Bulk generated ${bulkGeneratedContent.length} AI videos using ${provider}`);
   }
@@ -2131,95 +2131,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     tzSelect.innerHTML = zones.map((z) => `<option value="${z}">${z}</option>`).join('');
   }
 
-  // CONTENT LIBRARY
-  async function renderLibrary() {
-    const r = await readFileAsync(PATHS.LIBRARY);
-    let library = r.success ? safeParse(r.content, []) : [];
-
-    const searchVal = ($('librarySearch')?.value || '').toLowerCase();
-    const filterVal = $('libraryFilter')?.value || 'all';
-
-    if (searchVal) {
-      library = library.filter(item =>
-        (item.caption || '').toLowerCase().includes(searchVal) ||
-        (item.hashtags || '').toLowerCase().includes(searchVal) ||
-        (item.platform || '').toLowerCase().includes(searchVal)
-      );
-    }
-
-    if (filterVal !== 'all') {
-      library = library.filter(item => {
-        if (filterVal === 'meme' || filterVal === 'video') {
-          return item.contentType === filterVal;
-        }
-        return item.status === filterVal;
-      });
-    }
-
-    const grid = $('libraryGrid');
-    if (!grid) return;
-
-    if (library.length === 0) {
-      grid.innerHTML = '<p style="text-align: center; color: #718096; padding: 40px; grid-column: 1/-1;">No content found</p>';
-      return;
-    }
-
-    grid.innerHTML = library.map(item => `
-      <div class="library-item" data-id="${item.id}" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
-        ${item.url ? `<img src="${item.url}" style="width: 100%; height: 150px; object-fit: cover;" />` : ''}
-        <div style="padding: 10px;">
-          <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">
-            ${item.platform || 'Unknown'} • ${item.status || 'draft'}
-          </div>
-          <div style="font-size: 13px; margin-bottom: 8px; max-height: 40px; overflow: hidden;">
-            ${item.caption || 'No caption'}
-          </div>
-          <div style="display: flex; gap: 5px;">
-            <button type="button" class="reuse-btn" style="flex: 1; padding: 6px; background: #4299e1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Reuse</button>
-            <button type="button" class="delete-btn" style="flex: 1; padding: 6px; background: #e53e3e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    // Event delegation for library buttons
-    grid.querySelectorAll('.reuse-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const id = btn.closest('.library-item').dataset.id;
-        reuseLibraryItem(id);
-        addLogEntry('Reusing content from library');
-      });
-    });
-    grid.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = btn.closest('.library-item').dataset.id;
-        deleteLibraryItem(id);
-      });
-    });
-  }
-
-  async function reuseLibraryItem(id) {
-    const r = await readFileAsync(PATHS.LIBRARY);
-    const library = r.success ? safeParse(r.content, []) : [];
-    const item = library.find(i => i.id === id);
-
-    if (item) {
-      populateFormFromObject(item);
-      addLogEntry('Loaded content from library');
-    }
-  }
-
-  async function deleteLibraryItem(id) {
-    const r = await readFileAsync(PATHS.LIBRARY);
-    let library = r.success ? safeParse(r.content, []) : [];
-
-    library = library.filter(item => item.id !== id);
-    await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-
-    await renderLibrary();
-    addLogEntry('Deleted from library');
-  }
+  // CONTENT LIBRARY - Note: displayLibraryContent() is the main function (defined earlier at line ~444)
+  // Old renderLibrary(), reuseLibraryItem(), and deleteLibraryItem() functions removed - replaced with
+  // displayLibraryContent(), reuseFromLibrary(), and deleteFromLibrary() which have Schedule buttons
 
   // EVENT HANDLERS
   async function handleDarkModeToggle(ev) {
@@ -3243,7 +3157,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
     });
 
     await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-    await renderLibrary();
+    await displayLibraryContent();
 
     addLogEntry('Video added to library');
   }
@@ -3390,7 +3304,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         contentType: 'meme'
       });
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-      await renderLibrary();
+      await displayLibraryContent();
 
       addLogEntry('AI image generated successfully!');
       hideSpinner();
@@ -3643,7 +3557,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         failCount: failCount
       });
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
-      await renderLibrary();
+      await displayLibraryContent();
     }
 
     const message = `Posted successfully to ${successCount} platform(s)${failCount > 0 ? `, ${failCount} failed` : ''}`;
@@ -4356,7 +4270,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
         populateTimezones(),
         populateSavedConfigs(),
         populateScheduledPosts(),
-        renderLibrary(),
+        displayLibraryContent(),
         fetchMemeTemplates(),
         checkAiProviderConnections() // Check which AI providers are connected
       ]);
