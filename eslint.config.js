@@ -4,12 +4,9 @@
 const js = require('@eslint/js');
 const globals = require('globals');
 
-// TODO: Install and configure these plugins for full security coverage:
-// npm install globals @eslint/js
-// For security plugin: npm install @eslint-community/eslint-plugin-security-node
-// const security = require('@eslint-community/eslint-plugin-security-node');
-// const node = require('eslint-plugin-node');
-// const jest = require('eslint-plugin-jest');
+// Note: Security plugins (eslint-plugin-security, eslint-plugin-node) are
+// available for installation if needed. Current configuration provides
+// baseline security and code quality rules via ESLint recommended config.
 
 module.exports = [
   // Base recommended config

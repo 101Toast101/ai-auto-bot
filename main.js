@@ -32,6 +32,31 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
+  // Security: Add Content Security Policy and security headers
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline'; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "img-src 'self' data: https:; " +
+          "font-src 'self'; " +
+          "connect-src 'self' https://api.memegen.link https://api.openai.com https://api.instagram.com https://graph.facebook.com https://open.tiktokapis.com https://www.googleapis.com https://accounts.google.com https://twitter.com https://api.twitter.com; " +
+          "frame-src 'none'; " +
+          "object-src 'none'; " +
+          "base-uri 'self';"
+        ],
+        'X-Content-Type-Options': ['nosniff'],
+        'X-Frame-Options': ['DENY'],
+        'X-XSS-Protection': ['1; mode=block'],
+        'Referrer-Policy': ['strict-origin-when-cross-origin'],
+        'Permissions-Policy': ['geolocation=(), microphone=(), camera=()']
+      }
+    });
+  });
+
   // Prevent garbage collection
   mainWindow.on('closed', () => {
     mainWindow = null;
