@@ -29,25 +29,43 @@ function encrypt(text) {
 
 function decrypt(encryptedData) {
   if (!encryptedData) return '';
-  
+
+  const parts = encryptedData.split(':');
+
+  // Security: Validate encrypted data format
+  if (parts.length !== 3) {
+    throw new Error('Invalid encrypted data format: expected format is iv:authTag:data');
+  }
+
+  // Validate hex encoding
+  if (!/^[0-9a-f]+$/i.test(parts[0]) || !/^[0-9a-f]+$/i.test(parts[1]) || !/^[0-9a-f]+$/i.test(parts[2])) {
+    throw new Error('Invalid encrypted data: data must be hex-encoded');
+  }
+
   try {
-    const parts = encryptedData.split(':');
-    if (parts.length !== 3) return encryptedData; // Return as-is if not encrypted
-    
     const iv = Buffer.from(parts[0], 'hex');
     const authTag = Buffer.from(parts[1], 'hex');
     const encrypted = parts[2];
-    
+
+    // Validate IV and authTag lengths
+    if (iv.length !== 16) {
+      throw new Error('Invalid IV length: expected 16 bytes');
+    }
+    if (authTag.length !== 16) {
+      throw new Error('Invalid authentication tag length: expected 16 bytes');
+    }
+
     const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv);
     decipher.setAuthTag(authTag);
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   } catch (error) {
-    console.error('Decryption failed:', error.message);
-    return '';
+    // Security: Throw error instead of returning empty string
+    // This allows callers to detect tampering/corruption
+    throw new Error(`Decryption failed: ${error.message}`);
   }
 }
 

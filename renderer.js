@@ -7,6 +7,22 @@
   let selectedMemesForSlideshow = [];
   let videoBlob = null;
 
+  // Security: Generate cryptographically secure random IDs
+  function generateSecureId(prefix = 'id') {
+    // Use Web Crypto API for secure random bytes
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const randomHex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return `${prefix}_${randomHex}`;
+  }
+
+  // Security: Generate secure random number for array index selection
+  function getSecureRandomIndex(arrayLength) {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return array[0] % arrayLength;
+  }
+
   // Helper functions for UI notifications and progress
   function showNotification(message, type = 'info') {
     const errorContainer = $('errorContainer');
@@ -639,7 +655,7 @@
       // Set required fields
       const libraryItem = {
         ...item,
-        id: 'content_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        id: generateSecureId('content'),
         createdAt: item.createdAt || new Date().toISOString()
       };
 
@@ -797,7 +813,7 @@
       }
 
       // STEP 7: All validations passed (or user chose to continue) - create the post
-      const id = 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const id = generateSecureId('post');
 
       const post = {
         id,
@@ -1138,7 +1154,7 @@
 
       for (let i = 0; i < quantity; i++) {
         const variation = textVariations[i];
-        const template = templateToUse || allTemplates[Math.floor(Math.random() * allTemplates.length)]?.id || 'tenguy';
+        const template = templateToUse || allTemplates[getSecureRandomIndex(allTemplates.length)]?.id || 'tenguy';
 
         for (const dims of platforms) {
           const memeUrl = `https://api.memegen.link/images/${template}/${formatMemeText(variation.top)}/${formatMemeText(variation.bottom)}.png`;
@@ -1247,7 +1263,7 @@
 
         for (let i = 0; i < quantity; i++) {
           const variation = textVariations[i];
-          const template = templateToUse || allTemplates[Math.floor(Math.random() * allTemplates.length)]?.id || 'tenguy';
+          const template = templateToUse || allTemplates[getSecureRandomIndex(allTemplates.length)]?.id || 'tenguy';
 
           for (const dims of platforms) {
             const memeUrl = `https://api.memegen.link/images/${template}/${formatMemeText(variation.top)}/${formatMemeText(variation.bottom)}.png`;
@@ -2297,7 +2313,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       if (result?.success) {
         // Add to library
         const libraryItem = {
-          id: `content_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: generateSecureId('content'),
           type: mode === 'gif' ? 'gif' : 'video',
           url: result.path,
           caption: $('caption')?.value || '',

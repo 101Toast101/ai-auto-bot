@@ -56,7 +56,24 @@ async function getLocalPath(pathOrUrl) {
 function registerVideoHandlers(ipcMain, BrowserWindow) {
   // Handle meme to video conversion
   ipcMain.handle('GENERATE_VIDEO', async (event, params) => {
+    // Security: Validate input parameters
+    if (!params || typeof params !== 'object') {
+      return { success: false, error: 'Invalid parameters' };
+    }
+
     const { imagePath, duration, resolution, fps } = params;
+
+    // Validate required fields
+    if (!imagePath || typeof imagePath !== 'string') {
+      return { success: false, error: 'Invalid image path' };
+    }
+    if (typeof duration !== 'number' || duration < 1 || duration > 60) {
+      return { success: false, error: 'Duration must be between 1 and 60 seconds' };
+    }
+    if (fps && (typeof fps !== 'number' || fps < 1 || fps > 60)) {
+      return { success: false, error: 'FPS must be between 1 and 60' };
+    }
+
     const outputPath = getTempPath('mp4');
 
     try {
@@ -97,7 +114,27 @@ function registerVideoHandlers(ipcMain, BrowserWindow) {
 
   // Handle slideshow creation
   ipcMain.handle('GENERATE_SLIDESHOW', async (event, params) => {
+    // Security: Validate input parameters
+    if (!params || typeof params !== 'object') {
+      return { success: false, error: 'Invalid parameters' };
+    }
+
     const { imagePaths, duration, resolution, transition, fps } = params;
+
+    // Validate required fields
+    if (!Array.isArray(imagePaths) || imagePaths.length === 0 || imagePaths.length > 100) {
+      return { success: false, error: 'Image paths must be an array with 1-100 items' };
+    }
+    if (!imagePaths.every(path => typeof path === 'string')) {
+      return { success: false, error: 'All image paths must be strings' };
+    }
+    if (typeof duration !== 'number' || duration < 1 || duration > 10) {
+      return { success: false, error: 'Duration per image must be between 1 and 10 seconds' };
+    }
+    if (fps && (typeof fps !== 'number' || fps < 1 || fps > 60)) {
+      return { success: false, error: 'FPS must be between 1 and 60' };
+    }
+
     const outputPath = getTempPath('mp4');
 
     try {
@@ -143,7 +180,30 @@ function registerVideoHandlers(ipcMain, BrowserWindow) {
 
   // Handle GIF creation
   ipcMain.handle('GENERATE_GIF', async (event, params) => {
+    // Security: Validate input parameters
+    if (!params || typeof params !== 'object') {
+      return { success: false, error: 'Invalid parameters' };
+    }
+
     const { imagePath, width, height, duration, fps } = params;
+
+    // Validate required fields
+    if (!imagePath || typeof imagePath !== 'string') {
+      return { success: false, error: 'Invalid image path' };
+    }
+    if (width && (typeof width !== 'number' || width < 100 || width > 4000)) {
+      return { success: false, error: 'Width must be between 100 and 4000 pixels' };
+    }
+    if (height && (typeof height !== 'number' || height < 100 || height > 4000)) {
+      return { success: false, error: 'Height must be between 100 and 4000 pixels' };
+    }
+    if (typeof duration !== 'number' || duration < 1 || duration > 60) {
+      return { success: false, error: 'Duration must be between 1 and 60 seconds' };
+    }
+    if (fps && (typeof fps !== 'number' || fps < 1 || fps > 60)) {
+      return { success: false, error: 'FPS must be between 1 and 60' };
+    }
+
     const outputPath = getTempPath('gif');
 
     try {

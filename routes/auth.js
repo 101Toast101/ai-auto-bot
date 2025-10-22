@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getToken, saveToken } = require('../tokenStore');
+const { saveToken } = require('../tokenStore');
 const axios = require('axios');
 
 // Unified OAuth callback handler
@@ -20,7 +20,10 @@ router.get('/:provider/callback', async (req, res) => {
     }
 
     await saveToken(provider, token);
-    res.send(`<script>window.opener.postMessage({ type: 'oauth-success', provider: '${provider}', token: '${token}' }, '*');</script>`);
+    // Security: Don't expose token in postMessage - it's already saved securely
+    // Only notify the opener that authentication is complete
+    const allowedOrigin = process.env.APP_ORIGIN || 'http://localhost';
+    res.send(`<script>window.opener.postMessage({ type: 'oauth-success', provider: '${provider}' }, '${allowedOrigin}'); window.close();</script>`);
   } catch (error) {
     console.error(`Auth error for ${provider}:`, error);
     res.status(500).send(`Authentication failed: ${error.message}`);

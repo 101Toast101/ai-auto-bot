@@ -90,6 +90,12 @@ app.on('activate', () => {
 });
 // OAuth Handler - Uses real credentials from .env
 ipcMain.handle('start-oauth', async (event, provider) => {
+  // Security: Validate provider parameter
+  const VALID_PROVIDERS = ['instagram', 'tiktok', 'youtube', 'twitter'];
+  if (!provider || typeof provider !== 'string' || !VALID_PROVIDERS.includes(provider)) {
+    throw new Error('Invalid provider specified');
+  }
+
   const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/oauth/callback';
 
   const PROVIDERS = {
@@ -215,6 +221,23 @@ ipcMain.handle('start-oauth', async (event, provider) => {
     });
   });
 });
+
+// Security: Validate file path to prevent path traversal attacks
+function validateFilePath(filePath) {
+  // Define the allowed data directory
+  const dataDir = path.resolve(__dirname, 'data');
+
+  // Resolve the file path to absolute path
+  const resolvedPath = path.resolve(filePath);
+
+  // Check if the resolved path starts with the data directory
+  if (!resolvedPath.startsWith(dataDir + path.sep)) {
+    throw new Error('Access denied: Path outside data directory');
+  }
+
+  return resolvedPath;
+}
+
 // Helper function to get validator for file
 function getValidatorForFile(filePath) {
   const filename = path.basename(filePath);
@@ -239,7 +262,9 @@ function getValidatorForFile(filePath) {
 ipcMain.handle('READ_FILE', async (_evt, filePath) => {
   console.log('[IPC] READ_FILE:', filePath);
   try {
-    const content = await fs.promises.readFile(filePath, 'utf-8');
+    // Security: Validate path to prevent directory traversal
+    const validatedPath = validateFilePath(filePath);
+    const content = await fs.promises.readFile(validatedPath, 'utf-8');
     return { success: true, content };
   } catch (error) {
     return { success: false, error: { message: error.message } };
@@ -250,7 +275,9 @@ ipcMain.handle('READ_FILE', async (_evt, filePath) => {
 ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
   console.log('[IPC] WRITE_FILE:', filePath);
   try {
-    const validator = getValidatorForFile(filePath);
+    // Security: Validate path to prevent directory traversal
+    const validatedPath = validateFilePath(filePath);
+    const validator = getValidatorForFile(validatedPath);
 
     if (validator) {
       let data;
@@ -278,7 +305,7 @@ ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
       }
     }
 
-    await fs.promises.writeFile(filePath, content, 'utf-8');
+    await fs.promises.writeFile(validatedPath, content, 'utf-8');
     return { success: true };
   } catch (error) {
     return { success: false, error: { message: error.message } };
@@ -288,6 +315,14 @@ ipcMain.handle('WRITE_FILE', async (_evt, { filePath, content }) => {
 // IPC handler: encrypt data
 ipcMain.handle('ENCRYPT_DATA', async (_evt, plaintext) => {
   try {
+    // Security: Validate input
+    if (typeof plaintext !== 'string') {
+      return { success: false, error: { message: 'Plaintext must be a string' } };
+    }
+    if (plaintext.length > 1000000) { // 1MB limit
+      return { success: false, error: { message: 'Plaintext too large (max 1MB)' } };
+    }
+
     const encrypted = encrypt(plaintext);
     return { success: true, data: encrypted };
   } catch (error) {
@@ -298,6 +333,14 @@ ipcMain.handle('ENCRYPT_DATA', async (_evt, plaintext) => {
 // IPC handler: decrypt data
 ipcMain.handle('DECRYPT_DATA', async (_evt, ciphertext) => {
   try {
+    // Security: Validate input
+    if (typeof ciphertext !== 'string') {
+      return { success: false, error: { message: 'Ciphertext must be a string' } };
+    }
+    if (ciphertext.length > 2000000) { // 2MB limit (encrypted data is larger)
+      return { success: false, error: { message: 'Ciphertext too large' } };
+    }
+
     const decrypted = decrypt(ciphertext);
     return { success: true, data: decrypted };
   } catch (error) {
