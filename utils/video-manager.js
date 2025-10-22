@@ -1,4 +1,4 @@
-const ffmpeg = require('ffmpeg-static');
+const ffmpeg = require('@ffmpeg-installer/ffmpeg').path;
 const GIFEncoder = require('gif-encoder-2');
 const { spawn } = require('child_process');
 const path = require('path');
