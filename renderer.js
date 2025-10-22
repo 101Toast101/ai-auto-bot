@@ -3825,28 +3825,114 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`);
       clearError();
       e.preventDefault();
 
+      // Check if user selected content from library
+      if (!window.selectedContentForScheduling) {
+        displayValidationError(
+          {
+            message: 'Please select content from the library by clicking on a content card'
+          },
+          'scheduled post'
+        );
+        addLogEntry(
+          '⚠️ No content selected: Click on a content card in the Library to select it for scheduling',
+          'warning'
+        );
+        return;
+      }
+
+      // Load the selected content
+      const libRes = await readFileAsync(PATHS.LIBRARY);
+      if (!libRes.success) {
+        displayValidationError(
+          { message: 'Failed to load library' },
+          'scheduled post'
+        );
+        return;
+      }
+
+      const library = safeParse(libRes.content, []);
+      const selectedContent = library.find(
+        (item) => item.id === window.selectedContentForScheduling
+      );
+
+      if (!selectedContent) {
+        displayValidationError(
+          { message: 'Selected content not found in library' },
+          'scheduled post'
+        );
+        return;
+      }
+
       const dt = $('scheduleDateTime')?.value;
       if (!dt) {
-        displayValidationError({ message: 'Schedule date/time is required' }, 'scheduled post');
+        displayValidationError(
+          { message: 'Schedule date/time is required' },
+          'scheduled post'
+        );
+        return;
+      }
+
+      // Check if at least one platform is selected
+      const selectedPlatforms = [];
+      if ($('instagram')?.checked) {
+        selectedPlatforms.push('instagram');
+      }
+      if ($('tiktok')?.checked) {
+        selectedPlatforms.push('tiktok');
+      }
+      if ($('youtube')?.checked) {
+        selectedPlatforms.push('youtube');
+      }
+      if ($('twitter')?.checked) {
+        selectedPlatforms.push('twitter');
+      }
+
+      if (selectedPlatforms.length === 0) {
+        displayValidationError(
+          { message: 'Please select at least one platform' },
+          'scheduled post'
+        );
+        addLogEntry(
+          '⚠️ No platforms selected. Check at least one platform checkbox.',
+          'warning'
+        );
         return;
       }
 
       const form = $('settingsForm');
+
+      // Use content from library, optionally override caption/hashtags
+      const caption = $('captionText')?.value || selectedContent.caption || '';
+      const hashtags = $('hashtagsText')?.value || selectedContent.hashtags || '';
+
       const post = {
+        id: 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        contentId: selectedContent.id,
         createdAt: new Date().toISOString(),
         scheduleTime: dt,
-        status: 'scheduled',
+        status: 'pending',
+        posted: false,
+        platforms: selectedPlatforms,
         recurrence: $('recurrenceSelect')?.value || 'none',
         timezone: $('timezoneSelect')?.value || 'UTC',
+        content: selectedContent.url,
+        caption: caption,
+        hashtags: hashtags,
+        type: selectedContent.type,
+        metadata: selectedContent.metadata,
         source: {}
       };
-
       if (form) {
         const inputs = form.querySelectorAll('input,select,textarea');
         inputs.forEach((el) => {
-          if (!el.id) return;
-          if (el.type === 'checkbox') post.source[el.id] = el.checked;
-          else post.source[el.id] = el.value;
+          if (!el.id) {
+            return;
+          }
+          if (el.type === 'checkbox') {
+            post.source[el.id] = el.checked;
+          } else {
+            post.source[el.id] = el.value;
+          }
         });
       }
 
