@@ -10,7 +10,7 @@
     "dist": "electron-builder",
     "dist:dir": "electron-builder --dir",
     "dist:unsigned": "electron-builder --win --x64 --dir -c.win.sign=false -c.win.requestedExecutionLevel=asInvoker",
-    "init:key": "node scripts/init-encryption.js",
+    "init:key": "node scripts/init-encryption.cjs",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
