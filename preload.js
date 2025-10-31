@@ -3,6 +3,7 @@
 // ========================================
 
 const { contextBridge, ipcRenderer } = require("electron");
+const { IPC_CHANNELS } = require("./utils/ipc");
 
 // Debug logging
 function logDebug(msg) {
@@ -21,22 +22,22 @@ contextBridge.exposeInMainWorld("api", {
   onOAuthToken: (cb) => ipcRenderer.on("oauth-token", (ev, data) => cb(data)),
 
   // File Operations
-  readFile: (filePath) => ipcRenderer.invoke("READ_FILE", filePath),
+  readFile: (filePath) => ipcRenderer.invoke(IPC_CHANNELS.READ_FILE, filePath),
   writeFile: (filePath, content) =>
-    ipcRenderer.invoke("WRITE_FILE", { filePath, content }),
+    ipcRenderer.invoke(IPC_CHANNELS.WRITE_FILE, { filePath, content }),
 
   // Encryption Operations
-  encrypt: (plaintext) => ipcRenderer.invoke("ENCRYPT_DATA", plaintext),
-  decrypt: (ciphertext) => ipcRenderer.invoke("DECRYPT_DATA", ciphertext),
+  encrypt: (plaintext) => ipcRenderer.invoke(IPC_CHANNELS.ENCRYPT_DATA, plaintext),
+  decrypt: (ciphertext) => ipcRenderer.invoke(IPC_CHANNELS.DECRYPT_DATA, ciphertext),
 
   // Video Operations
-  generateVideo: (params) => ipcRenderer.invoke("GENERATE_VIDEO", params),
+  generateVideo: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_VIDEO, params),
   generateSlideshow: (params) =>
-    ipcRenderer.invoke("GENERATE_SLIDESHOW", params),
-  generateGif: (params) => ipcRenderer.invoke("GENERATE_GIF", params),
-  generateAiVideo: (params) => ipcRenderer.invoke("GENERATE_AI_VIDEO", params),
+    ipcRenderer.invoke(IPC_CHANNELS.GENERATE_SLIDESHOW, params),
+  generateGif: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_GIF, params),
+  generateAiVideo: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_AI_VIDEO, params),
   onVideoProgress: (callback) =>
-    ipcRenderer.on("VIDEO_PROGRESS", (event, progress) => callback(progress)),
+    ipcRenderer.on(IPC_CHANNELS.VIDEO_PROGRESS, (event, progress) => callback(progress)),
 
   // Scheduler Listener
   onScheduledPost: (callback) => {
