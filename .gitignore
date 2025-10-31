@@ -18,3 +18,5 @@ client_secret_*.json
 *.txt
 !README.txt
 !package.txtcredentials/
+
+ai-auto-bot-filter.git/

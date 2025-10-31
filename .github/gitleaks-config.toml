@@ -1,0 +1,25 @@
+# gitleaks custom config - stricter rules for this repository
+title = "AI Auto Bot - gitleaks custom rules"
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key pattern (short)"
+regex = '''(?i)(api[_-]?key|secret|client[_-]?secret|access[_-]?token)\W*[:=]\W*["']?[0-9a-zA-Z\-_.]{16,}['"]?'''
+severity = "high"
+
+[[rules]]
+id = "aws-secret"
+description = "AWS secret access key"
+regex = "(?i)aws(.{0,20})?(secret|access).{0,20}([A-Za-z0-9/+=]{40})"
+severity = "critical"
+
+[[rules]]
+id = "private-key-file"
+description = "Private key material in files"
+regex = "-----BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----"
+severity = "critical"
+
+[[allowlist]]
+# Allow README badges or public examples
+description = "Allow example keys and documentation snippets"
+paths = ["README.md", "docs/**"]
