@@ -161,6 +161,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  // Diagnostics removed; IPC bridge validated during prior debug session.
 
   // Start OAuth callback server
   startOAuthServer();

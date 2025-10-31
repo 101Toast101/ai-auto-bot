@@ -10,7 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const https = require("https");
 const http = require("http");
-const { logError } = require("../utils/logger.cjs");
+const { logError } = require("../utils/logger");
 
 // Generate unique temp file path
 function getTempPath(ext) {
