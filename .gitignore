@@ -11,6 +11,8 @@
 *.bak
 *.log
 
+# Prevent tracking of centralized restore points/backups
+/restore-points/
 # Sensitive credentials - NEVER commit these
 client_secret_*.json
 *.txt
