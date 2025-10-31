@@ -4,11 +4,17 @@ npm run lint
 # Run tests
 npm test
 
-# Check for sensitive data
-if git diff --cached -G"(password|secret|key|token|auth)" | grep -i "password\|secret\|key\|token\|auth"
-then
-  echo "Warning: Possible sensitive data detected in commit"
-  exit 1
+# Run local secret scanner (Node script - cross-platform)
+if command -v node >/dev/null 2>&1 ; then
+  echo "Running local secret scanner..."
+  node scripts/check-secrets.cjs
+  RC=$?
+  if [ $RC -ne 0 ]; then
+    echo "Commit blocked: local secret scanner found possible secrets. Fix staged changes and try again."
+    exit $RC
+  fi
+else
+  echo "Node not found; skipping local secret scanner. Ensure you have Node.js installed to enable secret scanning."
 fi
 
 # Run security audit
