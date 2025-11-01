@@ -1,4 +1,17 @@
+// Security: Maximum allowed lengths to prevent DoS
+const MAX_STRING_LENGTH = 10000;
+const MAX_ARRAY_LENGTH = 1000;
+
 const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
+
+// Security: Check for prototype pollution attempts
+const hasDangerousKeys = (obj) => {
+  if (!obj || typeof obj !== 'object') {
+    return false;
+  }
+  const dangerous = ['__proto__', 'constructor', 'prototype'];
+  return Object.keys(obj).some(key => dangerous.includes(key));
+};
 
 const validateDateTime = (v) => {
   if (!isNonEmptyString(v)) {
@@ -25,7 +38,18 @@ const validateTimezone = (v) => {
   if (v === "UTC") {
     return true;
   }
-  if (v.indexOf("/") > -1) {
+  // Security: Prevent path traversal attempts disguised as timezones
+  if (v.includes('..') || v.includes('\\') || v.includes('//')) {
+    return false;
+  }
+  // Valid timezone format: Continent/City
+  if (v.includes("/")) {
+    const parts = v.split("/");
+    if (parts.length !== 2) {return false;}
+    if (parts[0].length === 0 || parts[1].length === 0) {return false;}
+    // Both parts should be alphanumeric with underscores only
+    const validPart = /^[A-Za-z_]+$/;
+    if (!validPart.test(parts[0]) || !validPart.test(parts[1])) {return false;}
     return true;
   }
   try {
@@ -46,6 +70,12 @@ const validateSettings = (obj) => {
   if (!obj || typeof obj !== "object") {
     return { valid: false, errors: ["Settings must be an object"] };
   }
+
+  // Security: Check for prototype pollution
+  if (hasDangerousKeys(obj)) {
+    return { valid: false, errors: ["Invalid object keys detected"] };
+  }
+
   if ("timezoneSelect" in obj && !validateTimezone(obj.timezoneSelect)) {
     errors.push("Invalid timezone selected");
   }
@@ -82,6 +112,8 @@ const validateSettings = (obj) => {
   if ("platforms" in obj) {
     if (!Array.isArray(obj.platforms)) {
       errors.push("platforms must be an array");
+    } else if (obj.platforms.length > MAX_ARRAY_LENGTH) {
+      errors.push(`platforms array too large (max ${MAX_ARRAY_LENGTH})`);
     } else {
       obj.platforms.forEach((platform, idx) => {
         if (!validatePlatform(platform)) {
@@ -105,10 +137,28 @@ const validateSettings = (obj) => {
     "twitterToken",
   ];
   encryptedFields.forEach((field) => {
-    if (field in obj && obj[field] !== "" && typeof obj[field] !== "string") {
-      errors.push(`${field} must be a string or empty string`);
+    if (field in obj) {
+      if (obj[field] !== "" && typeof obj[field] !== "string") {
+        errors.push(`${field} must be a string or empty string`);
+      } else if (typeof obj[field] === "string" && obj[field].length > MAX_STRING_LENGTH) {
+        errors.push(`${field} exceeds maximum length`);
+      }
     }
   });
+
+  // Security: Check for unexpected extra keys (optional - can be relaxed)
+  const allowedKeys = [
+    'timezoneSelect', 'contentType', 'hashtagMode', 'memeMode', 'platforms',
+    'darkMode', 'recurrence', ...encryptedFields, 'caption', 'hashtags',
+    'customText', 'postingSchedule', 'autoPost', 'scheduleTime'
+  ];
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.includes(key)) {
+      errors.push(`Unexpected key in settings: ${key}`);
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 };
 
@@ -117,10 +167,18 @@ const validateScheduledPost = (post) => {
   if (!post || typeof post !== "object") {
     return { valid: false, errors: ["Post must be an object"] };
   }
+
+  // Security: Check for prototype pollution
+  if (hasDangerousKeys(post)) {
+    return { valid: false, errors: ["Invalid object keys detected"] };
+  }
+
   const required = ["id", "scheduleTime", "content", "createdAt"];
   for (const field of required) {
     if (!isNonEmptyString(post[field])) {
       errors.push(`Missing or invalid required field: ${field}`);
+    } else if (post[field].length > MAX_STRING_LENGTH) {
+      errors.push(`Field ${field} exceeds maximum length`);
     }
   }
   if ("createdAt" in post && !validateDateTime(post.createdAt)) {
@@ -129,6 +187,8 @@ const validateScheduledPost = (post) => {
   if (post.platforms) {
     if (!Array.isArray(post.platforms)) {
       errors.push("platforms must be an array");
+    } else if (post.platforms.length > MAX_ARRAY_LENGTH) {
+      errors.push("platforms array too large");
     } else {
       post.platforms.forEach((platform, idx) => {
         if (!validatePlatform(platform)) {

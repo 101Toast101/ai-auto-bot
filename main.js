@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const { encrypt, decrypt } = require("./utils/encrypt");
 const { logInfo, logError } = require("./utils/logger");
 const { registerVideoHandlers } = require("./handlers/video-handlers");
+const { RateLimiter, createRateLimitedHandler } = require("./utils/rate-limiter");
 const {
   validateSettings,
   validateScheduledPosts,
@@ -24,6 +25,12 @@ let schedulerInterval = null;
 let mainWindow = null; // Store window reference globally
 let oauthServer = null; // Store server reference
 
+// Initialize rate limiter (100 requests per minute per channel)
+const rateLimiter = new RateLimiter({
+  maxRequests: 100,
+  windowMs: 60000,
+});
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1500,
@@ -37,15 +44,24 @@ function createWindow() {
     },
   });
 
-  // Explicitly deny camera and microphone access
+  // Security: Use allowlist for permissions (deny by default)
   mainWindow.webContents.session.setPermissionRequestHandler(
     (webContents, permission, callback) => {
-      const deniedPermissions = ["media", "mediaKeySystem", "geolocation"];
-      if (deniedPermissions.includes(permission)) {
-        logInfo(`Denied permission request: ${permission}`);
-        return callback(false); // Deny
+      // Allowlist of permitted permissions (empty = deny all)
+      const allowedPermissions = [
+        // Add permissions here as needed:
+        // 'notifications',
+        // 'clipboard-read',
+      ];
+
+      if (allowedPermissions.includes(permission)) {
+        logInfo(`Granted permission request: ${permission}`);
+        return callback(true);
       }
-      callback(true); // Allow other permissions
+
+      // Deny all other permissions
+      logInfo(`Denied permission request: ${permission}`);
+      return callback(false);
     }
   );
 
@@ -199,6 +215,17 @@ app.on("activate", () => {
 // Store pending OAuth requests (for system browser flow)
 const pendingOAuthRequests = new Map();
 
+// Auto-cleanup expired OAuth requests every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, data] of pendingOAuthRequests.entries()) {
+    if (data.timestamp && now - data.timestamp > 300000) {
+      pendingOAuthRequests.delete(key);
+      logInfo(`[OAuth] Cleaned up expired request: ${key}`);
+    }
+  }
+}, 300000);
+
 // Start OAuth callback server
 function startOAuthServer() {
   if (oauthServer) {
@@ -221,6 +248,12 @@ function startOAuthServer() {
       let twitterRequest = null;
       for (const [provider, data] of pendingOAuthRequests.entries()) {
         if (provider === "twitter" && data.state === state) {
+          // Validate state matches and request hasn't expired
+          if (Date.now() - data.timestamp > 300000) {
+            pendingOAuthRequests.delete(provider);
+            res.status(400).send("<h1>Error: Request expired. Please try again.</h1>");
+            return;
+          }
           twitterRequest = data;
           break;
         }
@@ -271,6 +304,7 @@ function startOAuthServer() {
             });
           }
 
+          // Clean up - remove used request
           pendingOAuthRequests.delete("twitter");
 
           res.send(`
@@ -287,6 +321,7 @@ function startOAuthServer() {
           `);
         } catch (tokenError) {
           logError("Twitter token exchange error:", tokenError);
+          pendingOAuthRequests.delete("twitter");
           res.status(500).send(`<h1>Error: ${tokenError.message}</h1>`);
         }
         return;
@@ -384,10 +419,8 @@ ipcMain.handle("start-oauth", async (event, provider) => {
     throw new Error("Unknown provider");
   }
 
-  // Debug logging
-  console.warn(`[OAuth Debug] Provider: ${provider}`);
-  console.warn(`[OAuth Debug] Client ID: ${P.clientId}`);
-  console.warn(`[OAuth Debug] Auth URL: ${P.authUrl}`);
+  // Security: Only log provider name, not sensitive credentials
+  logInfo(`[OAuth] Starting OAuth flow for: ${provider}`);
 
   // Check if credentials are configured
   if (
@@ -408,12 +441,13 @@ ipcMain.handle("start-oauth", async (event, provider) => {
     if (provider === "twitter") {
       const { shell } = require("electron");
 
-      // Store pending request info for callback handler
+      // Store pending request info for callback handler with timestamp
       pendingOAuthRequests.set("twitter", {
         clientId: P.clientId,
         clientSecret: P.clientSecret,
         codeVerifier: P.codeVerifier,
         state: P.state,
+        timestamp: Date.now(),
         resolve,
         reject,
       });
@@ -556,21 +590,53 @@ function getValidatorForFile(filePath) {
   }
 }
 
-// IPC handler: read a file
-ipcMain.handle("READ_FILE", async (_evt, filePath) => {
+// IPC handler: read a file (with path traversal protection and rate limiting)
+ipcMain.handle("READ_FILE", createRateLimitedHandler(rateLimiter, async (_evt, filePath) => {
   console.warn("[IPC] READ_FILE:", filePath);
   try {
-    const content = await fs.promises.readFile(filePath, "utf-8");
+    // Security: Validate file path to prevent directory traversal
+    const dataDir = path.join(__dirname, "data");
+    const normalizedPath = path.normalize(filePath);
+    const absolutePath = path.isAbsolute(normalizedPath)
+      ? normalizedPath
+      : path.join(__dirname, normalizedPath);
+
+    // Ensure path is within allowed directory
+    if (!absolutePath.startsWith(dataDir)) {
+      logError(`[Security] Blocked path traversal attempt: ${filePath}`);
+      return {
+        success: false,
+        error: { message: "Access denied: Invalid file path" }
+      };
+    }
+
+    const content = await fs.promises.readFile(absolutePath, "utf-8");
     return { success: true, content };
   } catch (error) {
     return { success: false, error: { message: error.message } };
   }
-});
+}, { channel: 'READ_FILE' }));
 
-// IPC handler: write a file WITH VALIDATION
-ipcMain.handle("WRITE_FILE", async (_evt, { filePath, content }) => {
+// IPC handler: write a file WITH VALIDATION (path traversal protection and rate limiting)
+ipcMain.handle("WRITE_FILE", createRateLimitedHandler(rateLimiter, async (_evt, { filePath, content }) => {
   console.warn("[IPC] WRITE_FILE:", filePath);
   try {
+    // Security: Validate file path to prevent directory traversal
+    const dataDir = path.join(__dirname, "data");
+    const normalizedPath = path.normalize(filePath);
+    const absolutePath = path.isAbsolute(normalizedPath)
+      ? normalizedPath
+      : path.join(__dirname, normalizedPath);
+
+    // Ensure path is within allowed directory
+    if (!absolutePath.startsWith(dataDir)) {
+      logError(`[Security] Blocked path traversal attempt: ${filePath}`);
+      return {
+        success: false,
+        error: { message: "Access denied: Invalid file path" }
+      };
+    }
+
     const validator = getValidatorForFile(filePath);
 
     if (validator) {
@@ -599,12 +665,12 @@ ipcMain.handle("WRITE_FILE", async (_evt, { filePath, content }) => {
       }
     }
 
-    await fs.promises.writeFile(filePath, content, "utf-8");
+    await fs.promises.writeFile(absolutePath, content, "utf-8");
     return { success: true };
   } catch (error) {
     return { success: false, error: { message: error.message } };
   }
-});
+}, { channel: 'WRITE_FILE' }));
 
 // IPC handler: encrypt data
 ipcMain.handle("ENCRYPT_DATA", async (_evt, plaintext) => {
@@ -660,7 +726,7 @@ ipcMain.handle("DECRYPT_DATA", async (_evt, ciphertext) => {
   }
 });
 
-// Auto-Scheduler Function
+// Auto-Scheduler Function (with validation)
 function startScheduler() {
   schedulerInterval = setInterval(async () => {
     try {
@@ -676,6 +742,14 @@ function startScheduler() {
 
       const content = await fs.promises.readFile(scheduledPostsPath, "utf-8");
       const data = JSON.parse(content);
+
+      // Security: Validate data before processing
+      const { valid, errors } = validateScheduledPosts(data);
+      if (!valid) {
+        logError("[Scheduler] Invalid scheduled posts data:", errors);
+        return;
+      }
+
       const posts = data.posts || [];
 
       const now = new Date();
@@ -689,9 +763,7 @@ function startScheduler() {
       });
 
       for (const post of postsToExecute) {
-        console.warn(
-          `[Scheduler] Executing scheduled post: ${post.scheduledTime}`,
-        );
+        logInfo(`[Scheduler] Executing scheduled post: ${post.scheduleTime}`);
 
         // Mark as posted
         post.posted = true;
@@ -713,11 +785,11 @@ function startScheduler() {
         );
       }
     } catch (error) {
-      console.error("[Scheduler] Error:", error.message);
+      logError("[Scheduler] Error:", error);
     }
   }, 60000); // Check every minute
 
-  console.warn("[Scheduler] Started - checking every 60 seconds");
+  logInfo("[Scheduler] Started - checking every 60 seconds");
 }
 
 function stopScheduler() {

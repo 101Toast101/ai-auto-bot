@@ -47,20 +47,21 @@
       overlay.className = "progress-overlay";
       overlay.innerHTML = `
         <div class="progress-content">
-          <p class="progress-text">${message}</p>
+          <p class="progress-text"></p>
           <div class="progress-bar">
             <div class="progress-fill"></div>
           </div>
         </div>
       `;
       document.body.appendChild(overlay);
-    } else {
-      const text = overlay.querySelector(".progress-text");
-      if (text) {
-        text.textContent = message;
-      }
-      overlay.style.display = "flex";
     }
+
+    const text = overlay.querySelector(".progress-text");
+    if (text) {
+      // Use textContent to prevent XSS
+      text.textContent = message;
+    }
+    overlay.style.display = "flex";
   }
 
   function hideProgress() {

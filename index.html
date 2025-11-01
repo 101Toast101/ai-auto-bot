@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+      script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
       connect-src 'self' https://api.memegen.link https://api.openai.com https://api.runwayml.com https://api.dev.runwayml.com https://graph.facebook.com https://open.tiktokapis.com https://www.googleapis.com https://upload.twitter.com https://api.twitter.com https://cdn.jsdelivr.net;
@@ -16,6 +16,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>AI Auto Bot</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Security utilities MUST load first -->
+  <script src="utils/sanitize.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
