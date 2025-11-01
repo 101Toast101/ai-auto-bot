@@ -37,6 +37,18 @@ function createWindow() {
     },
   });
 
+  // Explicitly deny camera and microphone access
+  mainWindow.webContents.session.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      const deniedPermissions = ["media", "mediaKeySystem", "geolocation"];
+      if (deniedPermissions.includes(permission)) {
+        logInfo(`Denied permission request: ${permission}`);
+        return callback(false); // Deny
+      }
+      callback(true); // Allow other permissions
+    }
+  );
+
   mainWindow.loadFile(path.join(__dirname, "index.html"));
 
   // Zoom controls - Ctrl+Plus, Ctrl+Minus, Ctrl+0
