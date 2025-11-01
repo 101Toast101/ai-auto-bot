@@ -91,12 +91,12 @@ do {
     if ($Status -ne "all") {
         $url += "&status=$Status"
     }
-    
+
     try {
         $response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
         $allRuns += $response.workflow_runs
         $page++
-        
+
         # Check if there are more pages
         if ($response.workflow_runs.Count -lt $perPage) {
             break
@@ -137,14 +137,14 @@ foreach ($group in $grouped) {
     $status = $group.Group[0].status
     $workflow = ($group.Group[0].path -split '/')[-1]
     $count = $group.Count
-    
+
     $statusColor = switch ($status) {
         "failure" { "Red" }
         "cancelled" { "Yellow" }
         "success" { "Green" }
         default { "White" }
     }
-    
+
     Write-Host "  $count × " -NoNewline -ForegroundColor White
     Write-Host "$status" -NoNewline -ForegroundColor $statusColor
     Write-Host " - $workflow" -ForegroundColor Gray
@@ -185,7 +185,7 @@ foreach ($run in $allRuns) {
         $failed++
         Write-Host "  ✗ Failed to delete run #$($run.run_number): $_" -ForegroundColor Red
     }
-    
+
     # Rate limiting - GitHub allows 5000 requests per hour
     Start-Sleep -Milliseconds 100
 }

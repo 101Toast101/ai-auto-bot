@@ -37,7 +37,7 @@ GITHUB_TOKEN=ghp_your_token_here
 
 Then load it before running the script:
 ```powershell
-Get-Content .env | ForEach-Object { 
+Get-Content .env | ForEach-Object {
     $key, $value = $_ -split '=', 2
     [System.Environment]::SetEnvironmentVariable($key.Trim(), $value.Trim())
 }
@@ -87,10 +87,10 @@ Get-Content .env | ForEach-Object {
 
 ## Safety Features
 
-✅ **Confirmation prompt** - Always asks before deleting  
-✅ **Dry run mode** - Preview changes without deleting  
-✅ **Detailed summary** - Shows exactly what will be deleted  
-✅ **Rate limiting** - Respects GitHub API limits  
+✅ **Confirmation prompt** - Always asks before deleting
+✅ **Dry run mode** - Preview changes without deleting
+✅ **Detailed summary** - Shows exactly what will be deleted
+✅ **Rate limiting** - Respects GitHub API limits
 ✅ **Error handling** - Reports failed deletions
 
 ## Output Example
@@ -134,7 +134,7 @@ The script includes automatic rate limiting (100ms delay between deletions). Git
 
 ## Security Notes
 
-⚠️ **Never commit your GitHub token to git!**  
-✅ Store it in `.env` (already gitignored)  
-✅ Use environment variables  
+⚠️ **Never commit your GitHub token to git!**
+✅ Store it in `.env` (already gitignored)
+✅ Use environment variables
 ✅ Revoke tokens you no longer need at https://github.com/settings/tokens
