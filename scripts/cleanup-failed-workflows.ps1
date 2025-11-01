@@ -74,8 +74,8 @@ if (-not $token) {
 # Build API URL
 $baseUrl = "https://api.github.com/repos/$owner/$repo/actions/runs"
 $headers = @{
-    "Authorization" = "Bearer $token"
-    "Accept" = "application/vnd.github+json"
+    "Authorization"        = "Bearer $token"
+    "Accept"               = "application/vnd.github+json"
     "X-GitHub-Api-Version" = "2022-11-28"
 }
 
@@ -88,7 +88,7 @@ $perPage = 100
 
 do {
     $url = "${baseUrl}?per_page=${perPage}&page=${page}&status=completed"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
         $allRuns += $response.workflow_runs
@@ -98,7 +98,8 @@ do {
         if ($response.workflow_runs.Count -lt $perPage) {
             break
         }
-    } catch {
+    }
+    catch {
         Write-Host "❌ Error fetching runs: $_" -ForegroundColor Red
         exit 1
     }
@@ -184,7 +185,8 @@ foreach ($run in $allRuns) {
         Invoke-RestMethod -Uri $deleteUrl -Headers $headers -Method Delete | Out-Null
         $deleted++
         Write-Host "  ✓ Deleted run #$($run.run_number) ($($run.name))" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         $failed++
         Write-Host "  ✗ Failed to delete run #$($run.run_number): $_" -ForegroundColor Red
     }
