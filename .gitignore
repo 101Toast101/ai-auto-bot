@@ -4,19 +4,26 @@
 /node_modules
 /dist
 /logs
-/data
 .env
 .DS_Store
 /coverage/
 *.bak
 *.log
 
+# User data and secrets - NEVER commit these
+/data/*
+!data/*.example
+!data/README.md
+
 # Prevent tracking of centralized restore points/backups
 /restore-points/
-# Sensitive credentials - NEVER commit these
+
+# Sensitive credentials
 client_secret_*.json
-*.txt
-!README.txt
-!package.txtcredentials/
+credentials/
+*.pem
+*.p12
+*.key
+*.crt
 
 ai-auto-bot-filter.git/

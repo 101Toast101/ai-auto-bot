@@ -47,9 +47,15 @@ try {
 }
 
 for (const f of stagedFiles) {
-  if (/^\.env$/.test(f) || /^data\//.test(f)) {
+  // Block .env and data files, but allow .example files and README.md
+  if (/^\.env$/.test(f)) {
     console.error('Blocking commit: attempting to commit', f);
-    console.error('Please keep runtime data and .env out of git.');
+    console.error('Please keep .env out of git. Use .env.example instead.');
+    process.exit(1);
+  }
+  if (/^data\//.test(f) && !f.endsWith('.example') && !f.endsWith('README.md')) {
+    console.error('Blocking commit: attempting to commit', f);
+    console.error('Please keep runtime data out of git. Only .example files and README.md are allowed in data/.');
     process.exit(1);
   }
 }

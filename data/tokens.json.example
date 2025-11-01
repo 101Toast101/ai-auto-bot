@@ -1,0 +1,22 @@
+{
+  "instagram": {
+    "access_token": "ENCRYPTED_TOKEN_HERE",
+    "expires_at": 1234567890000,
+    "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE"
+  },
+  "tiktok": {
+    "access_token": "ENCRYPTED_TOKEN_HERE",
+    "expires_at": 1234567890000,
+    "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE"
+  },
+  "youtube": {
+    "access_token": "ENCRYPTED_TOKEN_HERE",
+    "expires_at": 1234567890000,
+    "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE"
+  },
+  "twitter": {
+    "access_token": "ENCRYPTED_TOKEN_HERE",
+    "expires_at": 1234567890000,
+    "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE"
+  }
+}

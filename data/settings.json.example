@@ -1,0 +1,27 @@
+{
+  "openaiApiKey": "",
+  "runwayApiKey": "",
+  "providers": {
+    "instagram": {
+      "clientId": "",
+      "clientSecret": "",
+      "redirectUri": "http://localhost:3000/oauth/callback"
+    },
+    "tiktok": {
+      "clientId": "",
+      "clientSecret": "",
+      "redirectUri": "http://localhost:3000/oauth/callback"
+    },
+    "youtube": {
+      "clientId": "",
+      "clientSecret": "",
+      "redirectUri": "http://localhost:3000/oauth/callback"
+    },
+    "twitter": {
+      "clientId": "",
+      "clientSecret": "",
+      "redirectUri": "http://localhost:3000/oauth/callback"
+    }
+  },
+  "fieldsetLayout": {}
+}
