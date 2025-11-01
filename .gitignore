@@ -9,6 +9,9 @@
 /coverage/
 *.bak
 *.log
+*-snapshot.txt
+folder-snapshot.txt
+structure.txt
 
 # User data and secrets - NEVER commit these
 /data/*
