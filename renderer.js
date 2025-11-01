@@ -4994,13 +4994,13 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
             addLogEntry("🧨 Reset performed", "info");
             ["instagram", "tiktok", "youtube", "twitter"].forEach(setProviderDisconnected);
             // Clear UI provider modal fields and AI fields
-            ["providerClientId", "providerClientSecret", "providerRedirectUri", "openaiApiKey", "runwayApiKey"].forEach(id => { 
-              const el = $(id); 
+            ["providerClientId", "providerClientSecret", "providerRedirectUri", "openaiApiKey", "runwayApiKey"].forEach(id => {
+              const el = $(id);
               if (el) {
                 el.value = '';
                 el.disabled = false;
                 el.readOnly = false;
-              } 
+              }
             });
             if ($("aiProvider")) {$("aiProvider").value = '';}
             // Clear hidden token input fields
@@ -5079,13 +5079,38 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         const s = await window.api.readFile(PATHS.SETTINGS);
         const settings = s.success ? JSON.parse(s.content || "{}") : {};
         const prov = (settings.providers && settings.providers[provider]) || {};
-        if (providerClientIdInput) {providerClientIdInput.value = prov.clientId || "";}
+        if (providerClientIdInput) {
+          providerClientIdInput.value = prov.clientId || "";
+          providerClientIdInput.disabled = false;
+          providerClientIdInput.readOnly = false;
+        }
         // Do not pre-fill secret (decryption would be server-side); show blank for security
-        if (providerClientSecretInput) {providerClientSecretInput.value = "";}
-        if (providerRedirectInput) {providerRedirectInput.value = prov.redirectUri || providerRedirectInput.value || PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback";}
+        if (providerClientSecretInput) {
+          providerClientSecretInput.value = "";
+          providerClientSecretInput.disabled = false;
+          providerClientSecretInput.readOnly = false;
+        }
+        if (providerRedirectInput) {
+          providerRedirectInput.value = prov.redirectUri || providerRedirectInput.value || PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback";
+          providerRedirectInput.disabled = false;
+          providerRedirectInput.readOnly = false;
+        }
       } catch {
-        if (providerClientIdInput) {providerClientIdInput.value = "";}
-        if (providerClientSecretInput) {providerClientSecretInput.value = "";}
+        if (providerClientIdInput) {
+          providerClientIdInput.value = "";
+          providerClientIdInput.disabled = false;
+          providerClientIdInput.readOnly = false;
+        }
+        if (providerClientSecretInput) {
+          providerClientSecretInput.value = "";
+          providerClientSecretInput.disabled = false;
+          providerClientSecretInput.readOnly = false;
+        }
+        if (providerRedirectInput) {
+          providerRedirectInput.value = "";
+          providerRedirectInput.disabled = false;
+          providerRedirectInput.readOnly = false;
+        }
       } finally {
         // Show modal after pre-fill completes
         if (providerModal) {providerModal.style.display = "flex";}
