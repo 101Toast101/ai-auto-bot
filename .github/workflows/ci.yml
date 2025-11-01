@@ -2,32 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, pre-cleanse-backup ]
+    branches: [main, feature/video-functionality, pre-cleanse-backup]
   pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Run tests
-        run: npm test -- --runInBand
-name: CI
-
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [main, feature/video-functionality]
 
 jobs:
   build-and-test:
@@ -40,8 +17,10 @@ jobs:
           node-version: "20"
       - name: Install dependencies
         run: npm ci
+      - name: Lint
+        run: npm run lint
       - name: Run tests
-        run: npm test --silent
+        run: npm test -- --runInBand
       - name: Build unsigned (linux)
         run: |
           npm run dist:dir || echo "Packaging may fail on CI without platform support; check runner logs"
