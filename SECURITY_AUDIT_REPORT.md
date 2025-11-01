@@ -1,6 +1,6 @@
 # Security Audit Report
-**Date:** October 31, 2025  
-**Auditor:** AI Code Assistant  
+**Date:** October 31, 2025
+**Auditor:** AI Code Assistant
 **Repository:** ai-auto-bot
 
 ## Executive Summary
@@ -11,7 +11,7 @@ Completed comprehensive security audit of the codebase. **Critical issue found a
 ### 🔴 CRITICAL - User Data Files Tracked in Git
 **Status:** FIXED ✅
 
-**Issue:**  
+**Issue:**
 The following user-specific files were tracked in git history:
 - `data/tokens.json`
 - `data/settings.json`
@@ -61,7 +61,7 @@ Scanned codebase for:
 ### ⚠️ WARNING - Git History Contains Old Data Files
 **Status:** ACCEPTABLE (sanitized)
 
-The git history contains commits with `data/settings.json`, etc., but these were sanitized in commit `5af5860d` before being tracked. 
+The git history contains commits with `data/settings.json`, etc., but these were sanitized in commit `5af5860d` before being tracked.
 
 **Recommendation:** If concerned about git history, consider:
 - Using `git filter-repo` to remove historical data files
