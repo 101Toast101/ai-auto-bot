@@ -1,10 +1,9 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
       style-src 'self' 'unsafe-inline';
@@ -13,52 +12,41 @@
       font-src 'self' data:;
       media-src 'self' blob: data:;
       worker-src 'self' blob:;
-    "
-    />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>AI Auto Bot</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-  </head>
+    " />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>AI Auto Bot</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+</head>
 
-  <body>
-    <div class="container">
-      <header class="header">
-        <h1>🎬 AI Auto Bot</h1>
-      </header>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🎬 AI Auto Bot</h1>
+    </header>
 
-      <!-- Top-bar Controls -->
-      <div id="controls">
-        <div
-          id="errorContainer"
-          class="error-container"
-          style="color: red; margin: 10px 0; display: none"
-        ></div>
-        <button type="button" id="postNowBtn">Post Now</button>
-        <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
-        <button type="button" id="createSlideshowBtn" style="display: none">
-          Create Slideshow (<span id="slideshowCount">0</span>)
-        </button>
-        <button
-          type="button"
-          id="resetLayoutBtn"
-          title="Reset all cards to default layout"
-        >
-          Reset Layout
-        </button>
-        <label class="toggle">
-          Dark Mode
-          <input type="checkbox" id="darkModeToggle" />
-          <span class="slider"></span>
-        </label>
-        <!-- Hidden UI debug area (removed) -->
-      </div>
+    <!-- Top-bar Controls -->
+    <div id="controls">
+      <div id="errorContainer" class="error-container" style="color: red; margin: 10px 0; display: none"></div>
+      <button type="button" id="postNowBtn">Post Now</button>
+      <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
+      <button type="button" id="createSlideshowBtn" style="display: none">
+        Create Slideshow (<span id="slideshowCount">0</span>)
+      </button>
+      <button type="button" id="resetLayoutBtn" title="Reset all cards to default layout">
+        Reset Layout
+      </button>
+      <label class="toggle">
+        Dark Mode
+        <input type="checkbox" id="darkModeToggle" />
+        <span class="slider"></span>
+      </label>
+      <!-- Hidden UI debug area (removed) -->
+    </div>
 
-      <!-- BULK GENERATION MODAL -->
-      <div
-        id="bulkModal"
-        style="
+    <!-- BULK GENERATION MODAL -->
+    <div id="bulkModal" style="
           display: none;
           position: fixed;
           top: 0;
@@ -68,21 +56,16 @@
           background: rgba(0, 0, 0, 0.7);
           z-index: 1000;
           overflow-y: auto;
-        "
-      >
-        <div
-          style="
+        ">
+      <div style="
             background: var(--glass-bg);
             max-width: 800px;
             margin: 50px auto;
             padding: 30px;
             border-radius: 15px;
             position: relative;
-          "
-        >
-          <button
-            id="closeBulkModal"
-            style="
+          ">
+        <button id="closeBulkModal" style="
               position: absolute;
               top: 15px;
               right: 15px;
@@ -92,144 +75,114 @@
               padding: 8px 15px;
               border-radius: 5px;
               cursor: pointer;
-            "
-          >
-            Close
-          </button>
+            ">
+          Close
+        </button>
 
-          <h2>Bulk Content Generation</h2>
+        <h2>Bulk Content Generation</h2>
 
-          <fieldset style="margin: 20px 0; padding: 20px; border-radius: 10px">
-            <legend>Generation Settings</legend>
+        <fieldset style="margin: 20px 0; padding: 20px; border-radius: 10px">
+          <legend>Generation Settings</legend>
 
-            <label>
-              Quantity
-              <input
-                type="number"
-                id="bulkQuantity"
-                min="1"
-                max="100"
-                value="10"
-              />
-            </label>
+          <label>
+            Quantity
+            <input type="number" id="bulkQuantity" min="1" max="100" value="10" />
+          </label>
 
-            <label>
-              Content Type
-              <select id="bulkContentType">
-                <option value="meme">Meme</option>
-                <option value="video">Video</option>
-              </select>
-            </label>
+          <label>
+            Content Type
+            <select id="bulkContentType">
+              <option value="meme">Meme</option>
+              <option value="video">Video</option>
+            </select>
+          </label>
 
-            <label id="bulkVideoModeLabel" style="display: none">
-              Video Mode
-              <select id="bulkVideoMode">
-                <option value="meme-to-video">Convert Memes to Videos</option>
-                <option value="text-to-video">AI Text-to-Video</option>
-              </select>
-            </label>
+          <label id="bulkVideoModeLabel" style="display: none">
+            Video Mode
+            <select id="bulkVideoMode">
+              <option value="meme-to-video">Convert Memes to Videos</option>
+              <option value="text-to-video">AI Text-to-Video</option>
+            </select>
+          </label>
 
-            <label id="bulkVideoDurationLabel" style="display: none">
-              Video Duration (seconds)
-              <input
-                type="number"
-                id="bulkVideoDuration"
-                min="3"
-                max="30"
-                value="10"
-              />
-            </label>
+          <label id="bulkVideoDurationLabel" style="display: none">
+            Video Duration (seconds)
+            <input type="number" id="bulkVideoDuration" min="3" max="30" value="10" />
+          </label>
 
-            <label id="bulkTemplateStrategyLabel">
-              Template Strategy
-              <select id="bulkTemplateStrategy">
-                <option value="random">Random Templates</option>
-                <option value="single">Single Template</option>
-              </select>
-            </label>
+          <label id="bulkTemplateStrategyLabel">
+            Template Strategy
+            <select id="bulkTemplateStrategy">
+              <option value="random">Random Templates</option>
+              <option value="single">Single Template</option>
+            </select>
+          </label>
 
-            <label id="bulkSingleTemplateLabel" style="display: none">
-              Choose Template
-              <select id="bulkSingleTemplate"></select>
-            </label>
+          <label id="bulkSingleTemplateLabel" style="display: none">
+            Choose Template
+            <select id="bulkSingleTemplate"></select>
+          </label>
 
-            <label id="bulkTextModeLabel">
-              Text Mode
-              <select id="bulkTextMode">
-                <option value="ai">AI Generated</option>
-                <option value="manual">Manual Entry</option>
-              </select>
-            </label>
+          <label id="bulkTextModeLabel">
+            Text Mode
+            <select id="bulkTextMode">
+              <option value="ai">AI Generated</option>
+              <option value="manual">Manual Entry</option>
+            </select>
+          </label>
 
-            <label id="bulkAiPromptLabel">
-              AI Prompt
-              <input
-                type="text"
-                id="bulkAiPrompt"
-                placeholder="funny memes about cats"
-              />
-            </label>
+          <label id="bulkAiPromptLabel">
+            AI Prompt
+            <input type="text" id="bulkAiPrompt" placeholder="funny memes about cats" />
+          </label>
 
-            <label id="bulkManualTextLabel" style="display: none">
-              Text Variations (Top|Bottom per line)
-              <textarea
-                id="bulkManualText"
-                rows="5"
-                placeholder="Top Text 1|Bottom Text 1
-Top Text 2|Bottom Text 2"
-              ></textarea>
-            </label>
+          <label id="bulkManualTextLabel" style="display: none">
+            Text Variations (Top|Bottom per line)
+            <textarea id="bulkManualText" rows="5" placeholder="Top Text 1|Bottom Text 1
+Top Text 2|Bottom Text 2"></textarea>
+          </label>
 
-            <label>
-              Platform Variations
-              <div
-                style="
+          <label>
+            Platform Variations
+            <div style="
                   display: grid;
                   grid-template-columns: repeat(2, 1fr);
                   gap: 10px;
                   margin-top: 8px;
-                "
-              >
-                <div>
-                  <input type="checkbox" id="bulkInstagram" checked />
-                  <label for="bulkInstagram">Instagram (1080x1080)</label>
-                </div>
-                <div>
-                  <input type="checkbox" id="bulkTikTok" />
-                  <label for="bulkTikTok">TikTok (1080x1920)</label>
-                </div>
-                <div>
-                  <input type="checkbox" id="bulkYouTube" />
-                  <label for="bulkYouTube">YouTube (1280x720)</label>
-                </div>
-                <div>
-                  <input type="checkbox" id="bulkTwitter" />
-                  <label for="bulkTwitter">Twitter (1200x675)</label>
-                </div>
+                ">
+              <div>
+                <input type="checkbox" id="bulkInstagram" checked />
+                <label for="bulkInstagram">Instagram (1080x1080)</label>
               </div>
-            </label>
+              <div>
+                <input type="checkbox" id="bulkTikTok" />
+                <label for="bulkTikTok">TikTok (1080x1920)</label>
+              </div>
+              <div>
+                <input type="checkbox" id="bulkYouTube" />
+                <label for="bulkYouTube">YouTube (1280x720)</label>
+              </div>
+              <div>
+                <input type="checkbox" id="bulkTwitter" />
+                <label for="bulkTwitter">Twitter (1200x675)</label>
+              </div>
+            </div>
+          </label>
 
-            <label>
-              Hashtag Mode
-              <select id="bulkHashtagMode">
-                <option value="auto">Auto Generate</option>
-                <option value="manual">Manual Entry</option>
-              </select>
-            </label>
+          <label>
+            Hashtag Mode
+            <select id="bulkHashtagMode">
+              <option value="auto">Auto Generate</option>
+              <option value="manual">Manual Entry</option>
+            </select>
+          </label>
 
-            <label id="bulkManualHashtagsLabel" style="display: none">
-              Manual Hashtags
-              <input
-                type="text"
-                id="bulkManualHashtags"
-                placeholder="#meme #funny #viral"
-              />
-            </label>
+          <label id="bulkManualHashtagsLabel" style="display: none">
+            Manual Hashtags
+            <input type="text" id="bulkManualHashtags" placeholder="#meme #funny #viral" />
+          </label>
 
-            <button
-              type="button"
-              id="startBulkGeneration"
-              style="
+          <button type="button" id="startBulkGeneration" style="
                 margin-top: 20px;
                 width: 100%;
                 padding: 12px;
@@ -239,56 +192,44 @@ Top Text 2|Bottom Text 2"
                 border-radius: 8px;
                 cursor: pointer;
                 font-weight: bold;
-              "
-            >
-              Start Generation
-            </button>
-          </fieldset>
+              ">
+            Start Generation
+          </button>
+        </fieldset>
 
-          <!-- Progress Section -->
-          <div id="bulkProgress" style="display: none; margin: 20px 0">
-            <h3>Generating...</h3>
-            <div
-              style="
+        <!-- Progress Section -->
+        <div id="bulkProgress" style="display: none; margin: 20px 0">
+          <h3>Generating...</h3>
+          <div style="
                 background: #e2e8f0;
                 border-radius: 10px;
                 height: 30px;
                 overflow: hidden;
                 margin: 10px 0;
-              "
-            >
-              <div
-                id="bulkProgressBar"
-                style="
+              ">
+            <div id="bulkProgressBar" style="
                   background: var(--blue-gradient);
                   height: 100%;
                   width: 0%;
                   transition: width 0.3s;
-                "
-              ></div>
-            </div>
-            <p id="bulkProgressText">Preparing...</p>
-            <div
-              id="bulkPreviewGrid"
-              style="
+                "></div>
+          </div>
+          <p id="bulkProgressText">Preparing...</p>
+          <div id="bulkPreviewGrid" style="
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 10px;
                 max-height: 400px;
                 overflow-y: auto;
                 margin-top: 20px;
-              "
-            ></div>
-          </div>
+              "></div>
+        </div>
 
-          <!-- Complete Section -->
-          <div id="bulkComplete" style="display: none; margin: 20px 0">
-            <h3>✅ Generation Complete!</h3>
-            <div style="display: flex; gap: 10px; margin-top: 15px">
-              <button
-                type="button"
-                id="downloadBulkZip"
-                style="
+        <!-- Complete Section -->
+        <div id="bulkComplete" style="display: none; margin: 20px 0">
+          <h3>✅ Generation Complete!</h3>
+          <div style="display: flex; gap: 10px; margin-top: 15px">
+            <button type="button" id="downloadBulkZip" style="
                   flex: 1;
                   padding: 12px;
                   background: #48bb78;
@@ -297,14 +238,10 @@ Top Text 2|Bottom Text 2"
                   border-radius: 8px;
                   cursor: pointer;
                   font-weight: bold;
-                "
-              >
-                Download ZIP
-              </button>
-              <button
-                type="button"
-                id="downloadBulkCSV"
-                style="
+                ">
+              Download ZIP
+            </button>
+            <button type="button" id="downloadBulkCSV" style="
                   flex: 1;
                   padding: 12px;
                   background: #4299e1;
@@ -313,19 +250,16 @@ Top Text 2|Bottom Text 2"
                   border-radius: 8px;
                   cursor: pointer;
                   font-weight: bold;
-                "
-              >
-                Download CSV
-              </button>
-            </div>
+                ">
+              Download CSV
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- AI Provider API Key Modal -->
-      <div
-        id="aiKeyModal"
-        style="
+    <!-- AI Provider API Key Modal -->
+    <div id="aiKeyModal" style="
           display: none;
           position: fixed;
           top: 0;
@@ -336,21 +270,16 @@ Top Text 2|Bottom Text 2"
           z-index: 1000;
           align-items: center;
           justify-content: center;
-        "
-      >
-        <div
-          style="
+        ">
+      <div style="
             background: var(--glass-bg);
             max-width: 500px;
             width: 90%;
             padding: 30px;
             border-radius: 15px;
             position: relative;
-          "
-        >
-          <button
-            id="closeAiKeyModal"
-            style="
+          ">
+        <button id="closeAiKeyModal" style="
               position: absolute;
               top: 15px;
               right: 15px;
@@ -360,89 +289,64 @@ Top Text 2|Bottom Text 2"
               padding: 8px 15px;
               border-radius: 5px;
               cursor: pointer;
-            "
-          >
-            ×
-          </button>
+            ">
+          ×
+        </button>
 
-          <h2 id="aiModalTitle" style="margin-bottom: 20px">
-            Connect to OpenAI
-          </h2>
+        <h2 id="aiModalTitle" style="margin-bottom: 20px">
+          Connect to OpenAI
+        </h2>
 
-          <div
-            class="feature-highlight"
-            style="
+        <div class="feature-highlight" style="
               margin-bottom: 20px;
               padding: 15px;
               background: rgba(74, 144, 226, 0.1);
               border-left: 4px solid var(--blue-gradient);
               border-radius: 5px;
-            "
-          >
-            <p style="margin: 0; font-size: 0.9rem">
-              <strong>🔒 Your API key is encrypted</strong><br />
-              <span style="font-size: 0.85rem; color: #718096"
-                >Your key is stored locally and encrypted before being
-                saved.</span
-              >
-            </p>
-          </div>
+            ">
+          <p style="margin: 0; font-size: 0.9rem">
+            <strong>🔒 Your API key is encrypted</strong><br />
+            <span style="font-size: 0.85rem; color: #718096">Your key is stored locally and encrypted before being
+              saved.</span>
+          </p>
+        </div>
 
-          <fieldset
-            style="
+        <fieldset style="
               border: 1px solid #e2e8f0;
               border-radius: 8px;
               padding: 20px;
               margin-bottom: 20px;
-            "
-          >
-            <legend id="aiModalLegend">OpenAI API Key</legend>
+            ">
+          <legend id="aiModalLegend">OpenAI API Key</legend>
 
-            <label style="display: block; margin-bottom: 15px">
-              <span style="display: block; margin-bottom: 5px; font-weight: 600"
-                >API Key</span
-              >
-              <input
-                type="password"
-                id="aiKeyInput"
-                placeholder="sk-..."
-                style="
+          <label style="display: block; margin-bottom: 15px">
+            <span style="display: block; margin-bottom: 5px; font-weight: 600">API Key</span>
+            <input type="password" id="aiKeyInput" placeholder="sk-..." style="
                   width: 100%;
                   padding: 10px;
                   border: 1px solid #ccc;
                   border-radius: 5px;
                   font-family: monospace;
-                "
-              />
-              <button
-                type="button"
-                id="toggleAiKeyVisibility"
-                style="
+                " />
+            <button type="button" id="toggleAiKeyVisibility" style="
                   margin-top: 5px;
                   font-size: 0.8rem;
                   background: transparent;
                   border: none;
                   color: #4a90e2;
                   cursor: pointer;
-                "
-              >
-                Show API Key
-              </button>
-            </label>
+                ">
+              Show API Key
+            </button>
+          </label>
 
-            <div
-              id="aiKeyHelp"
-              style="font-size: 0.85rem; color: #718096; line-height: 1.5"
-            >
-              <!-- Provider-specific help will be inserted here -->
-            </div>
-          </fieldset>
+          <div id="aiKeyHelp" style="font-size: 0.85rem; color: #718096; line-height: 1.5">
+            <!-- Provider-specific help will be inserted here -->
+          </div>
+        </fieldset>
 
-          <div style="display: flex; gap: 10px; justify-content: flex-end">
-            <button
-              type="button"
-              id="testAiConnection"
-              style="
+        <div style="display: flex; gap: 10px; justify-content: flex-end">
+          <button type="button" id="testAiConnection" style="
                 flex: 1;
                 padding: 12px;
                 background: #4299e1;
@@ -451,14 +355,10 @@ Top Text 2|Bottom Text 2"
                 border-radius: 8px;
                 cursor: pointer;
                 font-weight: bold;
-              "
-            >
-              Test Connection
-            </button>
-            <button
-              type="button"
-              id="saveAiKey"
-              style="
+              ">
+            Test Connection
+          </button>
+          <button type="button" id="saveAiKey" style="
                 flex: 1;
                 padding: 12px;
                 background: var(--blue-gradient);
@@ -467,192 +367,146 @@ Top Text 2|Bottom Text 2"
                 border-radius: 8px;
                 cursor: pointer;
                 font-weight: bold;
-              "
-            >
-              Save & Connect
-            </button>
-          </div>
+              ">
+            Save & Connect
+          </button>
+        </div>
 
-          <div
-            id="aiKeyStatus"
-            style="
+        <div id="aiKeyStatus" style="
               margin-top: 15px;
               padding: 10px;
               border-radius: 5px;
               display: none;
-            "
-          ></div>
-        </div>
+            "></div>
       </div>
+    </div>
 
-      <!-- CONFIG MANAGER -->
-      <div id="configManager">
-        <input
-          type="text"
-          id="configNameInput"
-          placeholder="Config Name"
-          style="padding: 8px; width: 60%; margin-right: 8px"
-        />
-        <button type="button" id="saveConfigBtn">Save Config</button>
+    <!-- CONFIG MANAGER -->
+    <div id="configManager">
+      <input type="text" id="configNameInput" placeholder="Config Name"
+        style="padding: 8px; width: 60%; margin-right: 8px" />
+      <button type="button" id="saveConfigBtn">Save Config</button>
 
-        <fieldset id="savedConfigsFieldset">
-          <legend>Saved Configurations</legend>
-          <ul id="savedConfigsList"></ul>
-        </fieldset>
+      <fieldset id="savedConfigsFieldset">
+        <legend>Saved Configurations</legend>
+        <ul id="savedConfigsList"></ul>
+      </fieldset>
+    </div>
+
+    <!-- Content Library (moved outside form) -->
+    <fieldset id="libraryFieldset">
+      <legend>Content Library</legend>
+      <div style="margin-bottom: 15px">
+        <input type="text" id="librarySearch" placeholder="Search by caption, hashtag, or platform..."
+          style="width: 70%; margin-right: 10px" />
+        <select id="libraryFilter" style="width: 25%">
+          <option value="all">All Content</option>
+          <option value="meme">Memes Only</option>
+          <option value="video">Videos Only</option>
+          <option value="posted">Posted</option>
+          <option value="draft">Drafts</option>
+        </select>
       </div>
-
-      <!-- Content Library (moved outside form) -->
-      <fieldset id="libraryFieldset">
-        <legend>Content Library</legend>
-        <div style="margin-bottom: 15px">
-          <input
-            type="text"
-            id="librarySearch"
-            placeholder="Search by caption, hashtag, or platform..."
-            style="width: 70%; margin-right: 10px"
-          />
-          <select id="libraryFilter" style="width: 25%">
-            <option value="all">All Content</option>
-            <option value="meme">Memes Only</option>
-            <option value="video">Videos Only</option>
-            <option value="posted">Posted</option>
-            <option value="draft">Drafts</option>
-          </select>
-        </div>
-        <div
-          id="libraryGrid"
-          style="
+      <div id="libraryGrid" style="
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
             max-height: 500px;
             overflow-y: auto;
-          "
-        >
-          <p style="text-align: center; color: #718096; padding: 40px">
-            No content yet
-          </p>
-        </div>
+          ">
+        <p style="text-align: center; color: #718096; padding: 40px">
+          No content yet
+        </p>
+      </div>
+    </fieldset>
+
+    <!-- Settings Form -->
+    <form id="settingsForm">
+      <!-- Content Type -->
+      <fieldset>
+        <legend>Content Type</legend>
+        <label>Type
+          <select id="contentType">
+            <option value="meme">Meme</option>
+            <option value="video">Video</option>
+          </select>
+        </label>
       </fieldset>
 
-      <!-- Settings Form -->
-      <form id="settingsForm">
-        <!-- Content Type -->
+      <!-- Meme Fields -->
+      <fieldset id="memeFields">
+        <legend>Meme</legend>
+        <label>Meme Mode
+          <select id="memeMode">
+            <option value="template">Use Template</option>
+            <option value="generate">AI Generate</option>
+            <option value="edit">AI Edit Image</option>
+            <option value="variations">Create Variations</option>
+          </select>
+        </label>
+        <label>Template
+          <input type="text" id="memeSearch" placeholder="Search templates..." style="margin-bottom: 5px" />
+          <select id="memeTemplate">
+            <option value="ai-generator">🤖 AI Generator</option>
+          </select>
+        </label>
+        <label>
+          Top Text
+          <input type="text" id="memeTopText" placeholder="Top text" />
+        </label>
+        <label>
+          Bottom Text
+          <input type="text" id="memeBottomText" placeholder="Bottom text" />
+        </label>
+
+        <label id="promptLabel" style="display: none">
+          AI Prompt
+          <textarea id="aiPrompt" placeholder="Describe the meme you want..." rows="3"></textarea>
+        </label>
+
+        <label id="sourceImageLabel" style="display: none">
+          Source Image
+          <input type="file" id="sourceImage" accept="image/*" />
+        </label>
+
+        <label id="maskImageLabel" style="display: none">
+          Mask Image (optional)
+          <input type="file" id="maskImage" accept="image/*" />
+        </label>
+
+        <button type="button" id="actionBtn" style="
+              display: none;
+              margin-top: 10px;
+              padding: 10px 20px;
+              background: var(--blue-gradient);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+            ">
+          Generate
+        </button>
+
+        <button type="button" id="createVariationsBtn" style="
+              display: none;
+              margin-top: 10px;
+              padding: 10px 20px;
+              background: var(--blue-gradient);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+            ">
+          Create Variations
+        </button>
+
+        <div id="variationResults" style="display: none; margin-top: 10px"></div>
+
         <fieldset>
-          <legend>Content Type</legend>
-          <label
-            >Type
-            <select id="contentType">
-              <option value="meme">Meme</option>
-              <option value="video">Video</option>
-            </select>
-          </label>
-        </fieldset>
-
-        <!-- Meme Fields -->
-        <fieldset id="memeFields">
-          <legend>Meme</legend>
-          <label
-            >Meme Mode
-            <select id="memeMode">
-              <option value="template">Use Template</option>
-              <option value="generate">AI Generate</option>
-              <option value="edit">AI Edit Image</option>
-              <option value="variations">Create Variations</option>
-            </select>
-          </label>
-          <label
-            >Template
-            <input
-              type="text"
-              id="memeSearch"
-              placeholder="Search templates..."
-              style="margin-bottom: 5px"
-            />
-            <select id="memeTemplate">
-              <option value="ai-generator">🤖 AI Generator</option>
-            </select>
-          </label>
-          <label>
-            Top Text
-            <input type="text" id="memeTopText" placeholder="Top text" />
-          </label>
-          <label>
-            Bottom Text
-            <input type="text" id="memeBottomText" placeholder="Bottom text" />
-          </label>
-
-          <label id="promptLabel" style="display: none">
-            AI Prompt
-            <textarea
-              id="aiPrompt"
-              placeholder="Describe the meme you want..."
-              rows="3"
-            ></textarea>
-          </label>
-
-          <label id="sourceImageLabel" style="display: none">
-            Source Image
-            <input type="file" id="sourceImage" accept="image/*" />
-          </label>
-
-          <label id="maskImageLabel" style="display: none">
-            Mask Image (optional)
-            <input type="file" id="maskImage" accept="image/*" />
-          </label>
-
-          <button
-            type="button"
-            id="actionBtn"
-            style="
-              display: none;
-              margin-top: 10px;
-              padding: 10px 20px;
-              background: var(--blue-gradient);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-            "
-          >
-            Generate
-          </button>
-
-          <button
-            type="button"
-            id="createVariationsBtn"
-            style="
-              display: none;
-              margin-top: 10px;
-              padding: 10px 20px;
-              background: var(--blue-gradient);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-            "
-          >
-            Create Variations
-          </button>
-
-          <div
-            id="variationResults"
-            style="display: none; margin-top: 10px"
-          ></div>
-
-          <fieldset>
-            <legend>Preview</legend>
-            <img
-              id="memePreview"
-              width="300"
-              alt="Live Meme Preview"
-              style="display: block; margin: 0 auto; border: 1px solid #e2e8f0"
-            />
-            <button
-              type="button"
-              id="saveMemeToLibrary"
-              class="toolbar-btn"
-              style="
+          <legend>Preview</legend>
+          <img id="memePreview" width="300" alt="Live Meme Preview"
+            style="display: block; margin: 0 auto; border: 1px solid #e2e8f0" />
+          <button type="button" id="saveMemeToLibrary" class="toolbar-btn" style="
                 margin-top: 10px;
                 width: 100%;
                 padding: 8px;
@@ -662,98 +516,78 @@ Top Text 2|Bottom Text 2"
                 border-radius: 6px;
                 cursor: pointer;
                 font-weight: 600;
-              "
-            >
-              💾 Save to Library
-            </button>
-          </fieldset>
+              ">
+            💾 Save to Library
+          </button>
         </fieldset>
+      </fieldset>
 
-        <!-- Video Fields -->
-        <fieldset id="videoFields" style="display: none">
-          <legend>Video</legend>
-          <label
-            >Video Mode
-            <select id="videoMode">
-              <option value="text">Text to Video</option>
-              <option value="memes">Meme Compilation</option>
-            </select>
-          </label>
+      <!-- Video Fields -->
+      <fieldset id="videoFields" style="display: none">
+        <legend>Video</legend>
+        <label>Video Mode
+          <select id="videoMode">
+            <option value="text">Text to Video</option>
+            <option value="memes">Meme Compilation</option>
+          </select>
+        </label>
 
-          <label id="videoAiProviderLabel">
-            AI Provider
-            <select id="videoAiProvider">
-              <option value="openai">OpenAI (DALL-E → Video)</option>
-              <option value="runway">Runway ML Gen-3 Alpha</option>
-            </select>
-          </label>
+        <label id="videoAiProviderLabel">
+          AI Provider
+          <select id="videoAiProvider">
+            <option value="openai">OpenAI (DALL-E → Video)</option>
+            <option value="runway">Runway ML Gen-3 Alpha</option>
+          </select>
+        </label>
 
-          <label id="videoPromptLabel">
-            Video Prompt
-            <textarea
-              id="videoPrompt"
-              placeholder="Describe your video..."
-              rows="3"
-            ></textarea>
-          </label>
+        <label id="videoPromptLabel">
+          Video Prompt
+          <textarea id="videoPrompt" placeholder="Describe your video..." rows="3"></textarea>
+        </label>
 
-          <label id="selectMemesLabel" style="display: none">
-            Select Memes
-            <button type="button" id="selectMemesBtn" style="margin-top: 5px">
-              Select from Library
-            </button>
-          </label>
+        <label id="selectMemesLabel" style="display: none">
+          Select Memes
+          <button type="button" id="selectMemesBtn" style="margin-top: 5px">
+            Select from Library
+          </button>
+        </label>
 
-          <div
-            id="selectedMemesContainer"
-            style="display: none; margin-top: 10px"
-          >
-            <h4>Selected Memes:</h4>
-            <div
-              id="selectedMemesList"
-              style="display: flex; flex-wrap: wrap; gap: 10px"
-            ></div>
-          </div>
+        <div id="selectedMemesContainer" style="display: none; margin-top: 10px">
+          <h4>Selected Memes:</h4>
+          <div id="selectedMemesList" style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+        </div>
 
-          <label
-            >Duration (sec)
-            <input type="number" id="videoDuration" min="1" value="5" />
-          </label>
-          <label
-            >Quality
-            <select id="videoQuality">
-              <option>720p</option>
-              <option>1080p</option>
-            </select>
-          </label>
-          <label
-            >Style
-            <select id="videoStyle">
-              <option>realistic</option>
-              <option>cinematic</option>
-              <option>animated</option>
-            </select>
-          </label>
-          <label
-            >Aspect Ratio
-            <select id="aspectRatio">
-              <option>16:9</option>
-              <option>9:16</option>
-              <option>1:1</option>
-            </select>
-          </label>
-          <label
-            >Frame Rate (fps)
-            <select id="frameRate">
-              <option>24</option>
-              <option>30</option>
-            </select>
-          </label>
+        <label>Duration (sec)
+          <input type="number" id="videoDuration" min="1" value="5" />
+        </label>
+        <label>Quality
+          <select id="videoQuality">
+            <option>720p</option>
+            <option>1080p</option>
+          </select>
+        </label>
+        <label>Style
+          <select id="videoStyle">
+            <option>realistic</option>
+            <option>cinematic</option>
+            <option>animated</option>
+          </select>
+        </label>
+        <label>Aspect Ratio
+          <select id="aspectRatio">
+            <option>16:9</option>
+            <option>9:16</option>
+            <option>1:1</option>
+          </select>
+        </label>
+        <label>Frame Rate (fps)
+          <select id="frameRate">
+            <option>24</option>
+            <option>30</option>
+          </select>
+        </label>
 
-          <button
-            type="button"
-            id="generateVideoBtn"
-            style="
+        <button type="button" id="generateVideoBtn" style="
               margin-top: 10px;
               padding: 10px 20px;
               background: var(--blue-gradient);
@@ -761,209 +595,258 @@ Top Text 2|Bottom Text 2"
               border: none;
               border-radius: 8px;
               cursor: pointer;
-            "
-          >
-            Generate Video
+            ">
+          Generate Video
+        </button>
+      </fieldset>
+
+      <!-- AI Provider Authentication -->
+      <fieldset class="oauth-fieldset">
+        <legend>Connect AI Providers</legend>
+        <div class="feature-highlight" style="margin-bottom: 15px">
+          <strong>🤖 Connect your AI providers to unlock content generation</strong>
+          <p style="margin: 5px 0; font-size: 0.85rem; color: #718096">
+            Your API keys are encrypted and stored securely
+          </p>
+        </div>
+        <div class="oauth-buttons">
+          <button type="button" id="connectOpenAIBtn" class="ai-connect-btn" data-provider="openai">
+            <span class="connect-icon">🔗</span>
+            <span class="provider-name">Connect OpenAI</span>
+            <span class="connected-badge" style="display: none">✓ Connected</span>
           </button>
-        </fieldset>
-
-        <!-- AI Provider Authentication -->
-        <fieldset class="oauth-fieldset">
-          <legend>Connect AI Providers</legend>
-          <div class="feature-highlight" style="margin-bottom: 15px">
-            <strong
-              >🤖 Connect your AI providers to unlock content generation</strong
-            >
-            <p style="margin: 5px 0; font-size: 0.85rem; color: #718096">
-              Your API keys are encrypted and stored securely
-            </p>
+          <button type="button" id="connectRunwayBtn" class="ai-connect-btn" data-provider="runway">
+            <span class="connect-icon">🔗</span>
+            <span class="provider-name">Connect Runway ML</span>
+            <span class="connected-badge" style="display: none">✓ Connected</span>
+          </button>
+          <div style="width:100%; margin-top:8px; display:flex; gap:8px;">
+            <button type="button" id="resetAllBtn" class="small-action-btn danger">Reset Connections & Clear All</button>
           </div>
-          <div class="oauth-buttons">
-            <button
-              type="button"
-              id="connectOpenAIBtn"
-              class="ai-connect-btn"
-              data-provider="openai"
-            >
-              <span class="connect-icon">🔗</span>
-              <span class="provider-name">Connect OpenAI</span>
-              <span class="connected-badge" style="display: none"
-                >✓ Connected</span
-              >
-            </button>
-            <button
-              type="button"
-              id="connectRunwayBtn"
-              class="ai-connect-btn"
-              data-provider="runway"
-            >
-              <span class="connect-icon">🔗</span>
-              <span class="provider-name">Connect Runway ML</span>
-              <span class="connected-badge" style="display: none"
-                >✓ Connected</span
-              >
-            </button>
+        </div>
+
+        <!-- Hidden fields to store active provider and encrypted keys -->
+        <input type="hidden" id="aiProvider" value="openai" />
+        <input type="hidden" id="openaiApiKey" />
+        <input type="hidden" id="runwayApiKey" />
+      </fieldset>
+
+      <!-- Platforms -->
+      <fieldset>
+        <legend>Platforms</legend>
+        <div class="platform-grid">
+          <div class="checkbox-item">
+            <input type="checkbox" id="instagram" />
+            <label for="instagram">Instagram</label>
           </div>
-
-          <!-- Hidden fields to store active provider and encrypted keys -->
-          <input type="hidden" id="aiProvider" value="openai" />
-          <input type="hidden" id="openaiApiKey" />
-          <input type="hidden" id="runwayApiKey" />
-        </fieldset>
-
-        <!-- Platforms -->
-        <fieldset>
-          <legend>Platforms</legend>
-          <div class="platform-grid">
-            <div class="checkbox-item">
-              <input type="checkbox" id="instagram" />
-              <label for="instagram">Instagram</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="tiktok" />
-              <label for="tiktok">TikTok</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="youtube" />
-              <label for="youtube">YouTube</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="twitter" />
-              <label for="twitter">Twitter</label>
-            </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="tiktok" />
+            <label for="tiktok">TikTok</label>
           </div>
-        </fieldset>
-
-        <!-- Activity Log -->
-        <fieldset>
-          <legend>Activity Log</legend>
-          <div id="logContainer" class="log-container"></div>
-        </fieldset>
-
-        <fieldset class="oauth-fieldset">
-          <legend>Connect Your Social Media Accounts</legend>
-          <div class="oauth-buttons">
-            <button type="button" id="connectInstagramBtn">
-              🔗 Connect Instagram
-            </button>
-            <button type="button" id="connectTikTokBtn">
-              🔗 Connect TikTok
-            </button>
-            <button type="button" id="connectYouTubeBtn">
-              🔗 Connect YouTube
-            </button>
-            <button type="button" id="connectTwitterBtn">
-              🔗 Connect Twitter
-            </button>
+          <div class="checkbox-item">
+            <input type="checkbox" id="youtube" />
+            <label for="youtube">YouTube</label>
           </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="twitter" />
+            <label for="twitter">Twitter</label>
+          </div>
+        </div>
+      </fieldset>
 
-          <!-- hidden token stores used by renderer.js -->
-          <input type="hidden" id="instagramToken" />
-          <input type="hidden" id="tiktokToken" />
-          <input type="hidden" id="youtubeToken" />
-          <input type="hidden" id="twitterToken" />
-        </fieldset>
+      <!-- Activity Log -->
+      <fieldset>
+        <legend>Activity Log</legend>
+        <div id="logContainer" class="log-container"></div>
+      </fieldset>
 
-        <!-- Hashtags -->
-        <fieldset>
-          <legend>Hashtags</legend>
-          <label
-            >Hashtag Mode
-            <select id="hashtagMode">
-              <option value="auto">Auto Generate</option>
-              <option value="manual">Manual Entry</option>
-            </select>
-          </label>
-          <label id="manualHashtagLabel" style="display: none">
-            Manual Hashtags
-            <input type="text" id="manualHashtags" placeholder="#ai #fun" />
-          </label>
-        </fieldset>
+      <fieldset class="oauth-fieldset">
+        <legend>Connect Your Social Media Accounts</legend>
+        <div class="oauth-buttons">
+          <div class="oauth-pair">
+            <button type="button" id="connectInstagramBtn">🔗 Connect Instagram <span class="status-badge"
+                id="status-instagram">Missing</span><span class="status-spinner" id="spinner-instagram"
+                aria-hidden="true"></span></button>
+            <button type="button" id="disconnectInstagramBtn" class="disconnect-btn"
+              style="display:none">Disconnect</button>
+          </div>
+          <div class="oauth-pair">
+            <button type="button" id="connectTikTokBtn">🔗 Connect TikTok <span class="status-badge"
+                id="status-tiktok">Missing</span><span class="status-spinner" id="spinner-tiktok"
+                aria-hidden="true"></span></button>
+            <button type="button" id="disconnectTikTokBtn" class="disconnect-btn"
+              style="display:none">Disconnect</button>
+          </div>
+          <div class="oauth-pair">
+            <button type="button" id="connectYouTubeBtn">🔗 Connect YouTube <span class="status-badge"
+                id="status-youtube">Missing</span><span class="status-spinner" id="spinner-youtube"
+                aria-hidden="true"></span></button>
+            <button type="button" id="disconnectYouTubeBtn" class="disconnect-btn"
+              style="display:none">Disconnect</button>
+          </div>
+          <div class="oauth-pair">
+            <button type="button" id="connectTwitterBtn">🔗 Connect Twitter <span class="status-badge"
+                id="status-twitter">Missing</span><span class="status-spinner" id="spinner-twitter"
+                aria-hidden="true"></span></button>
+            <button type="button" id="disconnectTwitterBtn" class="disconnect-btn"
+              style="display:none">Disconnect</button>
+          </div>
+        </div>
 
-        <!-- Scheduling & Scheduled Posts (Combined) -->
-        <fieldset id="schedulingFieldset">
-          <legend>Scheduling & Scheduled Posts</legend>
+        <!-- hidden token stores used by renderer.js -->
+        <input type="hidden" id="instagramToken" />
+        <input type="hidden" id="tiktokToken" />
+        <input type="hidden" id="youtubeToken" />
+        <input type="hidden" id="twitterToken" />
+      </fieldset>
 
-          <!-- Selected Content Preview -->
-          <div
-            id="selectedContentPreview"
-            style="
+      <!-- Hashtags -->
+      <fieldset>
+        <legend>Hashtags</legend>
+        <label>Hashtag Mode
+          <select id="hashtagMode">
+            <option value="auto">Auto Generate</option>
+            <option value="manual">Manual Entry</option>
+          </select>
+        </label>
+        <label id="manualHashtagLabel" style="display: none">
+          Manual Hashtags
+          <input type="text" id="manualHashtags" placeholder="#ai #fun" />
+        </label>
+      </fieldset>
+
+      <!-- Scheduling & Scheduled Posts (Combined) -->
+      <fieldset id="schedulingFieldset">
+        <legend>Scheduling & Scheduled Posts</legend>
+
+        <!-- Selected Content Preview -->
+        <div id="selectedContentPreview" style="
               display: none;
               margin-bottom: 16px;
               padding: 12px;
               background: rgba(72, 187, 120, 0.1);
               border: 2px solid #48bb78;
               border-radius: 8px;
-            "
-          >
-            <div style="display: flex; align-items: center; gap: 12px">
-              <img
-                id="selectedContentImg"
-                style="
+            ">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <img id="selectedContentImg" style="
                   width: 80px;
                   height: 80px;
                   object-fit: cover;
                   border-radius: 4px;
-                "
-              />
-              <div style="flex: 1">
-                <div
-                  style="font-weight: bold; color: #48bb78; margin-bottom: 4px"
-                >
-                  ✓ Content Selected
-                </div>
-                <div
-                  id="selectedContentInfo"
-                  style="font-size: 0.85em; color: var(--text-color, #666)"
-                ></div>
+                " />
+            <div style="flex: 1">
+              <div style="font-weight: bold; color: #48bb78; margin-bottom: 4px">
+                ✓ Content Selected
               </div>
+              <div id="selectedContentInfo" style="font-size: 0.85em; color: var(--text-color, #666)"></div>
             </div>
           </div>
+        </div>
 
-          <label
-            >Post At
-            <input type="datetime-local" id="scheduleDateTime" />
-          </label>
-          <label
-            >Recurrence
-            <select id="recurrenceSelect">
-              <option value="none">None</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-            </select>
-          </label>
-          <label
-            >Timezone
-            <select id="timezoneSelect"></select>
-          </label>
-          <button type="button" id="schedulePostBtn" class="action-btn">
-            Schedule Post
-          </button>
+        <label>Post At
+          <input type="datetime-local" id="scheduleDateTime" />
+        </label>
+        <label>Recurrence
+          <select id="recurrenceSelect">
+            <option value="none">None</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </label>
+        <label>Timezone
+          <select id="timezoneSelect"></select>
+        </label>
+        <button type="button" id="schedulePostBtn" class="action-btn">
+          Schedule Post
+        </button>
 
-          <!-- Scheduled Posts List (now part of same card) -->
-          <div
-            style="
+        <!-- Scheduled Posts List (now part of same card) -->
+        <div style="
               margin-top: 16px;
               padding-top: 16px;
               border-top: 1px solid rgba(255, 255, 255, 0.1);
-            "
-          >
-            <h4
-              style="
+            ">
+          <h4 style="
                 margin-top: 0;
                 margin-bottom: 8px;
                 font-size: 0.9rem;
                 color: #667eea;
-              "
-            >
-              Scheduled Posts:
-            </h4>
-            <ul id="scheduledPostsList"></ul>
-          </div>
-        </fieldset>
-      </form>
-    </div>
+              ">
+            Scheduled Posts:
+          </h4>
+          <ul id="scheduledPostsList"></ul>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <!-- Provider Config Modal (for social provider client id/secret entry) -->
+  <div id="providerConfigModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 1100;
+        align-items: center;
+        justify-content: center;
+      ">
+    <div style="
+          background: var(--glass-bg);
+          max-width: 520px;
+          width: 94%;
+          padding: 20px;
+          border-radius: 12px;
+          position: relative;
+        ">
+      <button id="closeProviderConfig" style="
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+          ">×</button>
 
-    <script src="renderer.js"></script>
-  </body>
+      <h2 id="providerConfigTitle">Configure Provider</h2>
+
+      <p style="color: #718096; font-size: 0.95rem">Enter the OAuth client credentials for the provider below. These
+        values are stored locally and encrypted.</p>
+
+      <fieldset style="margin-top: 12px; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px">
+        <label style="display:block; margin-bottom:8px">
+          <div style="font-weight:600; margin-bottom:6px">Client ID</div>
+          <input id="providerClientId" type="text" style="width:100%; padding:8px;" />
+        </label>
+
+        <label style="display:block; margin-bottom:8px">
+          <div style="font-weight:600; margin-bottom:6px">Client Secret</div>
+          <input id="providerClientSecret" type="password" style="width:100%; padding:8px;" />
+        </label>
+
+        <label style="display:block; margin-bottom:8px">
+          <div style="font-weight:600; margin-bottom:6px">Redirect URI</div>
+          <input id="providerRedirectUri" type="text" style="width:100%; padding:8px;"
+            value="http://localhost:3000/oauth/callback" />
+        </label>
+
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+          <button id="saveProviderConfig"
+            style="padding:10px 14px; background:var(--blue-gradient); color:white; border:none; border-radius:6px;">Save
+            & Connect</button>
+          <button id="cancelProviderConfig"
+            style="padding:10px 14px; background:#e2e8e0; border:none; border-radius:6px;">Cancel</button>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
 </html>

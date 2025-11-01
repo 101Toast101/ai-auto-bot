@@ -165,6 +165,36 @@ body.dark .library-item {
   box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
 }
 
+/* Small action buttons used in fieldsets (match main control button shape) */
+.small-action-btn {
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  margin: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.small-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.small-action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.small-action-btn.danger {
+  background: #ef4444;
+}
+
+.small-action-btn.danger-dark {
+  background: #7f1d1d;
+}
+
 .toggle {
   display: inline-flex;
   align-items: center;
@@ -188,7 +218,7 @@ body.dark .library-item {
   box-sizing: border-box;
 }
 
-.toggle input:checked + .slider {
+.toggle input:checked+.slider {
   background: #4a90e2;
 }
 
@@ -205,7 +235,7 @@ body.dark .library-item {
   box-shadow: 0 2px 6px rgba(74, 144, 226, 0.15);
 }
 
-.toggle input:checked + .slider::before {
+.toggle input:checked+.slider::before {
   transform: translateX(24px);
 }
 
@@ -273,7 +303,7 @@ body.dark fieldset legend {
 
 /* Allow fieldsets to auto-place in the grid based on DOM order */
 /* This makes drag-and-drop reordering work naturally */
-#settingsForm > fieldset {
+#settingsForm>fieldset {
   /* All cards take exactly 1 cell (1 column × 1 row) */
   grid-column: span 1;
   grid-row: span 1;
@@ -288,7 +318,7 @@ body.dark fieldset legend {
 
 /* Explicit positioning for 8 cards in 3x3 grid (position 5 - center - is occupied by meme spanning) */
 /* Content Type - position 1 */
-#settingsForm > fieldset:nth-child(1) {
+#settingsForm>fieldset:nth-child(1) {
   grid-column: 1;
   grid-row: 1;
 }
@@ -322,37 +352,37 @@ body.dark fieldset legend {
 }
 
 /* AI Providers - position 3 */
-#settingsForm > fieldset:nth-child(3) {
+#settingsForm>fieldset:nth-child(3) {
   grid-column: 3;
   grid-row: 1;
 }
 
 /* Platforms - position 4 */
-#settingsForm > fieldset:nth-child(4) {
+#settingsForm>fieldset:nth-child(4) {
   grid-column: 1;
   grid-row: 2;
 }
 
 /* Activity Log - position 5 */
-#settingsForm > fieldset:nth-child(5) {
+#settingsForm>fieldset:nth-child(5) {
   grid-column: 3;
   grid-row: 2;
 }
 
 /* Social Media Connect - position 6 */
-#settingsForm > fieldset:nth-child(6) {
+#settingsForm>fieldset:nth-child(6) {
   grid-column: 1;
   grid-row: 3;
 }
 
 /* Hashtags - position 7 */
-#settingsForm > fieldset:nth-child(7) {
+#settingsForm>fieldset:nth-child(7) {
   grid-column: 2;
   grid-row: 3;
 }
 
 /* Scheduling - position 8 */
-#settingsForm > fieldset:nth-child(8) {
+#settingsForm>fieldset:nth-child(8) {
   grid-column: 3;
   grid-row: 3;
 }
@@ -368,7 +398,7 @@ body.dark fieldset legend {
 
 /* Center content in specific fieldsets with minimal content */
 /* Apply to all fieldsets by default, then override for specific ones */
-#settingsForm > fieldset {
+#settingsForm>fieldset {
   justify-content: flex-start;
   padding-top: 40px;
 }
@@ -383,41 +413,91 @@ body.dark fieldset legend {
 }
 
 /* Tighten spacing in centered cards to make them more compact */
-#settingsForm
-  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
-    #libraryFieldset
-  )
-  label {
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) label {
   margin-bottom: 8px;
 }
 
-#settingsForm
-  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
-    #libraryFieldset
-  )
-  input,
-#settingsForm
-  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
-    #libraryFieldset
-  )
-  select,
-#settingsForm
-  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
-    #libraryFieldset
-  )
-  button {
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) input,
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) select,
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) button {
   margin-bottom: 6px;
 }
 
-#settingsForm
-  > fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(
-    #libraryFieldset
-  )
-  .checkbox-item {
+#settingsForm>fieldset:not(#memeFields):not(#videoFields):not(#schedulingFieldset):not(#libraryFieldset) .checkbox-item {
   margin-bottom: 6px;
 }
 
 /* Drag-and-Drop Styles */
+
+/* OAuth status badges and spinner */
+.oauth-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center
+}
+
+.oauth-pair {
+  display: flex;
+  gap: 6px;
+  align-items: center
+}
+
+.oauth-pair button {
+  position: relative;
+  padding-right: 110px;
+}
+
+.status-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  vertical-align: middle;
+  color: #fff;
+}
+
+.status-badge.missing {
+  background: #6b7280;
+}
+
+.status-badge.connected {
+  background: #16a34a;
+}
+
+.status-badge.pending {
+  background: #f59e0b;
+}
+
+.status-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  margin-left: 8px;
+  vertical-align: middle;
+  animation: spin 1s linear infinite;
+  opacity: 0;
+}
+
+.status-spinner.visible {
+  opacity: 1;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg)
+  }
+
+  to {
+    transform: rotate(360deg)
+  }
+}
+
 #settingsForm fieldset[draggable="true"] {
   transition:
     opacity 0.2s,
@@ -907,31 +987,31 @@ body.dark .spinner-text {
     grid-row: 1;
   }
 
-  #settingsForm > fieldset:nth-of-type(6) {
+  #settingsForm>fieldset:nth-of-type(6) {
     /* Smart Content */
     grid-column: 2;
     grid-row: 1;
   }
 
-  #settingsForm > fieldset:nth-of-type(7) {
+  #settingsForm>fieldset:nth-of-type(7) {
     /* Hashtags */
     grid-column: 2;
     grid-row: 2;
   }
 
-  #settingsForm > fieldset:nth-of-type(2) {
+  #settingsForm>fieldset:nth-of-type(2) {
     /* General */
     grid-column: 1;
     grid-row: 2;
   }
 
-  #settingsForm > fieldset:nth-of-type(4) {
+  #settingsForm>fieldset:nth-of-type(4) {
     /* Platforms */
     grid-column: 1;
     grid-row: 3;
   }
 
-  #settingsForm > fieldset:nth-of-type(5) {
+  #settingsForm>fieldset:nth-of-type(5) {
     /* Tokens */
     grid-column: 2;
     grid-row: 3;
@@ -956,7 +1036,7 @@ body.dark .spinner-text {
 
   #memeFields,
   #videoFields,
-  #settingsForm > fieldset {
+  #settingsForm>fieldset {
     grid-column: 1 !important;
     grid-row: auto !important;
   }
@@ -1077,6 +1157,26 @@ body.dark .oauth-fieldset legend {
   font-size: 0.9rem;
 }
 
+.oauth-pair {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center
+}
+
+.disconnect-btn {
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem
+}
+
+.disconnect-btn:hover {
+  opacity: 0.9
+}
+
 /* AI Key Modal Styling */
 #aiKeyModal {
   display: none;
@@ -1086,7 +1186,7 @@ body.dark .oauth-fieldset legend {
   display: flex !important;
 }
 
-body.dark #aiKeyModal > div {
+body.dark #aiKeyModal>div {
   background: var(--glass-bg-dark);
   color: #e2e8f0;
 }

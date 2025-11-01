@@ -161,6 +161,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  // Diagnostics removed; IPC bridge validated during prior debug session.
 
   // Start OAuth callback server
   startOAuthServer();
@@ -600,6 +601,40 @@ ipcMain.handle("ENCRYPT_DATA", async (_evt, plaintext) => {
     return { success: true, data: encrypted };
   } catch (error) {
     return { success: false, error: { message: error.message } };
+  }
+});
+
+// IPC handler: disconnect social platform (remove token)
+ipcMain.handle("DISCONNECT_SOCIAL", async (_evt, platform) => {
+  try {
+    const tokenPath = path.join(__dirname, "data", "tokens.json");
+    if (!fs.existsSync(tokenPath)) {
+      return { success: false, error: { message: "No tokens stored" } };
+    }
+
+    const raw = await fs.promises.readFile(tokenPath, "utf8");
+    let tokens = {};
+    try {
+      tokens = JSON.parse(raw);
+    } catch {
+      return { success: false, error: { message: "Malformed tokens file" } };
+    }
+
+    if (!tokens[platform]) {
+      return { success: false, error: { message: `No token for ${platform}` } };
+    }
+
+    delete tokens[platform];
+    await fs.promises.writeFile(tokenPath, JSON.stringify(tokens, null, 2), "utf8");
+
+    // Notify renderer that token removed
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("oauth-token-removed", { provider: platform });
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: { message: err.message } };
   }
 });
 

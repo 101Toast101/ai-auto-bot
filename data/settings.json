@@ -1,0 +1,45 @@
+{
+  "fieldsetLayout": {
+    "⋮⋮Content Type": {
+      "gridColumn": "",
+      "gridRow": ""
+    },
+    "memeFields": {
+      "gridColumn": "",
+      "gridRow": ""
+    },
+    "⋮⋮Preview": {
+      "gridColumn": "",
+      "gridRow": ""
+    },
+    "videoFields": {
+      "gridColumn": "2",
+      "gridRow": "1"
+    },
+    "⋮⋮Connect AI Providers": {
+      "gridColumn": "1",
+      "gridRow": "2"
+    },
+    "⋮⋮Platforms": {
+      "gridColumn": "",
+      "gridRow": ""
+    },
+    "⋮⋮Activity Log": {
+      "gridColumn": "3",
+      "gridRow": "3"
+    },
+    "⋮⋮Connect Your Social Media Accounts": {
+      "gridColumn": "1",
+      "gridRow": "3"
+    },
+    "⋮⋮Hashtags": {
+      "gridColumn": "2",
+      "gridRow": "3"
+    },
+    "schedulingFieldset": {
+      "gridColumn": "3",
+      "gridRow": "1"
+    }
+  },
+  "twitterToken": ""
+}

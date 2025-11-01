@@ -52,6 +52,12 @@ async function generateAIImage(prompt, apiKey) {
  * Post content to Instagram
  */
 async function postToInstagram(imageUrl, caption, token) {
+  console.warn("📷 Instagram - Request parameters:", {
+    imageUrl,
+    caption,
+  });
+  console.warn("📷 Instagram - Token present:", !!token);
+
   if (!token) {
     return { success: false, error: "Instagram token not provided" };
   }
@@ -69,7 +75,11 @@ async function postToInstagram(imageUrl, caption, token) {
       }),
     });
 
+  console.warn("📷 Instagram - API response status:", response.status);
+
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+  console.warn("📷 Instagram - Full response body:", errorData);
       return {
         success: false,
         error: `Instagram post failed: ${response.status}`,
@@ -77,11 +87,13 @@ async function postToInstagram(imageUrl, caption, token) {
     }
 
     const data = await response.json();
+  console.warn("📷 Instagram - Full response body:", data);
     return {
       success: true,
       postId: data.id,
     };
   } catch (error) {
+  console.warn("📷 Instagram - Error:", error.message);
     return {
       success: false,
       error: error.message,
@@ -93,6 +105,12 @@ async function postToInstagram(imageUrl, caption, token) {
  * Post video to TikTok
  */
 async function postToTikTok(videoUrl, description, token) {
+  console.warn("🎵 TikTok - Request parameters:", {
+    videoUrl,
+    description,
+  });
+  console.warn("🎵 TikTok - Token present:", !!token);
+
   if (!token) {
     return { success: false, error: "TikTok token not provided" };
   }
@@ -113,10 +131,21 @@ async function postToTikTok(videoUrl, description, token) {
       },
     );
 
+  console.warn("🎵 TikTok - API response status:", response.status);
+
     if (!response.ok) {
+      // Prefer status-based handling first to avoid issues where response.json
+      // isn't a function on mocked responses (tests) or non-standard bodies.
       if (response.status === 429) {
         return { success: false, error: "TikTok rate limit exceeded" };
       }
+
+      // Attempt to read body only if response.json is callable
+      let errorData = {};
+      if (response && typeof response.json === "function") {
+        errorData = await response.json().catch(() => ({}));
+      }
+  console.warn("🎵 TikTok - Full response body:", errorData);
       return {
         success: false,
         error: `TikTok post failed: ${response.status}`,
@@ -124,11 +153,13 @@ async function postToTikTok(videoUrl, description, token) {
     }
 
     const data = await response.json();
+  console.warn("🎵 TikTok - Full response body:", data);
     return {
       success: true,
       videoId: data.video_id,
     };
   } catch (error) {
+  console.warn("🎵 TikTok - Error:", error.message);
     return {
       success: false,
       error: error.message,
@@ -140,6 +171,13 @@ async function postToTikTok(videoUrl, description, token) {
  * Post to YouTube
  */
 async function postToYouTube(contentUrl, title, description, token) {
+  console.warn("📺 YouTube - Request parameters:", {
+    contentUrl,
+    title,
+    description,
+  });
+  console.warn("📺 YouTube - Token present:", !!token);
+
   if (!token) {
     return { success: false, error: "YouTube token not provided" };
   }
@@ -165,7 +203,11 @@ async function postToYouTube(contentUrl, title, description, token) {
       },
     );
 
+  console.warn("📺 YouTube - API response status:", response.status);
+
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+  console.warn("📺 YouTube - Full response body:", errorData);
       return {
         success: false,
         error: `YouTube post failed: ${response.status}`,
@@ -173,11 +215,13 @@ async function postToYouTube(contentUrl, title, description, token) {
     }
 
     const data = await response.json();
+  console.warn("📺 YouTube - Full response body:", data);
     return {
       success: true,
       videoId: data.id,
     };
   } catch (error) {
+  console.warn("📺 YouTube - Error:", error.message);
     return {
       success: false,
       error: error.message,
@@ -189,6 +233,12 @@ async function postToYouTube(contentUrl, title, description, token) {
  * Post to Twitter
  */
 async function postToTwitter(text, token) {
+  console.warn("🐦 Twitter - Request parameters:", {
+    text,
+    textLength: text.length,
+  });
+  console.warn("🐦 Twitter - Token present:", !!token);
+
   if (!token) {
     return { success: false, error: "Twitter token not provided" };
   }
@@ -210,7 +260,11 @@ async function postToTwitter(text, token) {
       }),
     });
 
+  console.warn("🐦 Twitter - API response status:", response.status);
+
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+  console.warn("🐦 Twitter - Full response body:", errorData);
       return {
         success: false,
         error: `Twitter post failed: ${response.status}`,
@@ -218,11 +272,13 @@ async function postToTwitter(text, token) {
     }
 
     const data = await response.json();
+  console.warn("🐦 Twitter - Full response body:", data);
     return {
       success: true,
       tweetId: data.data.id,
     };
   } catch (error) {
+  console.warn("🐦 Twitter - Error:", error.message);
     return {
       success: false,
       error: error.message,
