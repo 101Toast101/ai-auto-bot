@@ -117,7 +117,7 @@ function loadToken(platform) {
 }
 
 function deleteToken(platform) {
-  if (!fs.existsSync(TOKEN_PATH)) return false;
+  if (!fs.existsSync(TOKEN_PATH)) {return false;}
   const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH));
   if (tokens[platform]) {
     delete tokens[platform];
