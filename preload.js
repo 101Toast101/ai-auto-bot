@@ -6,7 +6,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 let IPC_CHANNELS;
 try {
   // Use absolute path to avoid resolution issues in preload
-  IPC_CHANNELS = require(require('path').join(__dirname, 'utils', 'ipc-constants.js')).IPC_CHANNELS;
+  IPC_CHANNELS = require(require('path').join(__dirname, 'utils', 'ipc-constants.cjs')).IPC_CHANNELS;
 } catch {
   IPC_CHANNELS = {
     READ_FILE: "READ_FILE",
@@ -37,6 +37,10 @@ logDebug("Initializing IPC bridge...");
 contextBridge.exposeInMainWorld("api", {
   startOAuth: (provider) => ipcRenderer.invoke("start-oauth", provider),
   onOAuthToken: (cb) => ipcRenderer.on("oauth-token", (_ev, data) => cb(data)),
+  onOAuthTokenRemoved: (cb) => ipcRenderer.on("oauth-token-removed", (_ev, data) => cb(data)),
+  onResetDone: (cb) => ipcRenderer.on("RESET_DONE", (_ev, data) => cb(data)),
+  // Notifies renderer when settings.json has been updated by main process
+  onSettingsUpdated: (cb) => ipcRenderer.on("SETTINGS_UPDATED", (_ev, data) => cb(data)),
 
   // File Operations
   readFile: (filePath) => ipcRenderer.invoke(IPC_CHANNELS.READ_FILE, filePath),
@@ -58,6 +62,13 @@ contextBridge.exposeInMainWorld("api", {
   onScheduledPost: (callback) => {
     ipcRenderer.on("EXECUTE_SCHEDULED_POST", (_event, post) => callback(post));
   },
+  // Disconnect a social platform (removes local token)
+  disconnect: (platform) => ipcRenderer.invoke(IPC_CHANNELS.DISCONNECT_SOCIAL, platform),
+  // Refresh a platform token using stored refresh token
+  refreshToken: (platform) => ipcRenderer.invoke(IPC_CHANNELS.REFRESH_AUTH, platform),
+  // Reset all social connections and clear activity log
+  // Optional options: { full: true } will also remove provider configs and AI keys
+  resetConnections: (options) => ipcRenderer.invoke(IPC_CHANNELS.RESET_CONNECTIONS, options || {}),
 });
 
 logDebug("IPC bridge initialized successfully!");

@@ -1,5 +1,4 @@
-// Shared IPC channel constants for preload and main code
-// Keep this file minimal so it can be required from the preload sandbox
+// Shared IPC channel constants (CommonJS)
 const IPC_CHANNELS = {
   READ_FILE: "READ_FILE",
   WRITE_FILE: "WRITE_FILE",

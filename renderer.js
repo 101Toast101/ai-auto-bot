@@ -394,11 +394,42 @@
         console.error("API not available for writeFileAsync");
         return { success: false, error: { message: "API not available" } };
       }
+
+      // If a recent RESET occurred, avoid immediately overwriting settings.json.
+      // Use two protections:
+      // 1) A short renderer-side timer lock (settingsWriteLockUntil) to delay very-quick writes.
+      // 2) A reset marker file created by main at data/.recent_reset. If present, wait until it's removed.
+      if (filePath === PATHS.SETTINGS) {
+        if (typeof settingsWriteLockUntil !== "undefined") {
+          const now = Date.now();
+          if (now < settingsWriteLockUntil) {
+            const waitMs = settingsWriteLockUntil - now;
+            console.warn(`Delaying write to ${filePath} for ${waitMs}ms due to recent reset`);
+            await new Promise((res) => setTimeout(res, waitMs));
+          }
+        }
+
+        // Check for reset marker file and wait until main removes it
+        try {
+          let tries = 0;
+          while (tries < 20) {
+            // small wait between checks
+            const marker = await window.api.readFile("data/.recent_reset");
+            if (!marker || !marker.success) {break;} // not present
+            // if present, wait a bit and retry
+            const waitMs = 250;
+            console.warn(`Reset marker present, waiting ${waitMs}ms before writing settings.json`);
+            await new Promise((res) => setTimeout(res, waitMs));
+            tries += 1;
+          }
+        } catch (e) {
+          // fallback - if something goes wrong just proceed
+          console.warn("Failed while waiting for reset marker, proceeding to write settings.json", e);
+        }
+      }
+
       const result = await window.api.writeFile(filePath, content);
-      console.warn(
-        `Write file ${filePath}:`,
-        result.success ? "success" : "failed",
-      );
+      console.warn(`Write file ${filePath}:`, result.success ? "success" : "failed");
       return result;
     } catch (e) {
       console.error(`Error writing file ${filePath}:`, e);
@@ -428,6 +459,9 @@
     "youtubeToken",
     "twitterToken",
   ];
+
+  // Lock window writes to settings for a short time after a reset to avoid races
+  let settingsWriteLockUntil = 0;
 
   // Encrypt sensitive fields in an object
   async function encryptSensitiveFields(obj) {
@@ -4786,16 +4820,388 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       if (btn) {
         btn.addEventListener("click", (e) => {
           e.preventDefault();
-          if (window.api?.startOAuth) {
-            window.api.startOAuth(platform.toLowerCase());
-            addLogEntry(`Started OAuth flow for ${platform}`);
-          } else {
-            displayValidationError(
-              { message: "OAuth API not available" },
-              platform,
-            );
+          (async () => {
+            try {
+              if (!window.api?.startOAuth) {
+                throw new Error("OAuth API not available");
+              }
+
+              // Disable button and show connecting state (spinner + pending badge)
+              btn.disabled = true;
+              const originalText = btn.getAttribute('data-original-text') || btn.textContent;
+              btn.setAttribute('data-original-text', originalText);
+              setProviderConnecting(platform.toLowerCase());
+
+              // Try to start OAuth. If main indicates credentials are missing, open the provider config modal.
+              const res = await window.api.startOAuth(platform.toLowerCase());
+
+              if (res && res.success === false) {
+                // Handle structured failures: credentials missing or user-cancel
+                const msg = res.error?.message || "OAuth failed";
+                if (res.reason === "canceled") {
+                  // User closed the OAuth window — benign cancel
+                  showNotification("OAuth flow canceled by user", "warning");
+                  btn.disabled = false;
+                  setProviderDisconnected(platform.toLowerCase());
+                  return;
+                }
+                // If message mentions credentials not configured, open modal
+                if (msg.toLowerCase().includes("credentials not configured")) {
+                  openProviderConfigModal(platform.toLowerCase());
+                } else {
+                  displayError(new Error(msg));
+                }
+                btn.disabled = false;
+                setProviderDisconnected(platform.toLowerCase());
+                return;
+              }
+
+              addLogEntry(`Started OAuth flow for ${platform}`);
+              // Do not re-enable here; button will be updated when oauth-token event arrives
+            } catch (err) {
+              displayError(err);
+              btn.disabled = false;
+              setProviderDisconnected(platform.toLowerCase());
+            }
+          })();
+        });
+      }
+
+      // Setup disconnect button for each platform
+      const disc = $(`disconnect${platform}Btn`);
+      if (disc) {
+        disc.addEventListener("click", async (e) => {
+          e.preventDefault();
+          try {
+            // Show pending badge while disconnecting
+            setProviderPending(platform.toLowerCase());
+            const res = await window.api.disconnect(platform.toLowerCase());
+            if (res && res.success) {
+              addLogEntry(`${platform} disconnected`, "info");
+              // Toggle UI: hide disconnect, reset connect button
+              setProviderDisconnected(platform.toLowerCase());
+              disc.style.display = "none";
+            } else {
+              setProviderDisconnected(platform.toLowerCase());
+              throw new Error(res?.error?.message || "Disconnect failed");
+            }
+          } catch (err) {
+            displayError(err);
           }
         });
+      }
+    });
+
+    // Listen for reset completion events from main process
+    if (window.api && window.api.onResetDone) {
+      window.api.onResetDone((data) => {
+        try {
+          if (data && data.full) {
+            showNotification("Factory reset completed — provider configs and API keys removed", "success");
+            addLogEntry("🧨 Factory reset completed", "info");
+          } else {
+            showNotification("Connections reset and activity log cleared", "success");
+            addLogEntry("✅ Connections reset and activity log cleared", "info");
+          }
+          // Ensure UI state is fully reset so modals and inputs are usable without restarting
+          try {
+            ["instagram", "tiktok", "youtube", "twitter"].forEach(setProviderDisconnected);
+            // Close provider config modal if open and clear inputs
+            if (typeof providerModal !== "undefined" && providerModal) {
+              providerModal.style.display = "none";
+            }
+
+            // Clear and enable the provider modal inputs if present
+            try {
+              const inputs = ["providerClientId", "providerClientSecret", "providerRedirectUri"];
+              inputs.forEach((id) => {
+                const el = $(id);
+                if (el) {
+                  el.disabled = false;
+                  // Only clear visible values when factory reset (full)
+                  if (data && data.full) {el.value = "";}
+                }
+              });
+            } catch (inner) {
+              console.warn("Failed to clear/enable provider modal inputs:", inner);
+            }
+
+            // Ensure progress overlay is hidden
+            hideProgress();
+            // Prevent renderer from immediately overwriting settings.json for a short window
+            try {
+              settingsWriteLockUntil = Date.now() + 3000; // 3 seconds
+            } catch (lockErr) {
+              console.warn('Failed to set settings write lock:', lockErr);
+            }
+          } catch (uiErr) {
+            console.warn("Error while normalizing UI after reset:", uiErr);
+          }
+        } catch (e) {
+          console.warn("onResetDone handler error:", e);
+        }
+      });
+    }
+
+    // Listen for settings updates from main and refresh UI/cache accordingly
+    if (window.api && window.api.onSettingsUpdated) {
+      window.api.onSettingsUpdated(async (newSettings) => {
+        try {
+          // Normalize and decrypt any sensitive fields
+          const settings = newSettings || {};
+          // Update provider modal inputs if open
+          if (typeof providerModal !== "undefined" && providerModal && providerModal.style.display === "flex") {
+            // Attempt to pre-fill using the new settings.providers entry
+            const prov = (settings.providers && settings.providers[_activeProviderForConfig]) || {};
+            if (providerClientIdInput) {providerClientIdInput.value = prov.clientId || "";}
+            if (providerClientSecretInput) {providerClientSecretInput.value = "";} // never pre-fill secret
+            if (providerRedirectInput) {providerRedirectInput.value = prov.redirectUri || providerRedirectInput.value || "http://localhost:3000/oauth/callback";}
+            // Ensure inputs are editable
+            [providerClientIdInput, providerClientSecretInput, providerRedirectInput].forEach((el) => {
+              if (el) {el.disabled = false;}
+            });
+          }
+
+          // If settings were cleared (factory reset), ensure provider badges are updated
+          if (!settings.providers || Object.keys(settings.providers).length === 0) {
+            ["instagram", "tiktok", "youtube", "twitter"].forEach(setProviderDisconnected);
+          }
+        } catch (err) {
+          console.warn("onSettingsUpdated handler error:", err);
+        }
+      });
+    }
+
+    // Single Reset button - performs a full factory reset (clear tokens, provider configs, AI keys, logs)
+    const resetAllBtn = $("resetAllBtn");
+    if (resetAllBtn) {
+      resetAllBtn.addEventListener("click", async () => {
+        const ok = confirm(
+          "RESET: This will remove ALL saved provider configurations, API keys, tokens, and clear all connections and logs. This cannot be undone. Proceed?"
+        );
+        if (!ok) {return;}
+        try {
+          // Preemptively lock settings writes in renderer to avoid races
+          try {
+            settingsWriteLockUntil = Date.now() + 3000;
+          } catch {
+            // ignore
+          }
+          showProgress("Performing reset...");
+          const res = await window.api.resetConnections({ full: true });
+          hideProgress();
+          if (res && res.success) {
+            addLogEntry("🧨 Reset performed", "info");
+            ["instagram", "tiktok", "youtube", "twitter"].forEach(setProviderDisconnected);
+            // Clear UI provider modal fields and AI fields
+            ["providerClientId", "providerClientSecret", "providerRedirectUri", "openaiApiKey", "runwayApiKey"].forEach(id => { const el = $(id); if (el) {el.value = '';} });
+            if ($("aiProvider")) {$("aiProvider").value = '';}
+            // Clear hidden token input fields
+            ["instagramToken", "tiktokToken", "youtubeToken", "twitterToken"].forEach(id => { const el = $(id); if (el) {el.value = '';} });
+            const log = $("logContainer"); if (log) {log.innerHTML = "";}
+            showNotification("Reset complete. All provider configs, tokens, and logs have been cleared.", "success");
+          } else {
+            throw new Error(res?.error?.message || "Reset failed");
+          }
+        } catch (err) {
+          hideProgress();
+          displayError(err);
+        }
+      });
+    }
+
+    // Initialize connect/disconnect button states based on tokens.json
+    (async function initSocialButtonStates() {
+      try {
+        const t = await window.api.readFile('data/tokens.json');
+        const tokens = t.success ? JSON.parse(t.content || '{}') : {};
+        socialPlatforms.forEach((platform) => {
+          const p = platform.toLowerCase();
+          const connectBtn = $(`connect${platform}Btn`);
+          const discBtn = $(`disconnect${platform}Btn`);
+            if (tokens[p]) {
+              if (connectBtn) {
+                setProviderConnected(p);
+              }
+              if (discBtn) {discBtn.style.display = '';}
+            } else {
+              if (connectBtn) {
+                setProviderDisconnected(p);
+              }
+              if (discBtn) {discBtn.style.display = 'none';}
+            }
+        });
+      } catch {
+        // tokens.json may not exist yet - that's fine
+      }
+    })();
+  }
+
+  // Provider Config Modal logic
+  const providerModal = $("providerConfigModal");
+  const providerTitle = $("providerConfigTitle");
+  const providerClientIdInput = $("providerClientId");
+  const providerClientSecretInput = $("providerClientSecret");
+  const providerRedirectInput = $("providerRedirectUri");
+  const saveProviderConfigBtn = $("saveProviderConfig");
+  const cancelProviderConfigBtn = $("cancelProviderConfig");
+  const closeProviderConfigBtn = $("closeProviderConfig");
+
+  let _activeProviderForConfig = null;
+
+  function openProviderConfigModal(provider) {
+    _activeProviderForConfig = provider;
+    providerTitle.textContent = `Configure ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
+
+    // Try to pre-fill from settings
+    // Read settings and pre-fill BEFORE showing the modal to avoid stale values
+    (async () => {
+      try {
+        const s = await window.api.readFile(PATHS.SETTINGS);
+        const settings = s.success ? JSON.parse(s.content || "{}") : {};
+        const prov = (settings.providers && settings.providers[provider]) || {};
+        if (providerClientIdInput) {providerClientIdInput.value = prov.clientId || "";}
+        // Do not pre-fill secret (decryption would be server-side); show blank for security
+        if (providerClientSecretInput) {providerClientSecretInput.value = "";}
+        if (providerRedirectInput) {providerRedirectInput.value = prov.redirectUri || providerRedirectInput.value || PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback";}
+      } catch {
+        if (providerClientIdInput) {providerClientIdInput.value = "";}
+        if (providerClientSecretInput) {providerClientSecretInput.value = "";}
+      } finally {
+        // Show modal after pre-fill completes
+        if (providerModal) {providerModal.style.display = "flex";}
+      }
+    })();
+  }
+
+  function closeProviderConfigModal() {
+    _activeProviderForConfig = null;
+    if (providerModal) {providerModal.style.display = "none";}
+  }
+
+  // UI helpers for provider status badges and spinner
+  function _badgeIdFor(provider) {
+    return `status-${provider}`;
+  }
+  function _spinnerIdFor(provider) {
+    return `spinner-${provider}`;
+  }
+
+  function setProviderConnecting(provider) {
+    const badge = $(_badgeIdFor(provider));
+    const spinner = $(_spinnerIdFor(provider));
+    const btn = $(`connect${provider.charAt(0).toUpperCase() + provider.slice(1)}Btn`);
+    if (badge) {
+      badge.textContent = 'Pending';
+      badge.classList.remove('missing', 'connected');
+      badge.classList.add('pending');
+    }
+    if (spinner) {spinner.classList.add('visible');}
+    if (btn) {btn.disabled = true;}
+  }
+
+  function setProviderPending(provider) {
+    // alias for clarity when disconnecting
+    setProviderConnecting(provider);
+  }
+
+  function setProviderConnected(provider) {
+    const badge = $(_badgeIdFor(provider));
+    const spinner = $(_spinnerIdFor(provider));
+    const btn = $(`connect${provider.charAt(0).toUpperCase() + provider.slice(1)}Btn`);
+    if (badge) {
+      badge.textContent = 'Connected';
+      badge.classList.remove('missing', 'pending');
+      badge.classList.add('connected');
+    }
+    if (spinner) {spinner.classList.remove('visible');}
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.add('connected');
+      // update only the leading text node so we don't remove badge elements
+      for (const node of Array.from(btn.childNodes)) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.nodeValue = `🔗 Connect ${provider.charAt(0).toUpperCase() + provider.slice(1)} `;
+          break;
+        }
+      }
+    }
+  }
+
+  function setProviderDisconnected(provider) {
+    const badge = $(_badgeIdFor(provider));
+    const spinner = $(_spinnerIdFor(provider));
+    const btn = $(`connect${provider.charAt(0).toUpperCase() + provider.slice(1)}Btn`);
+    if (badge) {
+      badge.textContent = 'Missing';
+      badge.classList.remove('connected', 'pending');
+      badge.classList.add('missing');
+    }
+    if (spinner) {spinner.classList.remove('visible');}
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('connected');
+      const label = provider.charAt(0).toUpperCase() + provider.slice(1);
+      // update only the leading text node so we don't remove badge elements
+      for (const node of Array.from(btn.childNodes)) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.nodeValue = `🔗 Connect ${label} `;
+          break;
+        }
+      }
+    }
+  }
+
+  if (cancelProviderConfigBtn) {cancelProviderConfigBtn.addEventListener("click", closeProviderConfigModal);}
+  if (closeProviderConfigBtn) {closeProviderConfigBtn.addEventListener("click", closeProviderConfigModal);}
+
+  if (saveProviderConfigBtn) {
+    saveProviderConfigBtn.addEventListener("click", async () => {
+      if (!_activeProviderForConfig) {return;}
+      const provider = _activeProviderForConfig;
+      const clientId = providerClientIdInput.value.trim();
+      const clientSecret = providerClientSecretInput.value;
+      const redirectUri = providerRedirectInput.value.trim() || PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback";
+
+      if (!clientId) {
+        displayError(new Error("Client ID is required"));
+        return;
+      }
+
+      try {
+        // Encrypt clientSecret using the main encrypt helper via preload
+        const encRes = clientSecret ? await window.api.encrypt(clientSecret) : { success: true, data: "" };
+        if (!encRes.success) {
+          throw new Error(encRes.error?.message || "Encryption failed");
+        }
+
+        // Read settings, update providers, and save
+        const settingsRes = await window.api.readFile(PATHS.SETTINGS);
+        const settings = settingsRes.success ? JSON.parse(settingsRes.content || "{}") : {};
+        settings.providers = settings.providers || {};
+        settings.providers[provider] = {
+          clientId: clientId,
+          clientSecret: encRes.data || "",
+          redirectUri: redirectUri,
+        };
+
+        const writeRes = await writeFileAsync(PATHS.SETTINGS, JSON.stringify(settings, null, 2));
+        if (!writeRes.success) {
+          throw new Error(writeRes.error?.message || "Failed to save settings");
+        }
+
+        addLogEntry(`Saved ${provider} configuration`, "success");
+
+        closeProviderConfigModal();
+
+        // Start OAuth immediately after saving
+        const startRes = await window.api.startOAuth(provider);
+        if (startRes && startRes.success === false) {
+          displayError(new Error(startRes.error?.message || "Failed to start OAuth"));
+          return;
+        }
+      } catch (err) {
+        displayError(err);
       }
     });
   }
@@ -5087,12 +5493,17 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         }
 
         // Update button to show connected status
-        const btnId = `connect${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)}Btn`;
-        const btn = $(btnId);
-        if (btn) {
-          btn.textContent = `✓ ${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)} Connected`;
-          btn.style.backgroundColor = "#28a745";
-          btn.disabled = false;
+        // Use the shared UI helper so we don't overwrite badge/spinner elements
+        try {
+          setProviderConnected(data.provider);
+        } catch {
+          // Fallback in case helper isn't available for some reason
+          const btnId = `connect${data.provider.charAt(0).toUpperCase() + data.provider.slice(1)}Btn`;
+          const btn = $(btnId);
+          if (btn) {
+            btn.classList.add("connected");
+            btn.disabled = false;
+          }
         }
 
         clearError();
@@ -5116,9 +5527,6 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     ];
 
     for (const platform of platforms) {
-      const btnId = `connect${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}Btn`;
-      const btn = $(btnId);
-
       // Support multiple tokens per platform (array)
       let tokens = platform.token;
       if (Array.isArray(tokens)) {
@@ -5129,14 +5537,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         tokens = [];
       }
 
-      if (btn && tokens.length > 0) {
-        btn.textContent = `✓ ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)} Connected (${tokens.length})`;
-        btn.style.backgroundColor = "#28a745";
-        btn.classList.add("connected");
-      } else if (btn) {
-        btn.textContent = `Connect ${platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}`;
-        btn.style.backgroundColor = "";
-        btn.classList.remove("connected");
+      if (tokens.length > 0) {
+        // Mark as connected via badge helpers so we don't overwrite inner HTML (badges)
+        setProviderConnected(platform.name);
+      } else {
+        setProviderDisconnected(platform.name);
       }
 
       // Populate hidden token field with first token (for legacy compatibility)
@@ -5175,9 +5580,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       const btnId = `connect${name.charAt(0).toUpperCase() + name.slice(1)}Btn`;
       const btn = $(btnId);
       if (btn) {
-        btn.textContent = `Connect ${name.charAt(0).toUpperCase() + name.slice(1)}`;
-        btn.style.backgroundColor = "";
-        btn.classList.remove("connected");
+        // reset using helper to preserve badge/spinner children
+        setProviderDisconnected(name);
       }
     }
     // Reset AI provider fields/buttons
@@ -5313,7 +5717,40 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
             `Failed to save ${provider} token: ${w.error?.message || "unknown"}`,
           );
         }
+        // Update connect button state right away
+        const btnId = `connect${provider.charAt(0).toUpperCase() + provider.slice(1)}Btn`;
+        const btn = $(btnId);
+        if (btn) {
+          setProviderConnected(provider);
+        }
       });
+    }
+
+      // Listen for oauth-token-removed events (disconnects)
+      if (window.api && window.api.onOAuthTokenRemoved) {
+        window.api.onOAuthTokenRemoved((data) => {
+          const provider = data.provider;
+          if (!provider) {return;}
+          const btnId = `connect${provider.charAt(0).toUpperCase() + provider.slice(1)}Btn`;
+          const discId = `disconnect${provider.charAt(0).toUpperCase() + provider.slice(1)}Btn`;
+          const btn = $(btnId);
+          const disc = $(discId);
+          if (btn) {
+            setProviderDisconnected(provider);
+          }
+          if (disc) {disc.style.display = "none";}
+        });
+      }
+
+    // Listen for token removal (disconnect)
+    if (window.api && window.api.onOAuthToken) {
+      window.api.onOAuthToken && window.api.onOAuthToken(() => {}); // noop to ensure API available
+    }
+    // Custom listener for oauth-token-removed (emitted from main)
+    if (window.api && window.api.onOAuthToken && window.api.onScheduledPost) {
+      // Use the global ipc subscription if available via preload
+      // Preload doesn't expose oauth-token-removed helper, so attach to ipcRenderer via existing handlers when main sends message
+      // We use a simple polling via readFile in init to update button states after disconnect; main also sends oauth-token-removed which is handled below via window.api.onOAuthToken when it carries removed flag.
     }
 
     addLogEntry("AI Auto Bot ready - All functions operational");

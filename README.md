@@ -72,6 +72,25 @@ This creates installers in the `/dist` folder:
 3. Go to **Tokens** section and add social media platform tokens
 4. Click **Save Config** to save your settings (encrypted automatically)
 
+## OAuth provider configuration
+
+You can provide OAuth client credentials either via environment variables (for power users / CI) or at runtime using the in-app Provider Configuration modal.
+
+- Quick (recommended for non-developers):
+    - Open the app, click a platform's **Connect** button.
+    - If no credentials are found, the app will prompt you to enter Client ID, Client Secret and Redirect URI.
+    - Save the settings — secrets are encrypted on disk and used by the main process for token exchanges.
+
+- For developers / CI:
+    - Copy `.env.example` to `.env` and fill in the required variables. Example variables shown include `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `REDIRECT_URI`.
+    - The app reads `process.env` values on startup and prefers in-app saved provider config if present.
+
+Security notes:
+- Never commit a real `.env` file to source control. Use `.env.example` as a template only.
+- Provider secrets saved in the app are encrypted at rest and stored under `data/`. They are machine-specific and cannot be decrypted on another machine without the encryption key.
+- If you supply `ENCRYPTION_KEY` in `.env`, it should be a hex-encoded 32-byte key (64 hex chars). If omitted, the app will generate a development key at `data/.encryption_key` (do not commit this file).
+
+
 ## Project Structure
 
 ```

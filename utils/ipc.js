@@ -1,5 +1,5 @@
 // utils/ipc.js - re-export shared IPC constants
-const { IPC_CHANNELS } = require("./ipc-constants");
+const { IPC_CHANNELS } = require("./ipc-constants.cjs");
 
 /**
  * Validates if a channel name is valid
