@@ -87,11 +87,8 @@ $page = 1
 $perPage = 100
 
 do {
-    $url = "$baseUrl?per_page=$perPage&page=$page"
-    if ($Status -ne "all") {
-        $url += "&status=$Status"
-    }
-
+    $url = "${baseUrl}?per_page=${perPage}&page=${page}&status=completed"
+    
     try {
         $response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
         $allRuns += $response.workflow_runs
@@ -107,7 +104,13 @@ do {
     }
 } while ($true)
 
-Write-Host "📊 Found $($allRuns.Count) runs matching status: $Status" -ForegroundColor Green
+Write-Host "📊 Found $($allRuns.Count) completed runs" -ForegroundColor Green
+
+# Filter by conclusion (failure, cancelled, success, or all)
+if ($Status -ne "all") {
+    $allRuns = $allRuns | Where-Object { $_.conclusion -eq $Status }
+    Write-Host "🔍 Filtered to $($allRuns.Count) runs with conclusion: $Status" -ForegroundColor Green
+}
 
 # Filter by date if specified
 if ($OlderThanDays -gt 0) {
@@ -132,13 +135,13 @@ Write-Host ""
 Write-Host "📋 Summary of runs to delete:" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
 
-$grouped = $allRuns | Group-Object -Property status, path | Sort-Object Count -Descending
+$grouped = $allRuns | Group-Object -Property conclusion, path | Sort-Object Count -Descending
 foreach ($group in $grouped) {
-    $status = $group.Group[0].status
+    $runStatus = $group.Group[0].conclusion
     $workflow = ($group.Group[0].path -split '/')[-1]
     $count = $group.Count
 
-    $statusColor = switch ($status) {
+    $statusColor = switch ($runStatus) {
         "failure" { "Red" }
         "cancelled" { "Yellow" }
         "success" { "Green" }
@@ -146,7 +149,7 @@ foreach ($group in $grouped) {
     }
 
     Write-Host "  $count × " -NoNewline -ForegroundColor White
-    Write-Host "$status" -NoNewline -ForegroundColor $statusColor
+    Write-Host "$runStatus" -NoNewline -ForegroundColor $statusColor
     Write-Host " - $workflow" -ForegroundColor Gray
 }
 
