@@ -5053,6 +5053,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     _activeProviderForConfig = provider;
     providerTitle.textContent = `Configure ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
 
+    // Set developer portal link based on provider
+    const portalLinks = {
+      instagram: "https://developers.facebook.com/apps/",
+      tiktok: "https://developers.tiktok.com/",
+      youtube: "https://console.cloud.google.com/",
+      twitter: "https://developer.twitter.com/en/portal/dashboard"
+    };
+    const providerPortalLink = document.getElementById("providerPortalLink");
+    if (providerPortalLink) {
+      providerPortalLink.href = portalLinks[provider] || "#";
+    }
+
     // Try to pre-fill from settings
     // Read settings and pre-fill BEFORE showing the modal to avoid stale values
     (async () => {
