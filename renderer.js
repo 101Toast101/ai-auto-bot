@@ -4994,7 +4994,14 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
             addLogEntry("🧨 Reset performed", "info");
             ["instagram", "tiktok", "youtube", "twitter"].forEach(setProviderDisconnected);
             // Clear UI provider modal fields and AI fields
-            ["providerClientId", "providerClientSecret", "providerRedirectUri", "openaiApiKey", "runwayApiKey"].forEach(id => { const el = $(id); if (el) {el.value = '';} });
+            ["providerClientId", "providerClientSecret", "providerRedirectUri", "openaiApiKey", "runwayApiKey"].forEach(id => { 
+              const el = $(id); 
+              if (el) {
+                el.value = '';
+                el.disabled = false;
+                el.readOnly = false;
+              } 
+            });
             if ($("aiProvider")) {$("aiProvider").value = '';}
             // Clear hidden token input fields
             ["instagramToken", "tiktokToken", "youtubeToken", "twitterToken"].forEach(id => { const el = $(id); if (el) {el.value = '';} });
