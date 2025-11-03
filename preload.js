@@ -50,6 +50,7 @@ contextBridge.exposeInMainWorld("api", {
   generateAiVideo: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_AI_VIDEO, params),
   generateLocalVideo: (params) => ipcRenderer.invoke('generate-local-video', params),
   onVideoProgress: (callback) => ipcRenderer.on(IPC_CHANNELS.VIDEO_PROGRESS, (_event, progress) => callback(progress)),
+  onLocalVideoProgress: (callback) => ipcRenderer.on('local-video-progress', (_event, progress) => callback(progress)),
 
   // Scheduler Listener
   onScheduledPost: (callback) => {

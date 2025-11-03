@@ -3433,6 +3433,13 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       addLogEntry(`🎬 Generating AI video using ${provider.toUpperCase()}...`);
       showSpinner(`Generating with ${provider}... (est. ${Math.floor(capabilities.estimatedTime / 60)} min)`);
 
+      // Listen for local video progress updates
+      if (isLocalModel) {
+        window.api.onLocalVideoProgress((progress) => {
+          updateSpinnerMessage(progress.message || `${progress.stage}... ${progress.percent}%`);
+        });
+      }
+
       // Prepare generation options
       const duration = parseInt($("videoDuration")?.value || "5");
       const aspectRatio = $("aspectRatio")?.value || "16:9";
