@@ -4919,17 +4919,30 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         try {
           // Normalize and decrypt any sensitive fields
           const settings = newSettings || {};
+          
+          // Check if this is a recent reset
+          const lastReset = settings.__last_reset ? new Date(settings.__last_reset).getTime() : 0;
+          const isRecentReset = (Date.now() - lastReset) < 5000;
+          
           // Update provider modal inputs if open
           if (typeof providerModal !== "undefined" && providerModal && providerModal.style.display === "flex") {
             // Attempt to pre-fill using the new settings.providers entry
             const prov = (settings.providers && settings.providers[_activeProviderForConfig]) || {};
-            if (providerClientIdInput) {providerClientIdInput.value = prov.clientId || "";}
-            if (providerClientSecretInput) {providerClientSecretInput.value = "";} // never pre-fill secret
-            if (providerRedirectInput) {providerRedirectInput.value = prov.redirectUri || providerRedirectInput.value || "http://localhost:3000/oauth/callback";}
-            // Ensure inputs are editable
-            [providerClientIdInput, providerClientSecretInput, providerRedirectInput].forEach((el) => {
-              if (el) {el.disabled = false;}
-            });
+            if (providerClientIdInput) {
+              providerClientIdInput.value = isRecentReset ? "" : (prov.clientId || "");
+              providerClientIdInput.disabled = false;
+              providerClientIdInput.readOnly = false;
+            }
+            if (providerClientSecretInput) {
+              providerClientSecretInput.value = ""; // never pre-fill secret
+              providerClientSecretInput.disabled = false;
+              providerClientSecretInput.readOnly = false;
+            }
+            if (providerRedirectInput) {
+              providerRedirectInput.value = isRecentReset ? "http://localhost:3000/oauth/callback" : (prov.redirectUri || providerRedirectInput.value || "http://localhost:3000/oauth/callback");
+              providerRedirectInput.disabled = false;
+              providerRedirectInput.readOnly = false;
+            }
           }
 
           // If settings were cleared (factory reset), ensure provider badges are updated
@@ -5081,6 +5094,29 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       } finally {
         // Show modal after pre-fill completes
         if (providerModal) {providerModal.style.display = "flex";}
+        
+        // CRITICAL: Force fields to be editable after modal is shown
+        // This ensures no other code can leave them disabled
+        setTimeout(() => {
+          if (providerClientIdInput) {
+            providerClientIdInput.disabled = false;
+            providerClientIdInput.readOnly = false;
+            providerClientIdInput.removeAttribute('disabled');
+            providerClientIdInput.removeAttribute('readonly');
+          }
+          if (providerClientSecretInput) {
+            providerClientSecretInput.disabled = false;
+            providerClientSecretInput.readOnly = false;
+            providerClientSecretInput.removeAttribute('disabled');
+            providerClientSecretInput.removeAttribute('readonly');
+          }
+          if (providerRedirectInput) {
+            providerRedirectInput.disabled = false;
+            providerRedirectInput.readOnly = false;
+            providerRedirectInput.removeAttribute('disabled');
+            providerRedirectInput.removeAttribute('readonly');
+          }
+        }, 100);
       }
     })();
   }
