@@ -4875,10 +4875,23 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
                 const el = $(id);
                 if (el) {
                   el.disabled = false;
+                  el.readOnly = false;
                   // Only clear visible values when factory reset (full)
                   if (data && data.full) {el.value = "";}
                 }
               });
+
+              // Also clear and enable AI provider fields on full reset
+              if (data && data.full) {
+                ["openaiApiKey", "runwayApiKey", "aiProvider"].forEach((id) => {
+                  const el = $(id);
+                  if (el) {
+                    el.value = "";
+                    el.disabled = false;
+                    el.readOnly = false;
+                  }
+                });
+              }
             } catch (inner) {
               console.warn("Failed to clear/enable provider modal inputs:", inner);
             }
@@ -4949,21 +4962,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           hideProgress();
           if (res && res.success) {
             addLogEntry("🧨 Reset performed", "info");
-            ["instagram", "tiktok", "youtube", "twitter"].forEach(setProviderDisconnected);
-            // Clear UI provider modal fields and AI fields
-            ["providerClientId", "providerClientSecret", "providerRedirectUri", "openaiApiKey", "runwayApiKey"].forEach(id => {
-              const el = $(id);
-              if (el) {
-                el.value = '';
-                el.disabled = false;
-                el.readOnly = false;
-              }
-            });
-            if ($("aiProvider")) {$("aiProvider").value = '';}
-            // Clear hidden token input fields
-            ["instagramToken", "tiktokToken", "youtubeToken", "twitterToken"].forEach(id => { const el = $(id); if (el) {el.value = '';} });
-            const log = $("logContainer"); if (log) {log.innerHTML = "";}
-            showNotification("Reset complete. All provider configs, tokens, and logs have been cleared.", "success");
+            // Wait a moment for notifications to show, then reload page to ensure clean state
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
           } else {
             throw new Error(res?.error?.message || "Reset failed");
           }
