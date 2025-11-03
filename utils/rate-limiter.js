@@ -8,9 +8,20 @@ class RateLimiter {
     this.requests = new Map(); // Track requests per sender
 
     // Auto-cleanup old entries every minute
-    setInterval(() => {
+    // Use .unref() to allow process to exit even if timer is pending
+    this.cleanupTimer = setInterval(() => {
       this.cleanup();
-    }, 60000);
+    }, 60000).unref();
+  }
+
+  /**
+   * Stop the cleanup timer (useful for testing and graceful shutdown)
+   */
+  destroy() {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
   }
 
   /**

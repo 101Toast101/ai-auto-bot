@@ -12,9 +12,10 @@ describe("RateLimiter", () => {
   });
 
   afterEach(() => {
-    // Clear any intervals
+    // Clean up the timer to prevent leaks
     if (limiter) {
-      limiter.cleanup();
+      limiter.destroy();
+      limiter = null;
     }
   });
 
