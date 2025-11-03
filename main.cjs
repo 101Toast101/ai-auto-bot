@@ -1164,8 +1164,11 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
       '--height', String(height || 320),
     ];
 
+    console.log('[Local AI] Running:', pythonCmd, args.join(' '));
+
     return new Promise((resolve) => {
-      const childProcess = spawn(pythonCmd, args, { shell: true });
+      // Don't use shell: true for the actual execution to avoid quoting issues
+      const childProcess = spawn(pythonCmd, args);
       let stdout = '';
       let stderr = '';
 
