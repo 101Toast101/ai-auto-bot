@@ -27,10 +27,53 @@
 </head>
 
 <body>
-  <div class="container">
-    <header class="header">
-      <h1>🎬 AI Auto Bot</h1>
-    </header>
+  <!-- SIDEBAR NAVIGATION -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <h2>🎬 AI Auto Bot</h2>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-item active" data-section="generate">
+        <span class="nav-icon">✨</span>
+        <span class="nav-label">Generate</span>
+      </li>
+      <li class="nav-item" data-section="schedule">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Schedule</span>
+      </li>
+      <li class="nav-item" data-section="library">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">Library</span>
+      </li>
+      <li class="nav-item" data-section="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </li>
+      <li class="nav-item" data-section="stats">
+        <span class="nav-icon">💰</span>
+        <span class="nav-label">Stats & Logs</span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <label class="toggle">
+        <span class="nav-icon">🌙</span>
+        Dark Mode
+        <input type="checkbox" id="darkModeToggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT AREA -->
+  <div class="main-content">
+    <div class="container">
+    
+    <!-- SECTION: GENERATE -->
+    <div id="section-generate" class="content-section active">
+      <header class="section-header">
+        <h1>✨ Generate Content</h1>
+        <p>Create memes and videos with AI</p>
+      </header>
 
     <!-- Top-bar Controls -->
     <div id="controls">
@@ -44,27 +87,27 @@
       <button type="button" id="resetLayoutBtn" title="Reset all cards to default layout">
         Reset Layout
       </button>
-      <label class="toggle">
-        Dark Mode
-        <input type="checkbox" id="darkModeToggle" />
-        <span class="slider"></span>
-      </label>
       <!-- Hidden UI debug area (removed) -->
     </div>
 
     <!-- FIRST TIME SETUP WIZARD MODAL -->
-    <div id="setupWizardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; overflow-y: auto;">
-      <div style="background: var(--glass-bg); max-width: 900px; margin: 30px auto; padding: 40px; border-radius: 20px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
-        <button id="closeSetupWizard" style="position: absolute; top: 20px; right: 20px; background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Skip</button>
-        
+    <div id="setupWizardModal"
+      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; overflow-y: auto;">
+      <div
+        style="background: var(--glass-bg); max-width: 900px; margin: 30px auto; padding: 40px; border-radius: 20px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <button id="closeSetupWizard"
+          style="position: absolute; top: 20px; right: 20px; background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Skip</button>
+
         <div style="text-align: center; margin-bottom: 40px;">
           <h1 style="font-size: 36px; margin-bottom: 10px;">🎬 Welcome to AI Auto Bot!</h1>
           <p style="font-size: 18px; color: #6b7280;">Your FREE social media automation tool</p>
         </div>
 
-        <div style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(30, 60, 114, 0.1) 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 4px solid #4a90e2;">
+        <div
+          style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(30, 60, 114, 0.1) 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 4px solid #4a90e2;">
           <h3 style="margin-bottom: 15px; color: #4a90e2;">✨ How It Works (BYOK Model)</h3>
-          <p style="line-height: 1.8; margin-bottom: 15px;">This app is <strong>100% FREE</strong>, but you need to provide your own API keys:</p>
+          <p style="line-height: 1.8; margin-bottom: 15px;">This app is <strong>100% FREE</strong>, but you need to
+            provide your own API keys:</p>
           <ul style="line-height: 2; margin-left: 20px;">
             <li>✅ <strong>You control your data</strong> - All keys are encrypted locally</li>
             <li>✅ <strong>You control costs</strong> - Pay API providers directly (no middleman)</li>
@@ -95,21 +138,26 @@
         <div style="background: #f3f4f6; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
           <h3 style="margin-bottom: 20px; color: #1f2937;">🚀 Setup Checklist</h3>
           <div style="display: grid; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
+            <div
+              style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
               <input type="checkbox" id="setupCheckOpenAI" style="width: 20px; height: 20px;">
               <label for="setupCheckOpenAI" style="flex: 1; cursor: pointer;">
                 <strong>OpenAI API Key</strong> - For image generation
-                <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #4a90e2; text-decoration: none; margin-left: 10px;">Get Key →</a>
+                <a href="https://platform.openai.com/api-keys" target="_blank"
+                  style="color: #4a90e2; text-decoration: none; margin-left: 10px;">Get Key →</a>
               </label>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
+            <div
+              style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
               <input type="checkbox" id="setupCheckRunway" style="width: 20px; height: 20px;">
               <label for="setupCheckRunway" style="flex: 1; cursor: pointer;">
                 <strong>Runway API Key</strong> - For video generation (optional)
-                <a href="https://runwayml.com" target="_blank" style="color: #4a90e2; text-decoration: none; margin-left: 10px;">Get Key →</a>
+                <a href="https://runwayml.com" target="_blank"
+                  style="color: #4a90e2; text-decoration: none; margin-left: 10px;">Get Key →</a>
               </label>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
+            <div
+              style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
               <input type="checkbox" id="setupCheckSocial" style="width: 20px; height: 20px;">
               <label for="setupCheckSocial" style="flex: 1; cursor: pointer;">
                 <strong>Social Media OAuth</strong> - Connect your accounts
@@ -120,10 +168,12 @@
         </div>
 
         <div style="display: flex; gap: 15px;">
-          <button id="openSettingsFromWizard" style="flex: 1; padding: 15px; background: var(--blue-gradient); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">
+          <button id="openSettingsFromWizard"
+            style="flex: 1; padding: 15px; background: var(--blue-gradient); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">
             ⚙️ Open Settings & Add Keys
           </button>
-          <button id="continueWithoutSetup" style="flex: 1; padding: 15px; background: #6b7280; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">
+          <button id="continueWithoutSetup"
+            style="flex: 1; padding: 15px; background: #6b7280; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">
             Skip for Now
           </button>
         </div>
@@ -470,6 +520,16 @@ Top Text 2|Bottom Text 2"></textarea>
       </div>
     </div>
 
+    </div>
+    <!-- END SECTION: SCHEDULE -->
+
+    <!-- SECTION: LIBRARY -->
+    <div id="section-library" class="content-section">
+      <header class="section-header">
+        <h1>📚 Content Library</h1>
+        <p>Browse and manage your saved content</p>
+      </header>
+
     <!-- CONFIG MANAGER -->
     <div id="configManager">
       <input type="text" id="configNameInput" placeholder="Config Name"
@@ -508,6 +568,16 @@ Top Text 2|Bottom Text 2"></textarea>
         </p>
       </div>
     </fieldset>
+
+    </div>
+    <!-- END SECTION: LIBRARY -->
+
+    <!-- SECTION: SETTINGS -->
+    <div id="section-settings" class="content-section">
+      <header class="section-header">
+        <h1>⚙️ Settings</h1>
+        <p>Configure API keys, OAuth, and preferences</p>
+      </header>
 
     <!-- Settings Form -->
     <form id="settingsForm">
@@ -707,7 +777,8 @@ Top Text 2|Bottom Text 2"></textarea>
           <p style="margin: 5px 0; font-size: 0.85rem; color: #718096">
             Your API keys are encrypted and stored securely
           </p>
-          <button type="button" id="reopenSetupWizard" style="margin-top: 10px; padding: 8px 16px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          <button type="button" id="reopenSetupWizard"
+            style="margin-top: 10px; padding: 8px 16px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
             📖 Show Setup Guide
           </button>
         </div>
@@ -785,12 +856,6 @@ Top Text 2|Bottom Text 2"></textarea>
         </div>
       </fieldset>
 
-      <!-- Activity Log -->
-      <fieldset>
-        <legend>Activity Log</legend>
-        <div id="logContainer" class="log-container"></div>
-      </fieldset>
-
       <fieldset class="oauth-fieldset">
         <legend>Connect Your Social Media Accounts</legend>
         <div class="oauth-buttons">
@@ -845,6 +910,16 @@ Top Text 2|Bottom Text 2"></textarea>
           <input type="text" id="manualHashtags" placeholder="#ai #fun" />
         </label>
       </fieldset>
+      
+    </div>
+    <!-- END SECTION: GENERATE -->
+
+    <!-- SECTION: SCHEDULE -->
+    <div id="section-schedule" class="content-section">
+      <header class="section-header">
+        <h1>📅 Schedule Posts</h1>
+        <p>Schedule content for automatic posting</p>
+      </header>
 
       <!-- Scheduling & Scheduled Posts (Combined) -->
       <fieldset id="schedulingFieldset">
@@ -910,7 +985,30 @@ Top Text 2|Bottom Text 2"></textarea>
         </div>
       </fieldset>
     </form>
+
+    </div>
+    <!-- END SECTION: SETTINGS -->
+
+    <!-- SECTION: STATS -->
+    <div id="section-stats" class="content-section">
+      <header class="section-header">
+        <h1>💰 Stats & Activity</h1>
+        <p>Track costs and view activity logs</p>
+      </header>
+
+      <!-- Activity Log -->
+      <fieldset>
+        <legend>Activity Log</legend>
+        <div id="logContainer" class="log-container"></div>
+      </fieldset>
+    </div>
+    <!-- END SECTION: STATS -->
+
   </div>
+  <!-- END CONTAINER -->
+  </div>
+  <!-- END MAIN CONTENT -->
+
   <!-- Provider Config Modal (for social provider client id/secret entry) -->
   <div id="providerConfigModal" style="
         display: none;

@@ -3603,7 +3603,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         // Track video generation cost (use actual duration from settings)
         const videoDuration = parseInt($("videoDuration")?.value || 10);
         trackVideoGeneration(videoDuration);
-        
+
         hideSpinner();
         addLogEntry(
           "AI video generated successfully using Runway Gen-3 Alpha!",
@@ -6217,7 +6217,83 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     initPreviewModal();
     initCostTracker();
     initSetupWizard();
+    initSidebarNavigation();
   });
+
+  // ============================================
+  // SIDEBAR NAVIGATION
+  // ============================================
+
+  function initSidebarNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.content-section');
+
+    // Load saved section or default to 'generate'
+    const savedSection = localStorage.getItem('activeSection') || 'generate';
+    showSection(savedSection);
+
+    // Add click handlers
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const sectionId = item.dataset.section;
+        showSection(sectionId);
+        localStorage.setItem('activeSection', sectionId);
+      });
+    });
+
+    function showSection(sectionId) {
+      // Update nav items
+      navItems.forEach(item => {
+        if (item.dataset.section === sectionId) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+
+      // Update sections
+      sections.forEach(section => {
+        if (section.id === `section-${sectionId}`) {
+          section.classList.add('active');
+        } else {
+          section.classList.remove('active');
+        }
+      });
+
+      // Scroll to top of main content
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        mainContent.scrollTop = 0;
+      }
+
+      addLogEntry(`📂 Navigated to ${sectionId} section`);
+    }
+
+    // Mobile sidebar toggle (for responsive)
+    const createMobileToggle = () => {
+      if (window.innerWidth <= 768) {
+        let toggle = document.getElementById('sidebarToggle');
+        if (!toggle) {
+          toggle = document.createElement('button');
+          toggle.id = 'sidebarToggle';
+          toggle.innerHTML = '☰';
+          toggle.style.cssText = 'position: fixed; top: 15px; left: 15px; z-index: 101; padding: 10px 15px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 20px;';
+          document.body.appendChild(toggle);
+
+          toggle.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+          });
+        }
+      } else {
+        const toggle = document.getElementById('sidebarToggle');
+        if (toggle) toggle.remove();
+      }
+    };
+
+    createMobileToggle();
+    window.addEventListener('resize', createMobileToggle);
+  }
 
   // ============================================
   // SETUP WIZARD
@@ -6226,7 +6302,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   function initSetupWizard() {
     // Check if this is first run
     const hasSeenWizard = localStorage.getItem('hasSeenSetupWizard');
-    
+
     if (!hasSeenWizard) {
       // Show wizard after a brief delay so UI loads first
       setTimeout(() => {
@@ -6296,7 +6372,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
   function initCostTracker() {
     loadCostStats();
-    
+
     const resetBtn = document.getElementById('resetCostsBtn');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
@@ -6337,17 +6413,17 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     const totalCostEl = document.getElementById('totalCost');
 
     if (imagesEl) imagesEl.textContent = stats.imagesGenerated || 0;
-    
+
     // OpenAI DALL-E 3: $0.04 per image
     const openaiCost = (stats.imagesGenerated || 0) * 0.04;
     if (openaiCostEl) openaiCostEl.textContent = `$${openaiCost.toFixed(2)}`;
-    
+
     if (videosEl) videosEl.textContent = stats.videosGenerated || 0;
-    
+
     // Runway Gen-3: ~$0.25 per second (mid-range estimate)
     const runwayCost = (stats.videoSecondsGenerated || 0) * 0.25;
     if (runwayCostEl) runwayCostEl.textContent = `$${runwayCost.toFixed(2)}`;
-    
+
     const totalCost = openaiCost + runwayCost;
     if (totalCostEl) totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
   }
