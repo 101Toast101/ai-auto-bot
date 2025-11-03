@@ -1,6 +1,7 @@
 // utils/encrypt.cjs - API Key Encryption
 const crypto = require("crypto");
 const os = require("os");
+const { logError } = require('./logger.cjs');
 
 // Generate machine-specific encryption key
 function getMachineKey() {
@@ -51,7 +52,7 @@ function decrypt(encryptedData) {
 
     return decrypted;
   } catch (err) {
-    console.error('Decryption failed:', err);
+    logError('Decryption failed', err);
     return encryptedData;
   }
 }

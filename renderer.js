@@ -4919,11 +4919,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         try {
           // Normalize and decrypt any sensitive fields
           const settings = newSettings || {};
-          
+
           // Check if this is a recent reset
           const lastReset = settings.__last_reset ? new Date(settings.__last_reset).getTime() : 0;
           const isRecentReset = (Date.now() - lastReset) < 5000;
-          
+
           // Update provider modal inputs if open
           if (typeof providerModal !== "undefined" && providerModal && providerModal.style.display === "flex") {
             // Attempt to pre-fill using the new settings.providers entry
@@ -5060,11 +5060,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         const s = await window.api.readFile(PATHS.SETTINGS);
         const settings = s.success ? JSON.parse(s.content || "{}") : {};
         const prov = (settings.providers && settings.providers[provider]) || {};
-        
+
         // Check if settings were recently reset (within last 5 seconds)
         const lastReset = settings.__last_reset ? new Date(settings.__last_reset).getTime() : 0;
         const isRecentReset = (Date.now() - lastReset) < 5000;
-        
+
         if (providerClientIdInput) {
           // If reset recently, always use blank value
           providerClientIdInput.value = isRecentReset ? "" : (prov.clientId || "");
@@ -5101,7 +5101,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       } finally {
         // Show modal after pre-fill completes
         if (providerModal) {providerModal.style.display = "flex";}
-        
+
         // CRITICAL: Force fields to be editable after modal is shown
         // This ensures no other code can leave them disabled
         setTimeout(() => {

@@ -1,4 +1,5 @@
 // utils/sanitize.js - HTML sanitization utilities to prevent XSS
+const { logSecurity } = require('./logger.cjs');
 
 /**
  * Escape HTML special characters to prevent XSS attacks
@@ -78,14 +79,14 @@ function sanitizeUrl(url, allowedProtocols = ['http:', 'https:', 'file:']) {
 
     // Block dangerous protocols
     if (!allowedProtocols.includes(parsed.protocol)) {
-      console.error(`[Security] Blocked dangerous URL protocol: ${parsed.protocol}`);
+      logSecurity(`Blocked dangerous URL protocol: ${parsed.protocol}`);
       return null;
     }
 
     return parsed.toString();
   } catch (err) {
     // Invalid URL
-    console.error('[Security] Invalid URL:', err.message);
+    logSecurity(`Invalid URL: ${err.message}`);
     return null;
   }
 }
@@ -127,7 +128,7 @@ function limitLength(str, maxLength, defaultValue = '') {
   }
 
   if (str.length > maxLength) {
-    console.warn(`[Security] String truncated from ${str.length} to ${maxLength} chars`);
+    logSecurity(`String truncated from ${str.length} to ${maxLength} chars`);
     return str.substring(0, maxLength);
   }
 
@@ -151,7 +152,7 @@ function sanitizeObject(obj) {
     if (!dangerous.includes(key)) {
       safe[key] = obj[key];
     } else {
-      console.warn(`[Security] Blocked dangerous object key: ${key}`);
+      logSecurity(`Blocked dangerous object key: ${key}`);
     }
   }
 

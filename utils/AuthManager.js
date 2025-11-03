@@ -1,6 +1,6 @@
 // AuthManager.js - Enhanced Authentication Management
-// const crypto = require('crypto');
 const { loadToken, saveToken } = require("../tokenStore");
+const { logError } = require('./logger.cjs');
 
 class AuthManager {
   constructor() {
@@ -50,7 +50,7 @@ class AuthManager {
         await saveToken(platform, newToken);
       }
     } catch (error) {
-      console.error(`Token refresh failed for ${platform}:`, error);
+      logError(`Token refresh failed for ${platform}`, error);
       throw error;
     } finally {
       this.tokenRefreshQueue.delete(platform);

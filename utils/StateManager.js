@@ -1,4 +1,6 @@
-// StateManager.js - Centralized state management
+// State Manager for centralized state handling
+const { logError } = require('./logger.cjs');
+
 class StateManager {
   constructor() {
     this.state = {};
@@ -64,7 +66,7 @@ class StateManager {
 
       return true;
     } catch (error) {
-      console.error("Error in dispatch:", error);
+      logError("Error in dispatch", error);
       return false;
     }
   }
@@ -142,7 +144,7 @@ class StateManager {
         try {
           callback(nextState, prevState, action);
         } catch (error) {
-          console.error("Error in subscriber callback:", error);
+          logError("Error in subscriber callback", error);
         }
       });
     }
@@ -154,7 +156,7 @@ class StateManager {
         try {
           callback(nextState, prevState, action);
         } catch (error) {
-          console.error("Error in global subscriber callback:", error);
+          logError("Error in global subscriber callback", error);
         }
       });
     }

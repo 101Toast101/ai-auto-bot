@@ -1,10 +1,12 @@
 require("dotenv").config(); // Load environment variables
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { encrypt, decrypt } = require("./utils/encrypt.cjs");
 const { logInfo, logError } = require("./utils/logger.cjs");
+const PerformanceMonitor = require("./utils/performance-monitor.cjs");
 const { registerVideoHandlers } = require("./handlers/video-handlers.cjs");
 const { IPC_CHANNELS } = require("./utils/ipc-constants.cjs");
 const {
@@ -21,6 +23,48 @@ const oauthApp = express();
 const PORT = 3000;
 
 const tokenStore = require("./tokenStore.cjs");
+
+// Initialize performance monitor
+const perfMonitor = new PerformanceMonitor();
+
+// Validate required environment variables on startup
+function validateEnvironmentVariables() {
+  const requiredVars = [
+    'ENCRYPTION_KEY',
+  ];
+  
+  const optionalOAuthVars = {
+    instagram: ['INSTAGRAM_CLIENT_ID', 'INSTAGRAM_CLIENT_SECRET'],
+    tiktok: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'],
+    youtube: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'],
+    twitter: ['TWITTER_CLIENT_ID', 'TWITTER_CLIENT_SECRET']
+  };
+
+  const missing = requiredVars.filter(v => !process.env[v]);
+  
+  if (missing.length > 0) {
+    logError(`CRITICAL: Missing required environment variables: ${missing.join(', ')}`);
+    dialog.showErrorBoxSync('Configuration Error', 
+      `Missing required environment variables:\n${missing.join('\n')}\n\nPlease check your .env file.`);
+    app.quit();
+    return false;
+  }
+
+  // Check OAuth credentials (warn but don't exit)
+  const missingOAuth = [];
+  Object.entries(optionalOAuthVars).forEach(([platform, vars]) => {
+    const platformMissing = vars.filter(v => !process.env[v]);
+    if (platformMissing.length > 0) {
+      missingOAuth.push(`${platform}: ${platformMissing.join(', ')}`);
+    }
+  });
+
+  if (missingOAuth.length > 0) {
+    logInfo(`OAuth credentials not configured for:\n${missingOAuth.join('\n')}`);
+  }
+
+  return true;
+}
 
 function loadSavedProviderConfig(provider) {
   try {
@@ -245,6 +289,11 @@ process.on("unhandledRejection", async (reason) => {
 app.whenReady().then(() => {
   logInfo("Starting AI Auto Bot...");
 
+  // Validate environment variables before proceeding
+  if (!validateEnvironmentVariables()) {
+    return; // Exit already called in validation
+  }
+
   // Register video handlers
   registerVideoHandlers(ipcMain, BrowserWindow);
 
@@ -282,7 +331,57 @@ app.whenReady().then(() => {
   setTimeout(() => {
     startScheduler();
   }, 5000); // Wait 5 seconds for app to fully initialize
+
+  // Check for updates (production only)
+  if (!process.defaultApp) {
+    checkForUpdates();
+  }
+
+  // Mark startup as complete and log metrics
+  perfMonitor.recordStartupComplete();
+  
+  // Log performance summary every hour
+  setInterval(() => {
+    perfMonitor.logMetricsSummary();
+  }, 60 * 60 * 1000);
 });
+
+// Auto-updater configuration
+function checkForUpdates() {
+  autoUpdater.checkForUpdatesAndNotify();
+  
+  autoUpdater.on('update-available', () => {
+    logInfo('Update available. Downloading...');
+    if (mainWindow) {
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Update Available',
+        message: 'A new version is available. It will be downloaded in the background.',
+        buttons: ['OK']
+      });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    logInfo('Update downloaded. Will install on quit.');
+    if (mainWindow) {
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Update Ready',
+        message: 'A new version has been downloaded. It will be installed when you quit the app.',
+        buttons: ['Restart Now', 'Later']
+      }).then((result) => {
+        if (result.response === 0) {
+          autoUpdater.quitAndInstall();
+        }
+      });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    logError('Update error', err);
+  });
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -985,6 +1084,11 @@ ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
 ipcMain.on('restart-app', () => {
   app.relaunch();
   app.exit(0);
+});
+
+// IPC handler: Get performance metrics
+ipcMain.handle('get-performance-metrics', () => {
+  return perfMonitor.getMetrics();
 });
 
 // Auto-Scheduler Function

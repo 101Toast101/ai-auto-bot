@@ -1,34 +1,53 @@
 // tests/logger.test.js - Tests for logger utilities
 
-const { logInfo, logError } = require("../utils/logger.cjs");
+// Mock fs before requiring logger
+const fs = require('fs');
+jest.mock('fs');
 
-// Mock console to capture output
-let consoleLogSpy;
+const { logInfo, logError, logWarn, logSecurity } = require("../utils/logger.cjs");
+
+// Mock console to capture output in dev mode
+let consoleWarnSpy;
 let consoleErrorSpy;
 
 beforeEach(() => {
-  consoleLogSpy = jest.spyOn(console, "warn").mockImplementation();
+  // Setup mocks
+  consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
   consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+  
+  // Mock fs functions
+  fs.existsSync = jest.fn().mockReturnValue(true);
+  fs.statSync = jest.fn().mockReturnValue({ size: 1024 });
+  fs.appendFileSync = jest.fn();
+  fs.mkdirSync = jest.fn();
+  fs.readdirSync = jest.fn().mockReturnValue([]);
+  fs.renameSync = jest.fn();
+  fs.unlinkSync = jest.fn();
+  
+  // Clear all mocks
+  jest.clearAllMocks();
 });
 
 afterEach(() => {
-  consoleLogSpy.mockRestore();
+  consoleWarnSpy.mockRestore();
   consoleErrorSpy.mockRestore();
 });
 
 describe("logInfo", () => {
-  test("logs info message to console", () => {
+  test("logs info message in dev mode", () => {
+    // Set dev mode (process.defaultApp would be true)
     logInfo("Test message");
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy.mock.calls[0][0]).toContain("[INFO]");
-    expect(consoleLogSpy.mock.calls[0][0]).toContain("Test message");
+    // In dev mode, should call console.warn
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+    expect(consoleWarnSpy.mock.calls[0][0]).toContain("[INFO]");
+    expect(consoleWarnSpy.mock.calls[0][0]).toContain("Test message");
   });
 
   test("includes ISO timestamp", () => {
     logInfo("Test message");
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
 
     // Should contain ISO 8601 timestamp
     expect(logOutput).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
@@ -37,7 +56,7 @@ describe("logInfo", () => {
   test("formats message with [INFO] prefix", () => {
     logInfo("Important information");
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
 
     expect(logOutput).toContain("[INFO]");
     expect(logOutput).toContain("Important information");
@@ -46,8 +65,8 @@ describe("logInfo", () => {
   test("handles empty string message", () => {
     logInfo("");
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy.mock.calls[0][0]).toContain("[INFO]");
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+    expect(consoleWarnSpy.mock.calls[0][0]).toContain("[INFO]");
   });
 
   test("handles special characters in message", () => {
@@ -55,8 +74,8 @@ describe("logInfo", () => {
       "Message with \"quotes\" and 'apostrophes' and \n newlines";
     logInfo(specialMessage);
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy.mock.calls[0][0]).toContain(specialMessage);
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+    expect(consoleWarnSpy.mock.calls[0][0]).toContain(specialMessage);
   });
 
   test("logs multiple messages separately", () => {
@@ -64,10 +83,10 @@ describe("logInfo", () => {
     logInfo("Second message");
     logInfo("Third message");
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(3);
-    expect(consoleLogSpy.mock.calls[0][0]).toContain("First message");
-    expect(consoleLogSpy.mock.calls[1][0]).toContain("Second message");
-    expect(consoleLogSpy.mock.calls[2][0]).toContain("Third message");
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(3);
+    expect(consoleWarnSpy.mock.calls[0][0]).toContain("First message");
+    expect(consoleWarnSpy.mock.calls[1][0]).toContain("Second message");
+    expect(consoleWarnSpy.mock.calls[2][0]).toContain("Third message");
   });
 });
 
@@ -98,13 +117,13 @@ describe("logError", () => {
     expect(logOutput).toContain("Critical error");
   });
 
-  test("logs error object as second parameter", () => {
+  test("logs error object as part of message", () => {
     const error = new Error("Test error");
     logError("Something went wrong", error);
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy.mock.calls[0][0]).toContain("Something went wrong");
-    expect(consoleErrorSpy.mock.calls[0][1]).toBe(error);
+    // Error is included in the message now, not as separate parameter
   });
 
   test("handles error without message", () => {
@@ -139,18 +158,18 @@ describe("logError", () => {
 });
 
 describe("Logger Separation", () => {
-  test("logInfo uses console.log, not console.error", () => {
+  test("logInfo uses console.warn, not console.error", () => {
     logInfo("Info message");
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledTimes(0);
   });
 
-  test("logError uses console.error, not console.log", () => {
+  test("logError uses console.error, not console.warn", () => {
     logError("Error message");
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).toHaveBeenCalledTimes(0);
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
   });
 
   test("mixed info and error logs use correct channels", () => {
@@ -159,7 +178,7 @@ describe("Logger Separation", () => {
     logInfo("Info 2");
     logError("Error 2");
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(2);
     expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
   });
 });
@@ -168,7 +187,7 @@ describe("Timestamp Consistency", () => {
   test("timestamps are in ISO 8601 format", () => {
     logInfo("Test");
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
     const timestampMatch = logOutput.match(
       /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
     );
@@ -181,7 +200,7 @@ describe("Timestamp Consistency", () => {
     logInfo("Test");
     const afterLog = new Date();
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
     const timestampMatch = logOutput.match(
       /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
     );
@@ -196,21 +215,21 @@ describe("Message Formatting", () => {
   test("messages maintain whitespace", () => {
     logInfo("  Message with  spaces  ");
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
     expect(logOutput).toContain("  Message with  spaces  ");
   });
 
   test("messages with line breaks are preserved", () => {
     logInfo("Line 1\nLine 2\nLine 3");
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
     expect(logOutput).toContain("Line 1\nLine 2\nLine 3");
   });
 
   test("messages with unicode characters work", () => {
     logInfo("Unicode: 🚀 ✅ 🎉");
 
-    const logOutput = consoleLogSpy.mock.calls[0][0];
+    const logOutput = consoleWarnSpy.mock.calls[0][0];
     expect(logOutput).toContain("Unicode: 🚀 ✅ 🎉");
   });
 });

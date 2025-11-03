@@ -2,6 +2,7 @@
 const crypto = require("crypto");
 const fs = require("fs").promises;
 const path = require("path");
+const { logError } = require('./logger.cjs');
 
 class EncryptionManager {
   constructor() {
@@ -14,7 +15,7 @@ class EncryptionManager {
     try {
       await this.loadOrGenerateKeyPair();
     } catch (error) {
-      console.error("Failed to initialize encryption manager:", error);
+      logError("Failed to initialize encryption manager", error);
       throw error;
     }
   }

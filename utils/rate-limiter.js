@@ -1,4 +1,5 @@
 // utils/rate-limiter.js - IPC rate limiting to prevent DoS attacks
+const { logWarn, logSecurity, logError } = require('./logger.cjs');
 
 class RateLimiter {
   constructor(options = {}) {
@@ -33,7 +34,7 @@ class RateLimiter {
 
     // Check if limit exceeded
     if (validTimestamps.length >= this.maxRequests) {
-      console.warn(`[RateLimiter] Rate limit exceeded for ${senderId} on ${channel}`);
+      logSecurity(`Rate limit exceeded for ${senderId} on ${channel}`);
       return false;
     }
 
@@ -68,7 +69,7 @@ class RateLimiter {
     }
 
     if (keysToDelete.length > 0) {
-      console.warn(`[RateLimiter] Cleaned up ${keysToDelete.length} expired entries`);
+      logWarn(`RateLimiter cleaned up ${keysToDelete.length} expired entries`);
     }
   }
 
@@ -128,7 +129,7 @@ function createRateLimitedHandler(limiter, handler, options = {}) {
       };
 
       // Log security event
-      console.error(`[Security] Rate limit exceeded: sender=${senderId}, channel=${channel}`);
+      logSecurity(`Rate limit exceeded: sender=${senderId}, channel=${channel}`);
 
       return error;
     }
@@ -137,7 +138,7 @@ function createRateLimitedHandler(limiter, handler, options = {}) {
     try {
       return await handler(event, ...args);
     } catch (err) {
-      console.error(`[IPC] Handler error on ${channel}:`, err.message);
+      logError(`IPC handler error on ${channel}`, err);
       return {
         success: false,
         error: { message: err.message }
