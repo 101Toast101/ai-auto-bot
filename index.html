@@ -90,6 +90,194 @@
           <!-- Hidden UI debug area (removed) -->
         </div>
 
+        <!-- Content Type -->
+        <fieldset>
+          <legend>Content Type</legend>
+          <label>Type
+            <select id="contentType">
+              <option value="meme">Meme</option>
+              <option value="video">Video</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- Meme Fields -->
+        <fieldset id="memeFields">
+          <legend>Meme</legend>
+          <label>Meme Mode
+            <select id="memeMode">
+              <option value="template">Use Template</option>
+              <option value="generate">AI Generate</option>
+              <option value="edit">AI Edit Image</option>
+              <option value="variations">Create Variations</option>
+            </select>
+          </label>
+          <label>Template
+            <input type="text" id="memeSearch" placeholder="Search templates..." style="margin-bottom: 5px" />
+            <select id="memeTemplate">
+              <option value="ai-generator">🤖 AI Generator</option>
+            </select>
+          </label>
+          <label>
+            Top Text
+            <input type="text" id="memeTopText" placeholder="Top text" />
+          </label>
+          <label>
+            Bottom Text
+            <input type="text" id="memeBottomText" placeholder="Bottom text" />
+          </label>
+
+          <label id="promptLabel" style="display: none">
+            AI Prompt
+            <textarea id="aiPrompt" placeholder="Describe the meme you want..." rows="3"></textarea>
+          </label>
+
+          <label id="sourceImageLabel" style="display: none">
+            Source Image
+            <div class="drop-zone" id="sourceImageDropZone">
+              <div class="drop-zone-icon">📁</div>
+              <div class="drop-zone-text">Drag & Drop Image Here</div>
+              <div class="drop-zone-hint">or click to browse</div>
+            </div>
+            <input type="file" id="sourceImage" accept="image/*" style="display:none" />
+          </label>
+
+          <label id="maskImageLabel" style="display: none">
+            Mask Image (optional)
+            <div class="drop-zone" id="maskImageDropZone">
+              <div class="drop-zone-icon">📁</div>
+              <div class="drop-zone-text">Drag & Drop Mask Here</div>
+              <div class="drop-zone-hint">or click to browse</div>
+            </div>
+            <input type="file" id="maskImage" accept="image/*" style="display:none" />
+          </label>
+
+          <button type="button" id="actionBtn" style="
+            display: none;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: var(--blue-gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+          ">
+            Generate
+          </button>
+
+          <button type="button" id="createVariationsBtn" style="
+            display: none;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: var(--blue-gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+          ">
+            Create Variations
+          </button>
+
+          <div id="variationResults" style="display: none; margin-top: 10px"></div>
+
+          <fieldset>
+            <legend>Preview</legend>
+            <img id="memePreview" width="300" alt="Live Meme Preview"
+              style="display: block; margin: 0 auto; border: 1px solid #e2e8f0" />
+            <button type="button" id="saveMemeToLibrary" class="toolbar-btn" style="
+              margin-top: 10px;
+              width: 100%;
+              padding: 8px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+            ">
+              💾 Save to Library
+            </button>
+          </fieldset>
+        </fieldset>
+
+        <!-- Video Fields -->
+        <fieldset id="videoFields" style="display: none">
+          <legend>Video</legend>
+          <label>Video Mode
+            <select id="videoMode">
+              <option value="text">Text to Video</option>
+              <option value="memes">Meme Compilation</option>
+            </select>
+          </label>
+
+          <label id="videoAiProviderLabel">
+            AI Provider
+            <select id="videoAiProvider">
+              <option value="openai">OpenAI (DALL-E → Video)</option>
+              <option value="runway">Runway ML Gen-3 Alpha</option>
+            </select>
+          </label>
+
+          <label id="videoPromptLabel">
+            Video Prompt
+            <textarea id="videoPrompt" placeholder="Describe your video..." rows="3"></textarea>
+          </label>
+
+          <label id="selectMemesLabel" style="display: none">
+            Select Memes
+            <button type="button" id="selectMemesBtn" style="margin-top: 5px">
+              Select from Library
+            </button>
+          </label>
+
+          <div id="selectedMemesContainer" style="display: none; margin-top: 10px">
+            <h4>Selected Memes:</h4>
+            <div id="selectedMemesList" style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+          </div>
+
+          <label>Duration (sec)
+            <input type="number" id="videoDuration" min="1" value="5" />
+          </label>
+          <label>Quality
+            <select id="videoQuality">
+              <option>720p</option>
+              <option>1080p</option>
+            </select>
+          </label>
+          <label>Style
+            <select id="videoStyle">
+              <option>realistic</option>
+              <option>cinematic</option>
+              <option>animated</option>
+            </select>
+          </label>
+          <label>Aspect Ratio
+            <select id="aspectRatio">
+              <option>16:9</option>
+              <option>9:16</option>
+              <option>1:1</option>
+            </select>
+          </label>
+          <label>Frame Rate (fps)
+            <select id="frameRate">
+              <option>24</option>
+              <option>30</option>
+            </select>
+          </label>
+
+          <button type="button" id="generateVideoBtn" style="
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: var(--blue-gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+          ">
+            Generate Video
+          </button>
+        </fieldset>
+
         <!-- FIRST TIME SETUP WIZARD MODAL -->
         <div id="setupWizardModal"
           style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; overflow-y: auto;">
@@ -521,7 +709,7 @@ Top Text 2|Bottom Text 2"></textarea>
         </div>
 
       </div>
-      <!-- END SECTION: SCHEDULE -->
+      <!-- END SECTION: GENERATE -->
 
       <!-- SECTION: LIBRARY -->
       <div id="section-library" class="content-section">
@@ -581,196 +769,6 @@ Top Text 2|Bottom Text 2"></textarea>
 
         <!-- Settings Form -->
         <form id="settingsForm">
-          <!-- Content Type -->
-          <fieldset>
-            <legend>Content Type</legend>
-            <label>Type
-              <select id="contentType">
-                <option value="meme">Meme</option>
-                <option value="video">Video</option>
-              </select>
-            </label>
-          </fieldset>
-
-          <!-- Meme Fields -->
-          <fieldset id="memeFields">
-            <legend>Meme</legend>
-            <label>Meme Mode
-              <select id="memeMode">
-                <option value="template">Use Template</option>
-                <option value="generate">AI Generate</option>
-                <option value="edit">AI Edit Image</option>
-                <option value="variations">Create Variations</option>
-              </select>
-            </label>
-            <label>Template
-              <input type="text" id="memeSearch" placeholder="Search templates..." style="margin-bottom: 5px" />
-              <select id="memeTemplate">
-                <option value="ai-generator">🤖 AI Generator</option>
-              </select>
-            </label>
-            <label>
-              Top Text
-              <input type="text" id="memeTopText" placeholder="Top text" />
-            </label>
-            <label>
-              Bottom Text
-              <input type="text" id="memeBottomText" placeholder="Bottom text" />
-            </label>
-
-            <label id="promptLabel" style="display: none">
-              AI Prompt
-              <textarea id="aiPrompt" placeholder="Describe the meme you want..." rows="3"></textarea>
-            </label>
-
-            <label id="sourceImageLabel" style="display: none">
-              Source Image
-              <div class="drop-zone" id="sourceImageDropZone">
-                <div class="drop-zone-icon">📁</div>
-                <div class="drop-zone-text">Drag & Drop Image Here</div>
-                <div class="drop-zone-hint">or click to browse</div>
-              </div>
-              <input type="file" id="sourceImage" accept="image/*" style="display:none" />
-            </label>
-
-            <label id="maskImageLabel" style="display: none">
-              Mask Image (optional)
-              <div class="drop-zone" id="maskImageDropZone">
-                <div class="drop-zone-icon">📁</div>
-                <div class="drop-zone-text">Drag & Drop Mask Here</div>
-                <div class="drop-zone-hint">or click to browse</div>
-              </div>
-              <input type="file" id="maskImage" accept="image/*" style="display:none" />
-            </label>
-
-            <button type="button" id="actionBtn" style="
-              display: none;
-              margin-top: 10px;
-              padding: 10px 20px;
-              background: var(--blue-gradient);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-            ">
-              Generate
-            </button>
-
-            <button type="button" id="createVariationsBtn" style="
-              display: none;
-              margin-top: 10px;
-              padding: 10px 20px;
-              background: var(--blue-gradient);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-            ">
-              Create Variations
-            </button>
-
-            <div id="variationResults" style="display: none; margin-top: 10px"></div>
-
-            <fieldset>
-              <legend>Preview</legend>
-              <img id="memePreview" width="300" alt="Live Meme Preview"
-                style="display: block; margin: 0 auto; border: 1px solid #e2e8f0" />
-              <button type="button" id="saveMemeToLibrary" class="toolbar-btn" style="
-                margin-top: 10px;
-                width: 100%;
-                padding: 8px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: 600;
-              ">
-                💾 Save to Library
-              </button>
-            </fieldset>
-          </fieldset>
-
-          <!-- Video Fields -->
-          <fieldset id="videoFields" style="display: none">
-            <legend>Video</legend>
-            <label>Video Mode
-              <select id="videoMode">
-                <option value="text">Text to Video</option>
-                <option value="memes">Meme Compilation</option>
-              </select>
-            </label>
-
-            <label id="videoAiProviderLabel">
-              AI Provider
-              <select id="videoAiProvider">
-                <option value="openai">OpenAI (DALL-E → Video)</option>
-                <option value="runway">Runway ML Gen-3 Alpha</option>
-              </select>
-            </label>
-
-            <label id="videoPromptLabel">
-              Video Prompt
-              <textarea id="videoPrompt" placeholder="Describe your video..." rows="3"></textarea>
-            </label>
-
-            <label id="selectMemesLabel" style="display: none">
-              Select Memes
-              <button type="button" id="selectMemesBtn" style="margin-top: 5px">
-                Select from Library
-              </button>
-            </label>
-
-            <div id="selectedMemesContainer" style="display: none; margin-top: 10px">
-              <h4>Selected Memes:</h4>
-              <div id="selectedMemesList" style="display: flex; flex-wrap: wrap; gap: 10px"></div>
-            </div>
-
-            <label>Duration (sec)
-              <input type="number" id="videoDuration" min="1" value="5" />
-            </label>
-            <label>Quality
-              <select id="videoQuality">
-                <option>720p</option>
-                <option>1080p</option>
-              </select>
-            </label>
-            <label>Style
-              <select id="videoStyle">
-                <option>realistic</option>
-                <option>cinematic</option>
-                <option>animated</option>
-              </select>
-            </label>
-            <label>Aspect Ratio
-              <select id="aspectRatio">
-                <option>16:9</option>
-                <option>9:16</option>
-                <option>1:1</option>
-              </select>
-            </label>
-            <label>Frame Rate (fps)
-              <select id="frameRate">
-                <option>24</option>
-                <option>30</option>
-              </select>
-            </label>
-
-            <button type="button" id="generateVideoBtn" style="
-              margin-top: 10px;
-              padding: 10px 20px;
-              background: var(--blue-gradient);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-            ">
-              Generate Video
-            </button>
-          </fieldset>
-
-        </div>
-        <!-- END SECTION: GENERATE -->
             <div class="oauth-buttons">
               <div class="oauth-pair">
                 <button type="button" id="connectInstagramBtn">🔗 Connect Instagram <span class="status-badge"
@@ -824,8 +822,10 @@ Top Text 2|Bottom Text 2"></textarea>
             </label>
           </fieldset>
 
+        </form>
+
       </div>
-      <!-- END SECTION: GENERATE -->
+      <!-- END SECTION: SETTINGS -->
 
       <!-- SECTION: SCHEDULE -->
       <div id="section-schedule" class="content-section">
