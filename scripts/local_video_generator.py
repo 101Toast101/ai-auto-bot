@@ -103,7 +103,7 @@ def get_gpu_settings():
             'est_time_min': 15
         }
 
-def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, quality_override=None):
+def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, quality_override=None, custom_steps=None):
     """Generate video using Zeroscope V2"""
     from diffusers import DiffusionPipeline
     import torch
@@ -116,8 +116,11 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, q
     device = gpu_settings['device']
     dtype = torch.float16 if gpu_settings['dtype'] == 'float16' else torch.float32
     
-    # Allow quality override from command line
-    if quality_override:
+    # Determine inference steps (priority: custom > quality preset > auto-detected)
+    if custom_steps:
+        inference_steps = custom_steps
+        print(f"Using custom steps: {inference_steps}", file=sys.stderr, flush=True)
+    elif quality_override:
         quality_map = {'low': 15, 'fast': 20, 'medium': 30, 'high': 50}
         inference_steps = quality_map.get(quality_override, gpu_settings['steps'])
     else:
@@ -257,8 +260,10 @@ def main():
     parser.add_argument('--duration', type=int, default=3, help='Video duration in seconds')
     parser.add_argument('--width', type=int, default=576, help='Video width')
     parser.add_argument('--height', type=int, default=320, help='Video height')
-    parser.add_argument('--quality', choices=['low', 'fast', 'medium', 'high'], 
+    parser.add_argument('--quality', choices=['low', 'fast', 'medium', 'high', 'custom'], 
                        help='Quality preset (overrides auto-detection): low=15 steps, fast=20, medium=30, high=50')
+    parser.add_argument('--steps', type=int, 
+                       help='Custom number of inference steps (10-100). Overrides quality preset.')
 
     args = parser.parse_args()
 
@@ -278,7 +283,7 @@ def main():
 
         # Generate based on model
         if args.model == 'zeroscope':
-            output_path = generate_zeroscope(args.prompt, args.output, args.duration, args.width, args.height, args.quality)
+            output_path = generate_zeroscope(args.prompt, args.output, args.duration, args.width, args.height, args.quality, args.steps)
         elif args.model == 'modelscope':
             output_path = generate_modelscope(args.prompt, args.output, args.duration, args.width, args.height)
         elif args.model == 'stable-diffusion-video':

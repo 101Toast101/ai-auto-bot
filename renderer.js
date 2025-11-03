@@ -3452,10 +3452,20 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
       // Get quality setting for local models
       let quality = null;
+      let customSteps = null;
       if (isLocalModel) {
         const qualitySelect = $("localQuality");
-        if (qualitySelect && qualitySelect.value !== 'auto') {
-          quality = qualitySelect.value;
+        if (qualitySelect) {
+          if (qualitySelect.value === 'custom') {
+            // Use custom steps value
+            const customStepsInput = $("customSteps");
+            if (customStepsInput) {
+              customSteps = parseInt(customStepsInput.value) || 25;
+              quality = 'custom'; // Mark as custom so Python script knows
+            }
+          } else if (qualitySelect.value !== 'auto') {
+            quality = qualitySelect.value;
+          }
         }
       }
 
@@ -3466,6 +3476,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         aspectRatio: aspectRatio,
         dimensions: dimensions,
         quality: quality,
+        customSteps: customSteps,
       });
 
       // Poll for completion
@@ -5725,6 +5736,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
       // Set initial capabilities display
       await updateProviderCapabilities(videoProviderSelect.value || "runway");
+    }
+
+    // Set up quality preset listener for custom steps
+    const localQualitySelect = $("localQuality");
+    if (localQualitySelect) {
+      localQualitySelect.addEventListener("change", (e) => {
+        const customStepsLabel = $("customStepsLabel");
+        if (customStepsLabel) {
+          // Show custom steps input only when "custom" is selected
+          customStepsLabel.style.display = e.target.value === "custom" ? "block" : "none";
+        }
+      });
     }
 
     // Reset all social media connections and AI provider UI on reload
