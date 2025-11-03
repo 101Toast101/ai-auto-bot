@@ -784,42 +784,45 @@ Top Text 2|Bottom Text 2"></textarea>
 
         <!-- Settings Form -->
         <form id="settingsForm">
-          <div class="oauth-buttons">
-            <div class="oauth-pair">
-              <button type="button" id="connectInstagramBtn">🔗 Connect Instagram <span class="status-badge"
-                  id="status-instagram">Missing</span><span class="status-spinner" id="spinner-instagram"
-                  aria-hidden="true"></span></button>
-              <button type="button" id="disconnectInstagramBtn" class="disconnect-btn"
-                style="display:none">Disconnect</button>
+          <!-- Connect Your Social Media Accounts -->
+          <fieldset class="oauth-fieldset">
+            <legend>Connect Your Social Media Accounts</legend>
+            <div class="oauth-buttons">
+              <div class="oauth-pair">
+                <button type="button" id="connectInstagramBtn">🔗 Connect Instagram <span class="status-badge"
+                    id="status-instagram">Missing</span><span class="status-spinner" id="spinner-instagram"
+                    aria-hidden="true"></span></button>
+                <button type="button" id="disconnectInstagramBtn" class="disconnect-btn"
+                  style="display:none">Disconnect</button>
+              </div>
+              <div class="oauth-pair">
+                <button type="button" id="connectTikTokBtn">🔗 Connect TikTok <span class="status-badge"
+                    id="status-tiktok">Missing</span><span class="status-spinner" id="spinner-tiktok"
+                    aria-hidden="true"></span></button>
+                <button type="button" id="disconnectTikTokBtn" class="disconnect-btn"
+                  style="display:none">Disconnect</button>
+              </div>
+              <div class="oauth-pair">
+                <button type="button" id="connectYouTubeBtn">🔗 Connect YouTube <span class="status-badge"
+                    id="status-youtube">Missing</span><span class="status-spinner" id="spinner-youtube"
+                    aria-hidden="true"></span></button>
+                <button type="button" id="disconnectYouTubeBtn" class="disconnect-btn"
+                  style="display:none">Disconnect</button>
+              </div>
+              <div class="oauth-pair">
+                <button type="button" id="connectTwitterBtn">🔗 Connect Twitter <span class="status-badge"
+                    id="status-twitter">Missing</span><span class="status-spinner" id="spinner-twitter"
+                    aria-hidden="true"></span></button>
+                <button type="button" id="disconnectTwitterBtn" class="disconnect-btn"
+                  style="display:none">Disconnect</button>
+              </div>
             </div>
-            <div class="oauth-pair">
-              <button type="button" id="connectTikTokBtn">🔗 Connect TikTok <span class="status-badge"
-                  id="status-tiktok">Missing</span><span class="status-spinner" id="spinner-tiktok"
-                  aria-hidden="true"></span></button>
-              <button type="button" id="disconnectTikTokBtn" class="disconnect-btn"
-                style="display:none">Disconnect</button>
-            </div>
-            <div class="oauth-pair">
-              <button type="button" id="connectYouTubeBtn">🔗 Connect YouTube <span class="status-badge"
-                  id="status-youtube">Missing</span><span class="status-spinner" id="spinner-youtube"
-                  aria-hidden="true"></span></button>
-              <button type="button" id="disconnectYouTubeBtn" class="disconnect-btn"
-                style="display:none">Disconnect</button>
-            </div>
-            <div class="oauth-pair">
-              <button type="button" id="connectTwitterBtn">🔗 Connect Twitter <span class="status-badge"
-                  id="status-twitter">Missing</span><span class="status-spinner" id="spinner-twitter"
-                  aria-hidden="true"></span></button>
-              <button type="button" id="disconnectTwitterBtn" class="disconnect-btn"
-                style="display:none">Disconnect</button>
-            </div>
-          </div>
 
-          <!-- hidden token stores used by renderer.js -->
-          <input type="hidden" id="instagramToken" />
-          <input type="hidden" id="tiktokToken" />
-          <input type="hidden" id="youtubeToken" />
-          <input type="hidden" id="twitterToken" />
+            <!-- hidden token stores used by renderer.js -->
+            <input type="hidden" id="instagramToken" />
+            <input type="hidden" id="tiktokToken" />
+            <input type="hidden" id="youtubeToken" />
+            <input type="hidden" id="twitterToken" />
           </fieldset>
 
           <!-- AI Provider Authentication -->
