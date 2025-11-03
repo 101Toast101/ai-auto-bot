@@ -56,16 +56,22 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320):
         torch_dtype=dtype
     )
     pipe = pipe.to(device)
+    
+    # Enable memory optimizations for GPUs with limited VRAM
+    if device == "cuda":
+        pipe.enable_attention_slicing()
+        pipe.enable_vae_slicing()
 
     print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr, flush=True)
 
-    # Use fewer steps on CPU for reasonable speed
-    inference_steps = 15 if device == "cpu" else 40
+    # Use fewer steps - balance quality vs speed
+    # RTX 2060 6GB is slower, so use 20 steps instead of 40
+    inference_steps = 15 if device == "cpu" else 20
 
     if device == "cpu":
         print(f"⚠️ WARNING: CPU generation takes 10-15 minutes. Using {inference_steps} steps for faster results.", file=sys.stderr, flush=True)
     else:
-        print(f"✅ GPU detected! Generation will take ~60-90 seconds with {inference_steps} steps.", file=sys.stderr, flush=True)
+        print(f"✅ GPU detected! Generation optimized for your GPU (20 steps = ~20-30 minutes).", file=sys.stderr, flush=True)
 
     print(f"Progress: 0% | Step 0/{inference_steps} - Starting...", file=sys.stderr, flush=True)
 
