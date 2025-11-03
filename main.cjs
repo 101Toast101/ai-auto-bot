@@ -1104,10 +1104,11 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
     const outputFile = path.join(outputDir, `${model}_${timestamp}_${hash}.mp4`);
 
     // Determine Python command based on platform
-    const pythonCommands = process.platform === 'win32' 
-      ? ['python', 'python3', 'py'] 
+    // On Windows, try 'py' first (Python Launcher), then fallback to others
+    const pythonCommands = process.platform === 'win32'
+      ? ['py', 'python', 'python3']
       : ['python3', 'python'];
-    
+
     const scriptPath = path.join(__dirname, 'scripts', 'local_video_generator.py');
 
     // Try to find a working Python executable
@@ -1115,16 +1116,25 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
     for (const cmd of pythonCommands) {
       try {
         const testProcess = spawn(cmd, ['--version'], { shell: true });
-        await new Promise((resolve) => {
+        const versionCheckResult = await new Promise((resolve) => {
+          let output = '';
+          testProcess.stdout.on('data', (data) => output += data.toString());
+          testProcess.stderr.on('data', (data) => output += data.toString());
           testProcess.on('close', (code) => {
-            if (code === 0) {
-              pythonCmd = cmd;
+            // Check if Python version is in output (code 0 and contains "Python")
+            if (code === 0 && output.toLowerCase().includes('python')) {
+              resolve(true);
+            } else {
+              resolve(false);
             }
-            resolve();
           });
-          testProcess.on('error', () => resolve());
+          testProcess.on('error', () => resolve(false));
         });
-        if (pythonCmd) break;
+        if (versionCheckResult) {
+          pythonCmd = cmd;
+          console.log(`[Local AI] Found Python via '${cmd}' command`);
+          break;
+        }
       } catch (err) {
         continue;
       }
@@ -1185,7 +1195,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
         } else {
           // Provide helpful error messages
           let errorMsg = stderr || 'Unknown error';
-          
+
           // Check for common errors
           if (stderr.includes('No module named')) {
             const missingModule = stderr.match(/No module named '(\w+)'/)?.[1];
@@ -1198,7 +1208,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
                       `  • Use ModelScope (lower resolution)\n` +
                       `  • Switch to CPU mode`;
           }
-          
+
           resolve({
             success: false,
             error: `Python generation failed (code ${code}):\n\n${errorMsg}`

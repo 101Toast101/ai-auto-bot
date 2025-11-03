@@ -3484,12 +3484,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
     } catch (error) {
       hideSpinner();
-      
+
       // Check if this is a Python setup error
-      const isPythonError = error.message.includes('Python is not installed') || 
+      const isPythonError = error.message.includes('Python is not installed') ||
                            error.message.includes('Missing Python package') ||
                            error.message.includes('pip install');
-      
+
       if (isPythonError) {
         // Show setup guide for local models
         const errorHtml = `
@@ -3511,7 +3511,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       } else {
         $("errorContainer").textContent = `AI video generation failed: ${error.message}`;
       }
-      
+
       $("errorContainer").style.display = "block";
       addLogEntry(`AI video error: ${error.message}`);
       console.error("[AI Video] Error:", error);
