@@ -57,18 +57,22 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320):
     )
     pipe = pipe.to(device)
 
-    print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr)
-    
+    print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr, flush=True)
+
     # Use fewer steps on CPU for reasonable speed
     inference_steps = 15 if device == "cpu" else 40
-    
+
     if device == "cpu":
-        print(f"⚠️ WARNING: CPU generation takes 10-15 minutes. Using {inference_steps} steps for faster results.", file=sys.stderr)
+        print(f"⚠️ WARNING: CPU generation takes 10-15 minutes. Using {inference_steps} steps for faster results.", file=sys.stderr, flush=True)
+    else:
+        print(f"✅ GPU detected! Generation will take ~60-90 seconds with {inference_steps} steps.", file=sys.stderr, flush=True)
+
+    print(f"Progress: 0% | Step 0/{inference_steps} - Starting...", file=sys.stderr, flush=True)
 
     # Progress callback to show real-time updates
     def progress_callback(step, timestep, latents):
-        percent = int((step / inference_steps) * 100)
-        print(f"Progress: {percent}% | Step {step}/{inference_steps}", file=sys.stderr, flush=True)
+        percent = int(((step + 1) / inference_steps) * 100)
+        print(f"Progress: {percent}% | Step {step + 1}/{inference_steps}", file=sys.stderr, flush=True)
 
     # Generate video frames
     video_frames = pipe(
