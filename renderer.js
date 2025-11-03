@@ -11,6 +11,13 @@
 
   // Helper functions for UI notifications and progress
   function showNotification(message, type = "info") {
+    // Use modern toast if available, fallback to legacy
+    if (window.Toast) {
+      window.Toast.show(message, type, 5000);
+      return;
+    }
+
+    // Legacy fallback
     const errorContainer = $("errorContainer");
     if (errorContainer) {
       errorContainer.textContent = message;
@@ -47,34 +54,57 @@
       overlay.className = "progress-overlay";
       overlay.innerHTML = `
         <div class="progress-content">
-          <p class="progress-text"></p>
-          <div class="progress-bar">
-            <div class="progress-fill"></div>
+          <div class="progress-title"></div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" style="width: 0%"></div>
+            <div class="progress-text">0%</div>
           </div>
+          <div class="progress-details"></div>
         </div>
       `;
       document.body.appendChild(overlay);
     }
 
+    const title = overlay.querySelector(".progress-title");
+    if (title) {
+      title.textContent = message;
+    }
+
+    // Reset progress bar
+    const bar = overlay.querySelector(".progress-bar");
+    if (bar) {
+      bar.style.width = "0%";
+    }
+
     const text = overlay.querySelector(".progress-text");
     if (text) {
-      // Use textContent to prevent XSS
-      text.textContent = message;
+      text.textContent = "0%";
     }
-    overlay.style.display = "flex";
+
+    overlay.classList.add("show");
   }
 
   function hideProgress() {
     const overlay = $("progressOverlay");
     if (overlay) {
-      overlay.style.display = "none";
+      overlay.classList.remove("show");
     }
   }
 
-  function updateProgress(percent) {
-    const fill = document.querySelector(".progress-fill");
-    if (fill) {
-      fill.style.width = `${percent}%`;
+  function updateProgress(percent, details = "") {
+    const bar = document.querySelector(".progress-bar");
+    if (bar) {
+      bar.style.width = `${percent}%`;
+    }
+
+    const text = document.querySelector(".progress-text");
+    if (text) {
+      text.textContent = `${Math.round(percent)}%`;
+    }
+
+    const detailsEl = document.querySelector(".progress-details");
+    if (detailsEl && details) {
+      detailsEl.textContent = details;
     }
   }
 
@@ -1402,6 +1432,9 @@
         $("bulkProgressBar").style.width = `${progress}%`;
         $("bulkProgressText").textContent =
           `Generated ${i + 1}/${quantity} (${bulkGeneratedContent.length} total files)`;
+
+        // Also update global progress overlay if shown
+        updateProgress(progress, `Generated ${i + 1}/${quantity} items`);
 
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
@@ -4087,6 +4120,26 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     });
   }
 
+  function handlePreviewPost() {
+    // Get current meme/content
+    const memeUrl = $("memePreview")?.src;
+    if (!memeUrl || memeUrl.includes("svg")) {
+      showNotification("Please generate or select content to preview first!", "warning");
+      return;
+    }
+
+    // Get caption
+    const topText = $("topText")?.value || "";
+    const bottomText = $("bottomText")?.value || "";
+    const caption = topText && bottomText ? `${topText} ${bottomText}` : topText || bottomText || "";
+
+    // Show preview modal
+    showPreview({
+      imageUrl: memeUrl,
+      caption: caption
+    });
+  }
+
   function handlePostNow() {
     const hasInstagram = $("instagramToken")?.value;
     const hasTiktok = $("tiktokToken")?.value;
@@ -4235,7 +4288,16 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
     const message = `Posted successfully to ${successCount} platform(s)${failCount > 0 ? `, ${failCount} failed` : ""}`;
     addLogEntry(message);
-    alert(message);
+
+    if (window.Toast) {
+      if (failCount > 0) {
+        window.Toast.warning(message);
+      } else {
+        window.Toast.success(message);
+      }
+    } else {
+      alert(message);
+    }
   }
 
   async function postToInstagram(imageUrl, caption, token) {
@@ -4477,6 +4539,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     // Core buttons
     const buttonBindings = {
       saveConfigBtn: handleSaveConfig,
+      previewPostBtn: handlePreviewPost,
       postNowBtn: handlePostNow,
       bulkGenerateBtn: openBulkModal,
       closeBulkModal: closeBulkModal,
@@ -5719,6 +5782,17 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       addLogEntry("Initialization failed: " + error.message, "error");
     }
 
+    // Initialize drag & drop for file uploads
+    if (window.DragDrop) {
+      window.DragDrop.init('sourceImageDropZone', 'sourceImage', (file) => {
+        console.log('Source image uploaded:', file.name);
+      });
+
+      window.DragDrop.init('maskImageDropZone', 'maskImage', (file) => {
+        console.log('Mask image uploaded:', file.name);
+      });
+    }
+
     // Listen for scheduled posts from main process
     if (window.api && window.api.onScheduledPost) {
       window.api.onScheduledPost(async (post) => {
@@ -6040,6 +6114,92 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     }
   }
 
+  // ===== Content Preview Functions =====
+  function showPreview(content) {
+    const modal = $("previewModal");
+    if (!modal) return;
+
+    // Set image for all platforms
+    const platforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
+    platforms.forEach(platform => {
+      const img = $(`previewImage${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+      const caption = $(`previewCaption${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+
+      if (img && content.imageUrl) {
+        img.src = content.imageUrl;
+      }
+
+      if (caption) {
+        caption.textContent = content.caption || '';
+      }
+    });
+
+    modal.classList.add('show');
+  }
+
+  function closePreview() {
+    const modal = $("previewModal");
+    if (modal) {
+      modal.classList.remove('show');
+    }
+  }
+
+  function initPreviewModal() {
+    // Platform tab switching
+    const tabs = document.querySelectorAll('.preview-platform-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const platform = tab.dataset.platform;
+
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Update active content
+        const contents = document.querySelectorAll('.preview-platform-content');
+        contents.forEach(c => c.classList.remove('active'));
+        const activeContent = document.querySelector(`.preview-platform-content[data-platform="${platform}"]`);
+        if (activeContent) {
+          activeContent.classList.add('active');
+        }
+      });
+    });
+
+    // Close button
+    const closeBtn = $("closePreviewModal");
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closePreview);
+    }
+
+    // Cancel button
+    const cancelBtn = $("cancelPreviewModal");
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', closePreview);
+    }
+
+    // Confirm and post button
+    const confirmBtn = $("previewConfirmPost");
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        closePreview();
+        handlePostNow(); // Execute the actual post
+      });
+    }
+
+    // Click outside to close
+    const modal = $("previewModal");
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closePreview();
+        }
+      });
+    }
+  }
+
   // Run initialization when the window loads
-  window.addEventListener("DOMContentLoaded", init);
+  window.addEventListener("DOMContentLoaded", () => {
+    init();
+    initPreviewModal();
+  });
 })();

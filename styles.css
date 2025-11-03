@@ -1287,3 +1287,508 @@ body.dark .grid-drop-preview {
 body.dark .grid-position-label {
   background: #5ba3f5;
 }
+
+/* ===== Toast Notifications ===== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 500px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: all;
+  border-left: 4px solid;
+}
+
+.toast-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-hide {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast-success {
+  border-color: #10b981;
+}
+
+.toast-error {
+  border-color: #ef4444;
+}
+
+.toast-warning {
+  border-color: #f59e0b;
+}
+
+.toast-info {
+  border-color: #3b82f6;
+}
+
+.toast-icon {
+  font-size: 24px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.toast-success .toast-icon {
+  color: #10b981;
+}
+
+.toast-error .toast-icon {
+  color: #ef4444;
+}
+
+.toast-warning .toast-icon {
+  color: #f59e0b;
+}
+
+.toast-info .toast-icon {
+  color: #3b82f6;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-message {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  color: #1f2937;
+}
+
+/* Dark mode toast styles */
+body.dark .toast {
+  background: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .toast-message {
+  color: #e5e7eb;
+}
+
+body.dark .toast-close {
+  color: #9ca3af;
+}
+
+body.dark .toast-close:hover {
+  color: #e5e7eb;
+}
+
+/* ===== Keyboard Shortcuts Help ===== */
+.shortcuts-help {
+  padding: 20px;
+  max-width: 600px;
+}
+
+.shortcuts-help h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.shortcuts-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.shortcuts-table td {
+  padding: 12px;
+}
+
+.shortcut-keys {
+  white-space: nowrap;
+  width: 40%;
+}
+
+.shortcut-desc {
+  color: #4b5563;
+}
+
+body.dark .shortcut-desc {
+  color: #9ca3af;
+}
+
+.shortcuts-table kbd {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 12px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .shortcuts-table kbd {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.shortcuts-hint {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+body.dark .shortcuts-hint {
+  color: #9ca3af;
+}
+
+/* ===== Drag & Drop Upload ===== */
+.drop-zone {
+  position: relative;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  background: #f9fafb;
+}
+
+.drop-zone:hover {
+  border-color: #4a90e2;
+  background: #f3f4f6;
+}
+
+.drop-zone.drag-over {
+  border-color: #4a90e2;
+  background: #dbeafe;
+  transform: scale(1.02);
+}
+
+body.dark .drop-zone {
+  background: #1f2937;
+  border-color: #4b5563;
+}
+
+body.dark .drop-zone:hover,
+body.dark .drop-zone.drag-over {
+  background: #374151;
+  border-color: #4a90e2;
+}
+
+.drop-zone-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.drop-zone-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #4b5563;
+}
+
+body.dark .drop-zone-text {
+  color: #9ca3af;
+}
+
+.drop-zone-hint {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+body.dark .drop-zone-hint {
+  color: #6b7280;
+}
+
+/* ===== Enhanced Progress Bar ===== */
+.progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.progress-overlay.show {
+  display: flex;
+}
+
+.progress-content {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  min-width: 400px;
+  max-width: 600px;
+}
+
+body.dark .progress-content {
+  background: #1f2937;
+}
+
+.progress-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 24px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+body.dark .progress-bar-container {
+  background: #374151;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a90e2, #1e3c72);
+  border-radius: 12px;
+  transition: width 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  z-index: 1;
+}
+
+body.dark .progress-text {
+  color: #e5e7eb;
+}
+
+.progress-details {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+body.dark .progress-details {
+  color: #9ca3af;
+}
+
+/* ===== Content Preview Modal ===== */
+.preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  padding: 20px;
+}
+
+.preview-modal.show {
+  display: flex;
+}
+
+.preview-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .preview-content {
+  background: #1f2937;
+}
+
+.preview-header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.dark .preview-header {
+  border-bottom-color: #374151;
+}
+
+.preview-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.preview-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #6b7280;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.preview-close:hover {
+  color: #1f2937;
+}
+
+body.dark .preview-close:hover {
+  color: #e5e7eb;
+}
+
+.preview-body {
+  padding: 20px;
+}
+
+.preview-platform-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+body.dark .preview-platform-tabs {
+  border-bottom-color: #374151;
+}
+
+.preview-platform-tab {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b7280;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.preview-platform-tab:hover {
+  color: #1f2937;
+}
+
+.preview-platform-tab.active {
+  color: #4a90e2;
+  border-bottom-color: #4a90e2;
+  font-weight: 600;
+}
+
+body.dark .preview-platform-tab:hover {
+  color: #e5e7eb;
+}
+
+body.dark .preview-platform-tab.active {
+  color: #4a90e2;
+}
+
+.preview-platform-content {
+  display: none;
+}
+
+.preview-platform-content.active {
+  display: block;
+}
+
+.preview-image {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.preview-caption {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1f2937;
+  white-space: pre-wrap;
+}
+
+body.dark .preview-caption {
+  color: #e5e7eb;
+}
+
+.preview-footer {
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+body.dark .preview-footer {
+  border-top-color: #374151;
+}
