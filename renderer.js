@@ -4962,10 +4962,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           hideProgress();
           if (res && res.success) {
             addLogEntry("🧨 Reset performed", "info");
-            // Wait a moment for notifications to show, then reload page to ensure clean state
+            showNotification("Reset complete. Page will reload...", "success");
+            // Wait for backend to finish writing cleared settings, then reload
             setTimeout(() => {
               window.location.reload();
-            }, 1500);
+            }, 2500);
           } else {
             throw new Error(res?.error?.message || "Reset failed");
           }
@@ -5035,11 +5036,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     // Read settings and pre-fill BEFORE showing the modal to avoid stale values
     (async () => {
       try {
+        // Always read fresh from disk to avoid cached values after reset
         const s = await window.api.readFile(PATHS.SETTINGS);
         const settings = s.success ? JSON.parse(s.content || "{}") : {};
         const prov = (settings.providers && settings.providers[provider]) || {};
+        
+        // Check if settings were recently reset (within last 5 seconds)
+        const lastReset = settings.__last_reset ? new Date(settings.__last_reset).getTime() : 0;
+        const isRecentReset = (Date.now() - lastReset) < 5000;
+        
         if (providerClientIdInput) {
-          providerClientIdInput.value = prov.clientId || "";
+          // If reset recently, always use blank value
+          providerClientIdInput.value = isRecentReset ? "" : (prov.clientId || "");
           providerClientIdInput.disabled = false;
           providerClientIdInput.readOnly = false;
         }
@@ -5050,7 +5058,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           providerClientSecretInput.readOnly = false;
         }
         if (providerRedirectInput) {
-          providerRedirectInput.value = prov.redirectUri || providerRedirectInput.value || PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback";
+          providerRedirectInput.value = isRecentReset ? (PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback") : (prov.redirectUri || providerRedirectInput.value || PATHS.REDIRECT_URI || "http://localhost:3000/oauth/callback");
           providerRedirectInput.disabled = false;
           providerRedirectInput.readOnly = false;
         }
