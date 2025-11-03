@@ -24,7 +24,7 @@ severity = "critical"
 description = "Allow example keys and documentation snippets"
 paths = [
   "README.md",
-  "docs/**",
-  "*.example.json",
-  "*.example"
+  "docs/.*",
+  ".*\\.example\\.json",
+  ".*\\.example"
 ]
