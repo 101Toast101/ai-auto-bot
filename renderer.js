@@ -2132,6 +2132,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   async function handleSaveConfig() {
     clearError();
 
+    // Note: You can save configs without AI providers or social media connected
+    // The config will save all current form values, connections are optional
     const name = $("configNameInput")?.value?.trim();
     if (!name) {
       displayValidationError({ message: "Config name is required" }, "config");
