@@ -4829,7 +4829,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     $("connectOpenAIBtn")?.addEventListener("click", () =>
       openAiKeyModal("openai"),
     );
-    $("connectRunwayBtn")?.addEventListener("click", () =>
+    $("connectRunwayMLBtn")?.addEventListener("click", () =>
       openAiKeyModal("runway"),
     );
 
