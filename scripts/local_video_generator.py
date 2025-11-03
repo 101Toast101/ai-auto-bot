@@ -121,7 +121,7 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, q
         inference_steps = custom_steps
         print(f"Using custom steps: {inference_steps}", file=sys.stderr, flush=True)
     elif quality_override:
-        quality_map = {'ultra-low': 8, 'low': 15, 'fast': 20, 'medium': 30, 'high': 50}
+        quality_map = {'potato': 2, 'ultra-low': 5, 'low': 10, 'fast': 20, 'medium': 30, 'high': 50}
         inference_steps = quality_map.get(quality_override, gpu_settings['steps'])
     else:
         inference_steps = gpu_settings['steps']
@@ -260,11 +260,10 @@ def main():
     parser.add_argument('--duration', type=int, default=3, help='Video duration in seconds')
     parser.add_argument('--width', type=int, default=576, help='Video width')
     parser.add_argument('--height', type=int, default=320, help='Video height')
-    parser.add_argument('--quality', choices=['ultra-low', 'low', 'fast', 'medium', 'high', 'custom'],
-                       help='Quality preset (overrides auto-detection): ultra-low=8 steps, low=15, fast=20, medium=30, high=50')
+    parser.add_argument('--quality', choices=['potato', 'ultra-low', 'low', 'fast', 'medium', 'high', 'custom'],
+                       help='Quality preset (overrides auto-detection): potato=2 steps, ultra-low=5, low=10, fast=20, medium=30, high=50')
     parser.add_argument('--steps', type=int,
-                       help='Custom number of inference steps (5-100). Overrides quality preset.')
-                       help='Custom number of inference steps (10-100). Overrides quality preset.')
+                       help='Custom number of inference steps (2-100). Overrides quality preset.')
 
     args = parser.parse_args()
 

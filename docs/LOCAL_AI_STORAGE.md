@@ -44,7 +44,7 @@ Removes downloaded AI models - will re-download on next use:
 Remove-Item "C:\Users\$env:USERNAME\.cache\huggingface\hub\models--cerspense--zeroscope_v2_576w" -Recurse -Force
 ```
 
-**Frees:** 3.5 GB  
+**Frees:** 3.5 GB
 **Note:** Model will re-download (5-10 min) next time you use Zeroscope
 
 ### **Option 3: Nuclear Option - Delete Everything**
@@ -55,7 +55,7 @@ Removes all HuggingFace models and cache:
 Remove-Item "C:\Users\$env:USERNAME\.cache\huggingface" -Recurse -Force
 ```
 
-**Frees:** 3.42 GB  
+**Frees:** 3.42 GB
 **Warning:** All AI models will need to re-download
 
 ---
