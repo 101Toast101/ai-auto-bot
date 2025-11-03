@@ -981,6 +981,12 @@ ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
   }
 });
 
+// IPC handler: Restart the app (used after reset for clean slate)
+ipcMain.on('restart-app', () => {
+  app.relaunch();
+  app.exit(0);
+});
+
 // Auto-Scheduler Function
 function startScheduler() {
   schedulerInterval = setInterval(async () => {

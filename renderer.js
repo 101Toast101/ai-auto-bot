@@ -4975,10 +4975,17 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           hideProgress();
           if (res && res.success) {
             addLogEntry("🧨 Reset performed", "info");
-            showNotification("Reset complete. Page will reload...", "success");
-            // Wait for backend to finish writing cleared settings, then reload
+            showNotification("Reset complete. Restarting app...", "success");
+            // Close and reopen the app for cleanest reset
             setTimeout(() => {
-              window.location.reload();
+              if (window.api && window.api.restartApp) {
+                window.api.restartApp();
+              } else {
+                // Fallback: force hard reload by changing href
+                const currentUrl = window.location.href;
+                window.location.href = currentUrl + '#reset';
+                window.location.reload();
+              }
             }, 2500);
           } else {
             throw new Error(res?.error?.message || "Reset failed");

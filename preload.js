@@ -61,4 +61,6 @@ contextBridge.exposeInMainWorld("api", {
   // Reset all social connections and clear activity log
   // Optional options: { full: true } will also remove provider configs and AI keys
   resetConnections: (options) => ipcRenderer.invoke(IPC_CHANNELS.RESET_CONNECTIONS, options || {}),
+  // Restart the app (for post-reset clean slate)
+  restartApp: () => ipcRenderer.send('restart-app'),
 });
