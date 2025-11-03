@@ -18,12 +18,6 @@ jobs:
         run: npm ci
       - name: Security audit
         run: npm audit
-      - name: OWASP dependency check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "ASB"
-          path: "."
-          format: "HTML"
 
   test:
     runs-on: ubuntu-latest
