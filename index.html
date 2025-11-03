@@ -213,10 +213,19 @@
           <label id="videoAiProviderLabel">
             AI Provider
             <select id="videoAiProvider">
-              <option value="openai">OpenAI (DALL-E → Video)</option>
-              <option value="runway">Runway ML Gen-3 Alpha</option>
+              <option value="runway">Runway ML Gen-3 (Best Quality)</option>
+              <option value="luma">Luma Dream Machine (Fast & Affordable)</option>
+              <option value="openai">OpenAI (Basic Animation)</option>
             </select>
           </label>
+
+          <!-- Provider Capabilities Info -->
+          <div id="providerInfo" class="info-box"
+            style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px; margin: 10px 0; display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.9em;">
+            <span id="providerQuality" style="color: #60a5fa;">Quality: Professional</span>
+            <span id="providerTime" style="color: #60a5fa;">Est. Time: 2 min</span>
+            <span id="providerCost" style="color: #60a5fa;">Cost: $0.50/10s</span>
+          </div>
 
           <label id="videoPromptLabel">
             Video Prompt
@@ -850,6 +859,11 @@ Top Text 2|Bottom Text 2"></textarea>
                 <span class="provider-name">Connect Runway ML</span>
                 <span class="connected-badge" style="display: none">✓ Connected</span>
               </button>
+              <button type="button" id="connectLumaAIBtn" class="ai-connect-btn" data-provider="luma">
+                <span class="connect-icon">🔗</span>
+                <span class="provider-name">Connect Luma AI</span>
+                <span class="connected-badge" style="display: none">✓ Connected</span>
+              </button>
               <div style="width:100%; margin-top:8px; display:flex; gap:8px;">
                 <button type="button" id="resetAllBtn" class="small-action-btn danger">Reset Connections & Clear
                   All</button>
@@ -860,6 +874,7 @@ Top Text 2|Bottom Text 2"></textarea>
             <input type="hidden" id="aiProvider" value="" />
             <input type="hidden" id="openaiApiKey" />
             <input type="hidden" id="runwayApiKey" />
+            <input type="hidden" id="lumaApiKey" />
           </fieldset>
 
           <!-- Platforms -->

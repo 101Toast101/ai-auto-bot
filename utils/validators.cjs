@@ -106,6 +106,7 @@ const validateSettings = (obj) => {
   const encryptedFields = [
     "openaiApiKey",
     "runwayApiKey",
+    "lumaApiKey",
     "instagramToken",
     "tiktokToken",
     "youtubeToken",

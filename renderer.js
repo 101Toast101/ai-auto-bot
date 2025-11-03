@@ -3365,8 +3365,16 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   }
 
   async function generateAIVideo() {
-    // Get selected AI provider from video form (not global settings)
-    const provider = $("videoAiProvider")?.value || "openai";
+    // Get selected AI provider from video form
+    const provider = $("videoAiProvider")?.value || "runway";
+    const prompt = $("videoPrompt")?.value?.trim();
+
+    if (!prompt) {
+      $("errorContainer").textContent = "Please enter a video prompt!";
+      $("errorContainer").style.display = "block";
+      addLogEntry("Please enter a video prompt");
+      return;
+    }
 
     // Get API key from settings (encrypted)
     const settingsResult = await readFileAsync(PATHS.SETTINGS);
@@ -3380,8 +3388,13 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     const encryptedKey = settings[`${provider}ApiKey`];
 
     if (!encryptedKey) {
+      const providerNames = {
+        openai: "OpenAI",
+        runway: "Runway ML",
+        luma: "Luma AI"
+      };
       $("errorContainer").textContent =
-        `⚠️ ${provider.toUpperCase()} not connected! Please connect ${provider === "openai" ? "OpenAI" : "Runway ML"} in the "Connect AI Providers" section below to generate videos.`;
+        `⚠️ ${providerNames[provider] || provider.toUpperCase()} not connected! Please connect it in the "Connect AI Providers" section below.`;
       $("errorContainer").style.display = "block";
       addLogEntry(
         `AI video generation failed — no ${provider} API key configured`,
@@ -3390,28 +3403,28 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     }
 
     // Decrypt the API key
-    const apiKey = await window.api.decrypt(encryptedKey);
-    if (!apiKey || !apiKey.success) {
+    const apiKeyResult = await window.api.decrypt(encryptedKey);
+    if (!apiKeyResult || !apiKeyResult.success) {
       $("errorContainer").textContent = "Failed to decrypt API key!";
       $("errorContainer").style.display = "block";
       return;
     }
 
-    const actualKey = apiKey.data || apiKey;
+    const apiKey = apiKeyResult.data || apiKeyResult;
 
-    const prompt = $("videoPrompt")?.value?.trim();
-    if (!prompt) {
-      $("errorContainer").textContent = "Please enter a video prompt!";
-      $("errorContainer").style.display = "block";
-      addLogEntry("Please enter a video prompt");
-      return;
-    }
-
-    console.warn("[AI Video] Generating with provider:", provider);
-    addLogEntry(`🎬 Generating AI video using ${provider.toUpperCase()}...`);
-    showSpinner(`Generating AI video with ${provider.toUpperCase()}...`);
+    // Import video provider utilities
+    const { createVideoProvider } = await import('./utils/video-providers.js');
 
     try {
+      // Create provider instance
+      const videoProvider = createVideoProvider(provider, apiKey);
+      const capabilities = videoProvider.getCapabilities();
+
+      console.warn("[AI Video] Generating with provider:", provider);
+      addLogEntry(`🎬 Generating AI video using ${provider.toUpperCase()}...`);
+      showSpinner(`Generating with ${provider}... (est. ${Math.floor(capabilities.estimatedTime / 60)} min)`);
+
+      // Prepare generation options
       const duration = parseInt($("videoDuration")?.value || "5");
       const aspectRatio = $("aspectRatio")?.value || "16:9";
       const dimensions =
@@ -3421,206 +3434,134 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
             ? { width: 1792, height: 1024 }
             : { width: 1024, height: 1792 };
 
-      if (provider === "openai") {
-        // OpenAI DALL-E + video conversion workflow
-        console.warn("[AI Video] Using OpenAI DALL-E + video conversion");
+      // Start generation
+      const result = await videoProvider.generate({
+        prompt: prompt,
+        duration: duration,
+        aspectRatio: aspectRatio,
+        dimensions: dimensions,
+      });
 
-        updateSpinnerMessage("Generating image with DALL-E...");
+      // Poll for completion
+      updateSpinnerMessage(`${provider} is generating your video...`);
+      const videoUrl = await pollForVideoCompletion(
+        videoProvider,
+        result.taskId,
+        result.pollInterval || 5000,
+        result.metadata
+      );
 
-        const imageResponse = await fetch(
-          "https://api.openai.com/v1/images/generations",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${actualKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              prompt: prompt,
-              n: 1,
-              size: `${dimensions.width}x${dimensions.height}`,
-            }),
-          },
-        );
-
-        if (!imageResponse.ok) {
-          const errorData = await imageResponse.json();
-          throw new Error(
-            errorData.error?.message ||
-              `OpenAI API error: ${imageResponse.status}`,
-          );
-        }
-
-        const imageData = await imageResponse.json();
-        const imageUrl = imageData.data[0]?.url;
-
-        if (!imageUrl) {
-          throw new Error("No image URL returned from OpenAI");
-        }
-
-        console.warn("[AI Video] Image generated, converting to video...");
-        updateSpinnerMessage("Converting image to video...");
-
-        // Convert to video
-        const videoResult = await window.api.generateVideo({
-          imagePath: imageUrl,
-          duration: duration,
-          resolution: `${dimensions.width}x${dimensions.height}`,
-          fps: 30,
-        });
-
-        if (!videoResult.success) {
-          throw new Error(videoResult.error || "Video conversion failed");
-        }
-
-        // Format path correctly for file:// protocol (Windows compatibility)
-        const videoPath = videoResult.path.replace(/\\/g, "/");
-        const videoFileUrl = videoPath.startsWith("/")
-          ? `file://${videoPath}`
-          : `file:///${videoPath}`;
-
-        // Download and display
-        videoBlob = await fetch(videoFileUrl).then((r) => r.blob());
-        const localVideoUrl = URL.createObjectURL(videoBlob);
-
-        const preview = $("videoPreview");
-        if (preview) {
-          preview.src = localVideoUrl;
-          $("videoPreviewContainer").style.display = "block";
-        }
-
-        hideSpinner();
-        addLogEntry("AI video created successfully using OpenAI!");
-      } else if (provider === "runway") {
-        // Runway Gen-3 Alpha API
-        console.warn("[AI Video] Using Runway ML Gen-3 Alpha API");
-
-        // Create a generation task
-        const response = await fetch(
-          "https://api.dev.runwayml.com/v1/image_to_video",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-              "X-Runway-Version": "2024-09-13",
-            },
-            body: JSON.stringify({
-              promptText: prompt,
-              duration: Math.min(duration, 10), // Runway max is 10 seconds
-              ratio:
-                aspectRatio === "16:9"
-                  ? "16:9"
-                  : aspectRatio === "9:16"
-                    ? "9:16"
-                    : "1:1",
-            }),
-          },
-        );
-
-        if (!response.ok) {
-          let errorMessage = `Runway API error: ${response.status}`;
-          try {
-            const error = await response.json();
-            errorMessage =
-              error.error?.message || error.message || errorMessage;
-          } catch {
-            // If response isn't JSON, try to get text
-            const text = await response.text();
-            if (text.includes("<!DOCTYPE") || text.includes("<html")) {
-              errorMessage = `Runway API endpoint error. Please verify your API key is valid for Gen-3 Alpha. (Got HTML response instead of JSON)`;
-            } else {
-              errorMessage = text || errorMessage;
-            }
-          }
-          throw new Error(errorMessage);
-        }
-
-        const data = await response.json();
-
-        // Poll for completion
-        let videoUrl = null;
-        const taskId = data.id;
-
-        if (!taskId) {
-          throw new Error("No task ID returned from Runway API");
-        }
-
-        updateSpinnerMessage("Runway is generating your video...");
-
-        let attempts = 0;
-        const maxAttempts = 60; // 5 minutes max
-
-        while (!videoUrl && attempts < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
-          attempts++;
-
-          const statusResponse = await fetch(
-            `https://api.dev.runwayml.com/v1/tasks/${taskId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "X-Runway-Version": "2024-09-13",
-              },
-            },
-          );
-
-          if (!statusResponse.ok) {
-            throw new Error(
-              `Failed to check Runway task status: ${statusResponse.status}`,
-            );
-          }
-
-          const status = await statusResponse.json();
-
-          if (status.status === "SUCCEEDED") {
-            videoUrl = status.output?.[0] || status.video_url;
-          } else if (status.status === "FAILED") {
-            throw new Error(status.error || "Runway video generation failed");
-          }
-
-          // Update progress
-          if (status.progress) {
-            updateSpinnerMessage(
-              `Runway is generating your video... ${Math.round(status.progress * 100)}%`,
-            );
-          }
-        }
-
-        if (!videoUrl) {
-          throw new Error("Runway video generation timed out after 5 minutes");
-        }
-
-        // Download and display
-        const videoResponse = await fetch(videoUrl);
-        videoBlob = await videoResponse.blob();
-        const localVideoUrl = URL.createObjectURL(videoBlob);
-
-        const preview = $("videoPreview");
-        if (preview) {
-          preview.src = localVideoUrl;
-          $("videoPreviewContainer").style.display = "block";
-        }
-
-        // Track video generation cost (use actual duration from settings)
-        const videoDuration = parseInt($("videoDuration")?.value || 10);
-        trackVideoGeneration(videoDuration);
-
-        hideSpinner();
-        addLogEntry(
-          "AI video generated successfully using Runway Gen-3 Alpha!",
-        );
-      } else {
-        throw new Error(
-          `Unknown AI provider: ${provider}. Please select OpenAI or Runway ML in the Connect AI Providers section.`,
-        );
+      if (!videoUrl) {
+        throw new Error("No video URL returned from provider");
       }
+
+      // Download video blob
+      const videoResponse = await fetch(videoUrl);
+      videoBlob = await videoResponse.blob();
+
+      // Display video preview
+      const localVideoUrl = URL.createObjectURL(videoBlob);
+      const preview = $("videoPreview");
+      if (preview) {
+        preview.src = localVideoUrl;
+        $("videoPreviewContainer").style.display = "block";
+      }
+
+      // Track video generation cost
+      trackVideoGeneration(duration);
+
+      hideSpinner();
+      addLogEntry(`✅ AI video generated successfully using ${provider.toUpperCase()}!`);
+
     } catch (error) {
       hideSpinner();
       $("errorContainer").textContent =
         `AI video generation failed: ${error.message}`;
       $("errorContainer").style.display = "block";
       addLogEntry(`AI video error: ${error.message}`);
+      console.error("[AI Video] Error:", error);
+    }
+  }
+
+  /**
+   * Poll video provider for completion status
+   */
+  async function pollForVideoCompletion(provider, taskId, pollInterval, metadata) {
+    const maxAttempts = 60; // 5 minutes max
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      attempts++;
+
+      const status = await provider.checkStatus(taskId, metadata);
+
+      if (status.status === 'completed') {
+        return status.videoUrl;
+      }
+
+      if (status.status === 'failed') {
+        throw new Error(status.error || 'Video generation failed');
+      }
+
+      // Update progress
+      if (status.progress) {
+        updateSpinnerMessage(
+          `Generating video... ${Math.round(status.progress * 100)}%`
+        );
+      }
+    }
+
+    throw new Error('Video generation timed out after 5 minutes');
+  }
+
+  /**
+   * Update UI with provider capabilities
+   */
+  async function updateProviderCapabilities(providerName) {
+    try {
+      const { createVideoProvider } = await import('./utils/video-providers.js');
+
+      // Create dummy provider to get capabilities (no API key needed for this)
+      const dummyProvider = createVideoProvider(providerName, 'dummy-key-for-capabilities');
+      const caps = dummyProvider.getCapabilities();
+
+      // Update UI elements
+      const qualityEl = $('providerQuality');
+      const timeEl = $('providerTime');
+      const costEl = $('providerCost');
+
+      if (qualityEl) {
+        qualityEl.textContent = `Quality: ${caps.quality}`;
+      }
+
+      if (timeEl) {
+        const minutes = Math.floor(caps.estimatedTime / 60);
+        const seconds = caps.estimatedTime % 60;
+        timeEl.textContent = seconds > 0
+          ? `Est. Time: ${minutes} min ${seconds}s`
+          : `Est. Time: ${minutes} min`;
+      }
+
+      if (costEl) {
+        costEl.textContent = `Cost: $${caps.costPer10s}/10s`;
+      }
+
+      // Update duration max based on provider capability
+      const durationInput = $('videoDuration');
+      if (durationInput) {
+        durationInput.max = caps.maxDuration;
+        if (parseInt(durationInput.value) > caps.maxDuration) {
+          durationInput.value = caps.maxDuration;
+        }
+      }
+
+      // Show note if available
+      if (caps.note) {
+        console.log(`[Provider Info] ${providerName}: ${caps.note}`);
+      }
+    } catch (error) {
+      console.error('Failed to update provider capabilities:', error);
     }
   }
 
@@ -5370,6 +5311,20 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> Runway requires a paid subscription for API access.</p>
       `,
     },
+    luma: {
+      name: "Luma AI",
+      helpText: `
+        <p><strong>Where to get your API key:</strong></p>
+        <ol style="margin: 10px 0; padding-left: 20px;">
+          <li>Go to <a href="https://lumalabs.ai/dream-machine/api" target="_blank" style="color: #4a90e2;">lumalabs.ai/dream-machine/api</a></li>
+          <li>Sign up or log in to your Luma account</li>
+          <li>Navigate to API settings</li>
+          <li>Generate a new API key</li>
+          <li>Paste it here</li>
+        </ol>
+        <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> Luma offers fast, affordable AI video generation.</p>
+      `,
+    },
   };
 
   function openAiKeyModal(provider) {
@@ -5702,6 +5657,18 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
     // Initialize video functionality
     await initializeVideoFeatures();
+
+    // Set up video provider capability display
+    const videoProviderSelect = $("videoAiProvider");
+    if (videoProviderSelect) {
+      // Update capabilities when provider changes
+      videoProviderSelect.addEventListener("change", async (e) => {
+        await updateProviderCapabilities(e.target.value);
+      });
+
+      // Set initial capabilities display
+      await updateProviderCapabilities(videoProviderSelect.value || "runway");
+    }
 
     // Reset all social media connections and AI provider UI on reload
     const socialPlatforms = ["instagram", "tiktok", "youtube", "twitter"];
