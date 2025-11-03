@@ -52,6 +52,88 @@
       <!-- Hidden UI debug area (removed) -->
     </div>
 
+    <!-- FIRST TIME SETUP WIZARD MODAL -->
+    <div id="setupWizardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; overflow-y: auto;">
+      <div style="background: var(--glass-bg); max-width: 900px; margin: 30px auto; padding: 40px; border-radius: 20px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <button id="closeSetupWizard" style="position: absolute; top: 20px; right: 20px; background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Skip</button>
+        
+        <div style="text-align: center; margin-bottom: 40px;">
+          <h1 style="font-size: 36px; margin-bottom: 10px;">🎬 Welcome to AI Auto Bot!</h1>
+          <p style="font-size: 18px; color: #6b7280;">Your FREE social media automation tool</p>
+        </div>
+
+        <div style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(30, 60, 114, 0.1) 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 4px solid #4a90e2;">
+          <h3 style="margin-bottom: 15px; color: #4a90e2;">✨ How It Works (BYOK Model)</h3>
+          <p style="line-height: 1.8; margin-bottom: 15px;">This app is <strong>100% FREE</strong>, but you need to provide your own API keys:</p>
+          <ul style="line-height: 2; margin-left: 20px;">
+            <li>✅ <strong>You control your data</strong> - All keys are encrypted locally</li>
+            <li>✅ <strong>You control costs</strong> - Pay API providers directly (no middleman)</li>
+            <li>✅ <strong>No subscription</strong> - Use the app forever for free</li>
+            <li>✅ <strong>Privacy first</strong> - Your data never leaves your computer</li>
+          </ul>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px;">
+            <h4 style="margin-bottom: 12px; color: #4a90e2;">🤖 AI Generation</h4>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 10px;">Create images and videos with AI</p>
+            <div style="font-size: 12px; color: #9ca3af;">
+              <div>OpenAI: <strong>~$0.04/image</strong></div>
+              <div>Runway: <strong>~$0.25/sec video</strong></div>
+            </div>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px;">
+            <h4 style="margin-bottom: 12px; color: #48bb78;">📤 Social Media</h4>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 10px;">Post to all platforms</p>
+            <div style="font-size: 12px; color: #9ca3af;">
+              <div>Instagram/TikTok/YouTube: <strong>FREE</strong></div>
+              <div>Twitter: <strong>FREE (1500/mo)</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #f3f4f6; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+          <h3 style="margin-bottom: 20px; color: #1f2937;">🚀 Setup Checklist</h3>
+          <div style="display: grid; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
+              <input type="checkbox" id="setupCheckOpenAI" style="width: 20px; height: 20px;">
+              <label for="setupCheckOpenAI" style="flex: 1; cursor: pointer;">
+                <strong>OpenAI API Key</strong> - For image generation
+                <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #4a90e2; text-decoration: none; margin-left: 10px;">Get Key →</a>
+              </label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
+              <input type="checkbox" id="setupCheckRunway" style="width: 20px; height: 20px;">
+              <label for="setupCheckRunway" style="flex: 1; cursor: pointer;">
+                <strong>Runway API Key</strong> - For video generation (optional)
+                <a href="https://runwayml.com" target="_blank" style="color: #4a90e2; text-decoration: none; margin-left: 10px;">Get Key →</a>
+              </label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: white; border-radius: 8px;">
+              <input type="checkbox" id="setupCheckSocial" style="width: 20px; height: 20px;">
+              <label for="setupCheckSocial" style="flex: 1; cursor: pointer;">
+                <strong>Social Media OAuth</strong> - Connect your accounts
+                <span style="color: #6b7280; font-size: 14px; margin-left: 10px;">(Setup after opening app)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <button id="openSettingsFromWizard" style="flex: 1; padding: 15px; background: var(--blue-gradient); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">
+            ⚙️ Open Settings & Add Keys
+          </button>
+          <button id="continueWithoutSetup" style="flex: 1; padding: 15px; background: #6b7280; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">
+            Skip for Now
+          </button>
+        </div>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #9ca3af;">
+          💡 Tip: You can access this wizard anytime from Settings → "Show Setup Guide"
+        </p>
+      </div>
+    </div>
+
     <!-- BULK GENERATION MODAL -->
     <div id="bulkModal" style="
           display: none;
@@ -625,6 +707,9 @@ Top Text 2|Bottom Text 2"></textarea>
           <p style="margin: 5px 0; font-size: 0.85rem; color: #718096">
             Your API keys are encrypted and stored securely
           </p>
+          <button type="button" id="reopenSetupWizard" style="margin-top: 10px; padding: 8px 16px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+            📖 Show Setup Guide
+          </button>
         </div>
         <div class="oauth-buttons">
           <button type="button" id="connectOpenAIBtn" class="ai-connect-btn" data-provider="openai">
@@ -669,6 +754,34 @@ Top Text 2|Bottom Text 2"></textarea>
             <input type="checkbox" id="twitter" />
             <label for="twitter">Twitter</label>
           </div>
+        </div>
+      </fieldset>
+
+      <!-- Cost Tracker -->
+      <fieldset id="costTrackerFieldset">
+        <legend>💰 API Cost Tracker</legend>
+        <div class="cost-tracker">
+          <div class="cost-stat">
+            <span class="cost-label">Images Generated:</span>
+            <span class="cost-value" id="imagesGenerated">0</span>
+          </div>
+          <div class="cost-stat">
+            <span class="cost-label">Estimated OpenAI Cost:</span>
+            <span class="cost-value" id="openaiCost">$0.00</span>
+          </div>
+          <div class="cost-stat">
+            <span class="cost-label">Videos Generated:</span>
+            <span class="cost-value" id="videosGenerated">0</span>
+          </div>
+          <div class="cost-stat">
+            <span class="cost-label">Estimated Runway Cost:</span>
+            <span class="cost-value" id="runwayCost">$0.00</span>
+          </div>
+          <div class="cost-stat cost-total">
+            <span class="cost-label">Total Estimated:</span>
+            <span class="cost-value" id="totalCost">$0.00</span>
+          </div>
+          <button type="button" id="resetCostsBtn" class="reset-costs-btn">Reset Tracker</button>
         </div>
       </fieldset>
 

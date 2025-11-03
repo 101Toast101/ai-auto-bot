@@ -2,6 +2,22 @@
 
 AI-powered social media automation tool for creating and scheduling memes and video content across multiple platforms.
 
+## 🎯 For Users
+
+**This app is FREE and open-source**, but requires you to provide your own API keys:
+
+- ✅ **You control your data** - All API keys are encrypted and stored locally on your machine
+- ✅ **You control your costs** - Pay only for what you use through your own API accounts
+- ✅ **No subscription fees** - The app itself is completely free
+- ✅ **Privacy first** - Your keys and content never leave your computer
+
+**Quick Cost Guide:**
+- **OpenAI (Images)**: ~$0.04 per image
+- **Runway (Videos)**: ~$0.05-0.50 per second of video
+- **Social Media APIs**: FREE (Instagram, TikTok, YouTube, Twitter)
+
+See the [Setup Guide](#setup) below to get your API keys and start creating!
+
 ## Features
 
 - 🎨 **Bulk Meme Generation** - Generate 10-100 memes at once with platform-specific sizing
@@ -236,13 +252,28 @@ ai-auto-bot/
 - Rate limits apply based on each platform's API restrictions
 - Scheduled posts require app to be running for auto-execution
 
-## API Costs (Pay-as-you-go)
+## 💰 API Costs (User Pays Directly to Providers)
 
-- **OpenAI DALL-E 3**: ~$0.04 per image generation
+**The app is FREE** - You pay API providers directly based on your usage:
+
+### AI Generation (Pay-as-you-go)
+- **OpenAI DALL-E 3**: ~$0.04 per image
+  - 25 images = $1.00
+  - 100 images = $4.00
+  - See pricing: [openai.com/pricing](https://openai.com/pricing)
+  
+- **Runway Gen-3 Alpha**: ~$0.05-0.50 per second of video
+  - 10-second video ≈ $0.50-5.00
+  - Pricing varies by quality/features
+  - See pricing: [runwayml.com/pricing](https://runwayml.com/pricing)
+
+### Social Media APIs (FREE)
 - **Instagram**: Free (requires Facebook Business account)
 - **TikTok**: Free (requires developer approval, 50 posts/day limit)
-- **YouTube**: Free tier 10,000 units/day
+- **YouTube**: Free tier 10,000 units/day (generous for personal use)
 - **Twitter**: Free tier 1,500 tweets/month, Basic $100/mo for 50K tweets
+
+**Cost Tracking**: The app includes a built-in cost estimator to help you monitor your API usage!
 
 ## Contributing
 

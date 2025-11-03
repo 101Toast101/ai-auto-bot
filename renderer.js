@@ -1443,6 +1443,15 @@
         `Complete! Generated ${bulkGeneratedContent.length} images`;
       $("bulkComplete").style.display = "block";
 
+      // Track bulk image generation if using AI
+      if (textMode === 'ai') {
+        const aiGeneratedCount = bulkGeneratedContent.length;
+        const stats = getCostStats();
+        stats.imagesGenerated = (stats.imagesGenerated || 0) + aiGeneratedCount;
+        saveCostStats(stats);
+        addLogEntry(`💰 Cost tracker updated: +${aiGeneratedCount} images ($${(aiGeneratedCount * 0.04).toFixed(2)})`);
+      }
+
       const libRes = await readFileAsync(PATHS.LIBRARY);
       let library = libRes.success ? safeParse(libRes.content, []) : [];
       library = bulkGeneratedContent.concat(library);
@@ -3591,6 +3600,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           $("videoPreviewContainer").style.display = "block";
         }
 
+        // Track video generation cost (use actual duration from settings)
+        const videoDuration = parseInt($("videoDuration")?.value || 10);
+        trackVideoGeneration(videoDuration);
+        
         hideSpinner();
         addLogEntry(
           "AI video generated successfully using Runway Gen-3 Alpha!",
@@ -3958,6 +3971,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
       await displayLibraryContent();
 
+      trackImageGeneration(); // Track cost
       addLogEntry("AI image generated successfully!");
       hideSpinner();
     } catch (error) {
@@ -6201,5 +6215,167 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   window.addEventListener("DOMContentLoaded", () => {
     init();
     initPreviewModal();
+    initCostTracker();
+    initSetupWizard();
   });
+
+  // ============================================
+  // SETUP WIZARD
+  // ============================================
+
+  function initSetupWizard() {
+    // Check if this is first run
+    const hasSeenWizard = localStorage.getItem('hasSeenSetupWizard');
+    
+    if (!hasSeenWizard) {
+      // Show wizard after a brief delay so UI loads first
+      setTimeout(() => {
+        showSetupWizard();
+      }, 1000);
+    }
+
+    // Setup button handlers
+    const closeBtn = document.getElementById('closeSetupWizard');
+    const continueBtn = document.getElementById('continueWithoutSetup');
+    const openSettingsBtn = document.getElementById('openSettingsFromWizard');
+    const reopenBtn = document.getElementById('reopenSetupWizard');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        closeSetupWizard();
+      });
+    }
+
+    if (continueBtn) {
+      continueBtn.addEventListener('click', () => {
+        closeSetupWizard();
+      });
+    }
+
+    if (openSettingsBtn) {
+      openSettingsBtn.addEventListener('click', () => {
+        closeSetupWizard();
+        // Scroll to settings fieldset
+        const settingsFieldset = document.querySelector('fieldset legend');
+        if (settingsFieldset && settingsFieldset.textContent.includes('Settings')) {
+          settingsFieldset.closest('fieldset').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+
+    if (reopenBtn) {
+      reopenBtn.addEventListener('click', () => {
+        showSetupWizard();
+      });
+    }
+  }
+
+  function showSetupWizard() {
+    const modal = document.getElementById('setupWizardModal');
+    if (modal) {
+      modal.style.display = 'block';
+      addLogEntry('🎬 Welcome! Setup wizard opened for first-time configuration');
+    }
+  }
+
+  function closeSetupWizard() {
+    const modal = document.getElementById('setupWizardModal');
+    if (modal) {
+      modal.style.display = 'none';
+      localStorage.setItem('hasSeenSetupWizard', 'true');
+      addLogEntry('Setup wizard closed');
+    }
+  }
+
+  // Expose function to reopen wizard from settings
+  window.showSetupWizard = showSetupWizard;
+
+  // ============================================
+  // COST TRACKER
+  // ============================================
+
+  function initCostTracker() {
+    loadCostStats();
+    
+    const resetBtn = document.getElementById('resetCostsBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (confirm('Reset cost tracker? This will clear all usage statistics.')) {
+          resetCostStats();
+        }
+      });
+    }
+  }
+
+  function loadCostStats() {
+    const stats = getCostStats();
+    updateCostDisplay(stats);
+  }
+
+  function getCostStats() {
+    const stored = localStorage.getItem('costStats');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return {
+      imagesGenerated: 0,
+      videosGenerated: 0,
+      videoSecondsGenerated: 0
+    };
+  }
+
+  function saveCostStats(stats) {
+    localStorage.setItem('costStats', JSON.stringify(stats));
+    updateCostDisplay(stats);
+  }
+
+  function updateCostDisplay(stats) {
+    const imagesEl = document.getElementById('imagesGenerated');
+    const openaiCostEl = document.getElementById('openaiCost');
+    const videosEl = document.getElementById('videosGenerated');
+    const runwayCostEl = document.getElementById('runwayCost');
+    const totalCostEl = document.getElementById('totalCost');
+
+    if (imagesEl) imagesEl.textContent = stats.imagesGenerated || 0;
+    
+    // OpenAI DALL-E 3: $0.04 per image
+    const openaiCost = (stats.imagesGenerated || 0) * 0.04;
+    if (openaiCostEl) openaiCostEl.textContent = `$${openaiCost.toFixed(2)}`;
+    
+    if (videosEl) videosEl.textContent = stats.videosGenerated || 0;
+    
+    // Runway Gen-3: ~$0.25 per second (mid-range estimate)
+    const runwayCost = (stats.videoSecondsGenerated || 0) * 0.25;
+    if (runwayCostEl) runwayCostEl.textContent = `$${runwayCost.toFixed(2)}`;
+    
+    const totalCost = openaiCost + runwayCost;
+    if (totalCostEl) totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
+  }
+
+  function trackImageGeneration() {
+    const stats = getCostStats();
+    stats.imagesGenerated = (stats.imagesGenerated || 0) + 1;
+    saveCostStats(stats);
+    addLogEntry(`💰 Cost tracker updated: ${stats.imagesGenerated} images ($${(stats.imagesGenerated * 0.04).toFixed(2)})`);
+  }
+
+  function trackVideoGeneration(durationSeconds = 10) {
+    const stats = getCostStats();
+    stats.videosGenerated = (stats.videosGenerated || 0) + 1;
+    stats.videoSecondsGenerated = (stats.videoSecondsGenerated || 0) + durationSeconds;
+    saveCostStats(stats);
+    addLogEntry(`💰 Cost tracker updated: ${stats.videosGenerated} videos ($${(stats.videoSecondsGenerated * 0.25).toFixed(2)})`);
+  }
+
+  function resetCostStats() {
+    const stats = {
+      imagesGenerated: 0,
+      videosGenerated: 0,
+      videoSecondsGenerated: 0
+    };
+    saveCostStats(stats);
+    addLogEntry('💰 Cost tracker reset');
+    showToast('Cost tracker reset successfully', 'success');
+  }
 })();
+

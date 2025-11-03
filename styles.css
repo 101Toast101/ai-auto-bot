@@ -1792,3 +1792,99 @@ body.dark .preview-caption {
 body.dark .preview-footer {
   border-top-color: #374151;
 }
+
+/* Cost Tracker Styles */
+.cost-tracker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.cost-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+  background: rgba(74, 144, 226, 0.1);
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cost-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .cost-stat {
+  background: rgba(74, 144, 226, 0.2);
+}
+
+.cost-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body.dark .cost-label {
+  color: #9ca3af;
+}
+
+.cost-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4a90e2;
+}
+
+body.dark .cost-value {
+  color: #60a5fa;
+}
+
+.cost-total {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.2) 0%, rgba(30, 60, 114, 0.2) 100%);
+  border: 2px solid #4a90e2;
+}
+
+body.dark .cost-total {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.3) 0%, rgba(30, 60, 114, 0.3) 100%);
+  border-color: #60a5fa;
+}
+
+.cost-total .cost-label {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+body.dark .cost-total .cost-label {
+  color: #e5e7eb;
+}
+
+.cost-total .cost-value {
+  font-size: 32px;
+}
+
+.reset-costs-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.reset-costs-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.reset-costs-btn:active {
+  transform: translateY(0);
+}
+
