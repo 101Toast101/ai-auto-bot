@@ -58,6 +58,17 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320):
     pipe = pipe.to(device)
 
     print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr)
+    
+    # Use fewer steps on CPU for reasonable speed
+    inference_steps = 15 if device == "cpu" else 40
+    
+    if device == "cpu":
+        print(f"⚠️ WARNING: CPU generation takes 10-15 minutes. Using {inference_steps} steps for faster results.", file=sys.stderr)
+
+    # Progress callback to show real-time updates
+    def progress_callback(step, timestep, latents):
+        percent = int((step / inference_steps) * 100)
+        print(f"Progress: {percent}% | Step {step}/{inference_steps}", file=sys.stderr, flush=True)
 
     # Generate video frames
     video_frames = pipe(
@@ -65,7 +76,9 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320):
         num_frames=duration * 8,  # 8 fps
         height=height,
         width=width,
-        num_inference_steps=40,
+        num_inference_steps=inference_steps,
+        callback=progress_callback,
+        callback_steps=1,
     ).frames
 
     # Export video
@@ -94,7 +107,7 @@ def generate_modelscope(prompt, output_path, duration=2, width=256, height=256):
         **kwargs
     )
     pipe = pipe.to(device)
-    
+
     if device == "cuda":
         pipe.enable_model_cpu_offload()
 
@@ -148,7 +161,7 @@ def generate_stable_video(prompt, output_path, duration=4, width=1024, height=57
         **kwargs
     )
     video_pipe = video_pipe.to(device)
-    
+
     if device == "cuda":
         video_pipe.enable_model_cpu_offload()
 

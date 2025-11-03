@@ -1186,13 +1186,23 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
         // Send progress updates to renderer
         if (mainWindow && !mainWindow.isDestroyed()) {
           // Extract progress from output like "Fetching 12 files:  17%|#6 | 2/12"
-          const progressMatch = output.match(/(\d+)%\|/);
-          if (progressMatch) {
-            const percent = parseInt(progressMatch[1]);
+          const downloadMatch = output.match(/(\d+)%\|/);
+          // Extract progress from output like "Progress: 35% | Step 14/40"
+          const stepMatch = output.match(/Progress:\s*(\d+)%/);
+          
+          if (downloadMatch) {
+            const percent = parseInt(downloadMatch[1]);
             safeSend(mainWindow, 'local-video-progress', {
               stage: 'downloading',
               percent: percent,
               message: `Downloading AI model... ${percent}%`
+            });
+          } else if (stepMatch) {
+            const percent = parseInt(stepMatch[1]);
+            safeSend(mainWindow, 'local-video-progress', {
+              stage: 'generating',
+              percent: percent,
+              message: `Generating video... ${percent}%`
             });
           } else if (output.includes('Loading') || output.includes('model')) {
             safeSend(mainWindow, 'local-video-progress', {

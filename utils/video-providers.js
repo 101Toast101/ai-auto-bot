@@ -384,7 +384,7 @@ class ZeroscopeProvider extends VideoProvider {
       // Zeroscope has strict dimension limits - use safe defaults
       const width = Math.min(dimensions?.width || 576, 576);
       const height = Math.min(dimensions?.height || 320, 320);
-      
+
       // Call main process to run local Python model
       const result = await window.api.generateLocalVideo({
         model: 'zeroscope',
@@ -450,7 +450,7 @@ class ModelScopeProvider extends VideoProvider {
       // ModelScope has strict dimension limits
       const width = Math.min(dimensions?.width || 256, 256);
       const height = Math.min(dimensions?.height || 256, 256);
-      
+
       const result = await window.api.generateLocalVideo({
         model: 'modelscope',
         prompt: prompt,
