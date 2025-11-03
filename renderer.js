@@ -3376,41 +3376,50 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       return;
     }
 
-    // Get API key from settings (encrypted)
-    const settingsResult = await readFileAsync(PATHS.SETTINGS);
-    if (!settingsResult.success) {
-      $("errorContainer").textContent = "Failed to load settings!";
-      $("errorContainer").style.display = "block";
-      return;
+    // Check if provider is a local model (no API key needed)
+    const localModels = ['zeroscope', 'modelscope', 'stable-video'];
+    const isLocalModel = localModels.includes(provider);
+
+    let apiKey = null;
+
+    // Only check for API key if NOT a local model
+    if (!isLocalModel) {
+      // Get API key from settings (encrypted)
+      const settingsResult = await readFileAsync(PATHS.SETTINGS);
+      if (!settingsResult.success) {
+        $("errorContainer").textContent = "Failed to load settings!";
+        $("errorContainer").style.display = "block";
+        return;
+      }
+
+      const settings = safeParse(settingsResult.content, {});
+      const encryptedKey = settings[`${provider}ApiKey`];
+
+      if (!encryptedKey) {
+        const providerNames = {
+          openai: "OpenAI",
+          runway: "Runway ML",
+          luma: "Luma AI"
+        };
+        $("errorContainer").textContent =
+          `⚠️ ${providerNames[provider] || provider.toUpperCase()} not connected! Please connect it in the "Connect AI Providers" section below.`;
+        $("errorContainer").style.display = "block";
+        addLogEntry(
+          `AI video generation failed — no ${provider} API key configured`,
+        );
+        return;
+      }
+
+      // Decrypt the API key
+      const apiKeyResult = await window.api.decrypt(encryptedKey);
+      if (!apiKeyResult || !apiKeyResult.success) {
+        $("errorContainer").textContent = "Failed to decrypt API key!";
+        $("errorContainer").style.display = "block";
+        return;
+      }
+
+      apiKey = apiKeyResult.data || apiKeyResult;
     }
-
-    const settings = safeParse(settingsResult.content, {});
-    const encryptedKey = settings[`${provider}ApiKey`];
-
-    if (!encryptedKey) {
-      const providerNames = {
-        openai: "OpenAI",
-        runway: "Runway ML",
-        luma: "Luma AI"
-      };
-      $("errorContainer").textContent =
-        `⚠️ ${providerNames[provider] || provider.toUpperCase()} not connected! Please connect it in the "Connect AI Providers" section below.`;
-      $("errorContainer").style.display = "block";
-      addLogEntry(
-        `AI video generation failed — no ${provider} API key configured`,
-      );
-      return;
-    }
-
-    // Decrypt the API key
-    const apiKeyResult = await window.api.decrypt(encryptedKey);
-    if (!apiKeyResult || !apiKeyResult.success) {
-      $("errorContainer").textContent = "Failed to decrypt API key!";
-      $("errorContainer").style.display = "block";
-      return;
-    }
-
-    const apiKey = apiKeyResult.data || apiKeyResult;
 
     // Import video provider utilities
     const { createVideoProvider } = await import('./utils/video-providers.js');

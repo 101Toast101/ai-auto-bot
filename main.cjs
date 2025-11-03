@@ -1080,6 +1080,94 @@ ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
   }
 });
 
+// IPC handler: Generate video using local AI models
+ipcMain.handle('generate-local-video', async (_evt, options) => {
+  const { spawn } = require('child_process');
+  const crypto = require('crypto');
+  
+  try {
+    const { model, prompt, duration, width, height } = options;
+    
+    // Validate inputs
+    if (!model || !prompt) {
+      return { success: false, error: 'Model and prompt are required' };
+    }
+    
+    // Generate unique output filename
+    const outputDir = path.join(__dirname, 'data', 'generated', 'videos');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+    
+    const timestamp = Date.now();
+    const hash = crypto.createHash('md5').update(prompt).digest('hex').slice(0, 8);
+    const outputFile = path.join(outputDir, `${model}_${timestamp}_${hash}.mp4`);
+    
+    // Check if Python is available
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const scriptPath = path.join(__dirname, 'scripts', 'local_video_generator.py');
+    
+    // Build command arguments
+    const args = [
+      scriptPath,
+      '--model', model,
+      '--prompt', prompt,
+      '--output', outputFile,
+      '--duration', String(duration || 3),
+      '--width', String(width || 576),
+      '--height', String(height || 320),
+    ];
+    
+    return new Promise((resolve) => {
+      const process = spawn(pythonCmd, args);
+      let stdout = '';
+      let stderr = '';
+      
+      process.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+      
+      process.stderr.on('data', (data) => {
+        stderr += data.toString();
+        // Log progress to console
+        console.log('[Local AI]', data.toString().trim());
+      });
+      
+      process.on('close', (code) => {
+        if (code === 0) {
+          try {
+            // Parse JSON result from Python script
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve({ success: true, videoPath: result.videoPath });
+            } else {
+              resolve({ success: false, error: result.error });
+            }
+          } catch (parseError) {
+            resolve({ success: false, error: `Failed to parse Python output: ${stdout}` });
+          }
+        } else {
+          resolve({ 
+            success: false, 
+            error: `Python process exited with code ${code}. Error: ${stderr || 'Unknown error'}` 
+          });
+        }
+      });
+      
+      process.on('error', (err) => {
+        resolve({ 
+          success: false, 
+          error: `Failed to start Python: ${err.message}. Make sure Python is installed and in PATH.` 
+        });
+      });
+    });
+    
+  } catch (error) {
+    logError('generate-local-video error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // IPC handler: Restart the app (used after reset for clean slate)
 ipcMain.on('restart-app', () => {
   app.relaunch();

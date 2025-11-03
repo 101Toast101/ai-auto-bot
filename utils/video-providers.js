@@ -366,8 +366,188 @@ class OpenAIProvider extends VideoProvider {
 }
 
 /**
+ * Zeroscope V2 Provider (FREE Local AI)
+ * Open-source text-to-video model running locally
+ * Requires: Python, torch, diffusers
+ */
+class ZeroscopeProvider extends VideoProvider {
+  constructor() {
+    super('local'); // No API key needed
+  }
+
+  async generate({ prompt, duration, dimensions }) {
+    if (!prompt) {
+      throw new Error('Prompt is required');
+    }
+
+    try {
+      // Call main process to run local Python model
+      const result = await window.api.generateLocalVideo({
+        model: 'zeroscope',
+        prompt: prompt,
+        duration: duration || 3,
+        width: dimensions?.width || 576,
+        height: dimensions?.height || 320,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Zeroscope generation failed');
+      }
+
+      return {
+        taskId: result.videoPath, // Local path is the task ID
+        status: 'completed', // Local generation is synchronous
+        pollInterval: 0,
+      };
+    } catch (error) {
+      throw new Error(`Zeroscope generation failed: ${error.message}`);
+    }
+  }
+
+  async checkStatus(taskId) {
+    // For local models, generation is synchronous
+    // taskId is the local file path
+    return {
+      status: 'completed',
+      progress: 1.0,
+      videoUrl: `file:///${taskId.replace(/\\/g, '/')}`,
+      error: null,
+    };
+  }
+
+  getCapabilities() {
+    return {
+      maxDuration: 5,
+      aspectRatios: ['16:9'],
+      estimatedTime: 180, // 3 minutes (slower on CPU)
+      costPer10s: 0.00,
+      quality: 'Good',
+      note: 'FREE - Runs locally (requires GPU for speed)',
+    };
+  }
+}
+
+/**
+ * ModelScope Provider (FREE Local AI)
+ * Alibaba's open-source text-to-video model
+ * Requires: Python, torch, modelscope
+ */
+class ModelScopeProvider extends VideoProvider {
+  constructor() {
+    super('local');
+  }
+
+  async generate({ prompt, duration, dimensions }) {
+    if (!prompt) {
+      throw new Error('Prompt is required');
+    }
+
+    try {
+      const result = await window.api.generateLocalVideo({
+        model: 'modelscope',
+        prompt: prompt,
+        duration: duration || 2,
+        width: dimensions?.width || 256,
+        height: dimensions?.height || 256,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'ModelScope generation failed');
+      }
+
+      return {
+        taskId: result.videoPath,
+        status: 'completed',
+        pollInterval: 0,
+      };
+    } catch (error) {
+      throw new Error(`ModelScope generation failed: ${error.message}`);
+    }
+  }
+
+  async checkStatus(taskId) {
+    return {
+      status: 'completed',
+      progress: 1.0,
+      videoUrl: `file:///${taskId.replace(/\\/g, '/')}`,
+      error: null,
+    };
+  }
+
+  getCapabilities() {
+    return {
+      maxDuration: 3,
+      aspectRatios: ['1:1'],
+      estimatedTime: 120, // 2 minutes
+      costPer10s: 0.00,
+      quality: 'Fair',
+      note: 'FREE - Runs locally (lower resolution)',
+    };
+  }
+}
+
+/**
+ * Stable Video Diffusion Provider (FREE Local AI)
+ * Stability AI's image-to-video model
+ * Requires: Python, torch, diffusers
+ */
+class StableVideoDiffusionProvider extends VideoProvider {
+  constructor() {
+    super('local');
+  }
+
+  async generate({ prompt, duration, dimensions }) {
+    if (!prompt) {
+      throw new Error('Prompt is required');
+    }
+
+    try {
+      const result = await window.api.generateLocalVideo({
+        model: 'stable-diffusion-video',
+        prompt: prompt,
+        duration: duration || 4,
+        width: dimensions?.width || 1024,
+        height: dimensions?.height || 576,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Stable Video Diffusion failed');
+      }
+
+      return {
+        taskId: result.videoPath,
+        status: 'completed',
+        pollInterval: 0,
+      };
+    } catch (error) {
+      throw new Error(`Stable Video Diffusion failed: ${error.message}`);
+    }
+  }
+
+  async checkStatus(taskId) {
+    return {
+      status: 'completed',
+      progress: 1.0,
+      videoUrl: `file:///${taskId.replace(/\\/g, '/')}`,
+      error: null,
+    };
+  }
+
+  getCapabilities() {
+    return {
+      maxDuration: 5,
+      aspectRatios: ['16:9', '9:16'],
+      estimatedTime: 240, // 4 minutes
+      costPer10s: 0.00,
+      quality: 'High',
+      note: 'FREE - Runs locally (best quality, slowest)',
+    };
+  }
+}
+
+/**
  * Factory function to create video provider instances
- * @param {string} providerName - 'runway', 'luma', or 'openai'
+ * @param {string} providerName - 'runway', 'luma', 'openai', 'zeroscope', 'modelscope', 'stable-video'
  * @param {string} apiKey - Provider API key
  * @returns {VideoProvider} Provider instance
  */
@@ -376,6 +556,9 @@ export function createVideoProvider(providerName, apiKey) {
     runway: RunwayProvider,
     luma: LumaProvider,
     openai: OpenAIProvider,
+    zeroscope: ZeroscopeProvider,
+    modelscope: ModelScopeProvider,
+    'stable-video': StableVideoDiffusionProvider,
   };
 
   const ProviderClass = providers[providerName.toLowerCase()];
@@ -384,6 +567,11 @@ export function createVideoProvider(providerName, apiKey) {
     throw new Error(
       `Unknown provider: ${providerName}. Available providers: ${Object.keys(providers).join(', ')}`
     );
+  }
+
+  // Local models don't need API key
+  if (providerName === 'zeroscope' || providerName === 'modelscope' || providerName === 'stable-video') {
+    return new ProviderClass();
   }
 
   return new ProviderClass(apiKey);
@@ -409,6 +597,21 @@ export function getAvailableProviders() {
       name: 'openai',
       displayName: 'OpenAI (Basic Animation)',
       capabilities: new OpenAIProvider('dummy').getCapabilities(),
+    },
+    {
+      name: 'zeroscope',
+      displayName: 'Zeroscope V2 (FREE)',
+      capabilities: new ZeroscopeProvider().getCapabilities(),
+    },
+    {
+      name: 'modelscope',
+      displayName: 'ModelScope (FREE)',
+      capabilities: new ModelScopeProvider().getCapabilities(),
+    },
+    {
+      name: 'stable-video',
+      displayName: 'Stable Video Diffusion (FREE)',
+      capabilities: new StableVideoDiffusionProvider().getCapabilities(),
     },
   ];
 }

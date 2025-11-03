@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld("api", {
   generateSlideshow: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_SLIDESHOW, params),
   generateGif: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_GIF, params),
   generateAiVideo: (params) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_AI_VIDEO, params),
+  generateLocalVideo: (params) => ipcRenderer.invoke('generate-local-video', params),
   onVideoProgress: (callback) => ipcRenderer.on(IPC_CHANNELS.VIDEO_PROGRESS, (_event, progress) => callback(progress)),
 
   // Scheduler Listener

@@ -213,9 +213,16 @@
           <label id="videoAiProviderLabel">
             AI Provider
             <select id="videoAiProvider">
-              <option value="runway">Runway ML Gen-3 (Best Quality)</option>
-              <option value="luma">Luma Dream Machine (Fast & Affordable)</option>
-              <option value="openai">OpenAI (Basic Animation)</option>
+              <optgroup label="💰 Paid API (Best Quality)">
+                <option value="runway">Runway ML Gen-3 (Professional)</option>
+                <option value="luma">Luma Dream Machine (Fast)</option>
+                <option value="openai">OpenAI (Basic Animation)</option>
+              </optgroup>
+              <optgroup label="🆓 FREE Local AI (No API Key)">
+                <option value="zeroscope">Zeroscope V2 (Good Quality)</option>
+                <option value="modelscope">ModelScope (Fair Quality)</option>
+                <option value="stable-video">Stable Video Diffusion (High Quality)</option>
+              </optgroup>
             </select>
           </label>
 
