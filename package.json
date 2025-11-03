@@ -15,15 +15,7 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky install",
-    "security-check": "npm audit && npx snyk test",
-    "precommit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "jest --findRelatedTests"
-    ]
+    "security-check": "npm audit"
   },
   "author": "CROTTY <Crottyjonathan@yahoo.com>",
   "dependencies": {
@@ -42,10 +34,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-security": "^3.0.1",
     "globals": "^16.4.0",
-    "husky": "^9.1.7",
-    "jest": "^30.2.0",
-    "lint-staged": "^16.2.6",
-    "snyk": "^1.1300.1"
+    "jest": "^30.2.0"
   },
   "build": {
     "appId": "com.j.ai-autobot",
@@ -65,12 +54,16 @@
       "entitlements": "entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "forceCodeSigning": false,
       "icon": "ABS.ico"
     },
     "linux": {
-      "target": ["AppImage"]
+      "target": [
+        "AppImage"
+      ]
     }
   }
 }

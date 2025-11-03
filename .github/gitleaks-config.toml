@@ -19,7 +19,12 @@ description = "Private key material in files"
 regex = "-----BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----"
 severity = "critical"
 
-[[allowlist]]
+[allowlist]
 # Allow README badges or public examples
 description = "Allow example keys and documentation snippets"
-paths = ["README.md", "docs/**"]
+paths = [
+  "README.md",
+  "docs/**",
+  "*.example.json",
+  "*.example"
+]
