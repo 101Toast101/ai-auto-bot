@@ -1,7 +1,16 @@
 name: Build Release Artifacts
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      sign_builds:
+        description: 'Enable code signing (requires CSC_LINK and CSC_KEY_PASSWORD secrets)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
   push:
     tags:
       - 'v*'
@@ -38,15 +47,16 @@ jobs:
         run: npm test
 
       - name: Build artifacts
-        env:
-          # Provide signing env vars in repo secrets when you want signed builds.
-          # Fallback to empty string prevents GitHub Actions warnings when secrets aren't set.
-          CSC_LINK: ${{ secrets.CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD || '' }}
         run: |
-          # Build platform-specific artifact. On macOS and Windows, signing will be attempted
-          # only if CSC_LINK is not empty; otherwise builds are unsigned (no warnings).
+          # Build platform-specific artifact. electron-builder will detect signing
+          # credentials from environment if CSC_LINK and CSC_KEY_PASSWORD are set.
+          # If not set, builds will be unsigned (no warnings from electron-builder).
           npm run dist -- --${{ matrix.target }} --x64
+        env:
+          # Optional code signing - only used if secrets are configured in repo
+          # Note: VS Code may show warnings for undefined secrets - this is expected
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

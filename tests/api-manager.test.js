@@ -95,6 +95,36 @@ describe("API Manager", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("Instagram token not provided");
     });
+
+    test("handles API error response", async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: { message: "Invalid image URL" } }),
+      });
+
+      const result = await apiManager.postToInstagram(
+        "bad-url",
+        "caption",
+        "test-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Instagram post failed");
+    });
+
+    test("handles network error", async () => {
+      global.fetch.mockRejectedValueOnce(new Error("Network timeout"));
+
+      const result = await apiManager.postToInstagram(
+        "image-url",
+        "caption",
+        "test-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Network timeout");
+    });
   });
 
   describe("postToTikTok", () => {
@@ -130,6 +160,47 @@ describe("API Manager", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("rate limit");
     });
+
+    test("handles missing token", async () => {
+      const result = await apiManager.postToTikTok(
+        "video-url",
+        "description",
+        null,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("TikTok token not provided");
+    });
+
+    test("handles API error response", async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: "Invalid video format" }),
+      });
+
+      const result = await apiManager.postToTikTok(
+        "bad-video",
+        "description",
+        "test-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("TikTok post failed");
+    });
+
+    test("handles network error", async () => {
+      global.fetch.mockRejectedValueOnce(new Error("Connection refused"));
+
+      const result = await apiManager.postToTikTok(
+        "video-url",
+        "description",
+        "test-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Connection refused");
+    });
   });
 
   describe("postToYouTube", () => {
@@ -148,6 +219,50 @@ describe("API Manager", () => {
 
       expect(result.success).toBe(true);
       expect(result.videoId).toBe("youtube-789");
+    });
+
+    test("handles missing token", async () => {
+      const result = await apiManager.postToYouTube(
+        "content-url",
+        "title",
+        "description",
+        null,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("YouTube token not provided");
+    });
+
+    test("handles API error response", async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: { message: "Quota exceeded" } }),
+      });
+
+      const result = await apiManager.postToYouTube(
+        "content-url",
+        "title",
+        "description",
+        "test-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("YouTube post failed");
+    });
+
+    test("handles network error", async () => {
+      global.fetch.mockRejectedValueOnce(new Error("DNS lookup failed"));
+
+      const result = await apiManager.postToYouTube(
+        "content-url",
+        "title",
+        "description",
+        "test-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("DNS lookup failed");
     });
   });
 
@@ -174,6 +289,38 @@ describe("API Manager", () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("exceeds character limit");
+    });
+
+    test("handles missing token", async () => {
+      const result = await apiManager.postToTwitter("tweet text", null);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Twitter token not provided");
+    });
+
+    test("handles API error response", async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({ errors: [{ message: "Unauthorized" }] }),
+      });
+
+      const result = await apiManager.postToTwitter(
+        "tweet text",
+        "invalid-token",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Twitter post failed");
+    });
+
+    test("handles network error", async () => {
+      global.fetch.mockRejectedValueOnce(new Error("Request timeout"));
+
+      const result = await apiManager.postToTwitter("tweet text", "test-token");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Request timeout");
     });
   });
 });
