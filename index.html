@@ -278,6 +278,21 @@
           </button>
         </fieldset>
 
+        <!-- Hashtags -->
+        <fieldset>
+          <legend>Hashtags</legend>
+          <label>Hashtag Mode
+            <select id="hashtagMode">
+              <option value="auto">Auto Generate</option>
+              <option value="manual">Manual Entry</option>
+            </select>
+          </label>
+          <label id="manualHashtagLabel" style="display: none">
+            Manual Hashtags
+            <input type="text" id="manualHashtags" placeholder="#ai #fun" />
+          </label>
+        </fieldset>
+
         <!-- FIRST TIME SETUP WIZARD MODAL -->
         <div id="setupWizardModal"
           style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; overflow-y: auto;">
@@ -769,57 +784,101 @@ Top Text 2|Bottom Text 2"></textarea>
 
         <!-- Settings Form -->
         <form id="settingsForm">
+          <div class="oauth-buttons">
+            <div class="oauth-pair">
+              <button type="button" id="connectInstagramBtn">🔗 Connect Instagram <span class="status-badge"
+                  id="status-instagram">Missing</span><span class="status-spinner" id="spinner-instagram"
+                  aria-hidden="true"></span></button>
+              <button type="button" id="disconnectInstagramBtn" class="disconnect-btn"
+                style="display:none">Disconnect</button>
+            </div>
+            <div class="oauth-pair">
+              <button type="button" id="connectTikTokBtn">🔗 Connect TikTok <span class="status-badge"
+                  id="status-tiktok">Missing</span><span class="status-spinner" id="spinner-tiktok"
+                  aria-hidden="true"></span></button>
+              <button type="button" id="disconnectTikTokBtn" class="disconnect-btn"
+                style="display:none">Disconnect</button>
+            </div>
+            <div class="oauth-pair">
+              <button type="button" id="connectYouTubeBtn">🔗 Connect YouTube <span class="status-badge"
+                  id="status-youtube">Missing</span><span class="status-spinner" id="spinner-youtube"
+                  aria-hidden="true"></span></button>
+              <button type="button" id="disconnectYouTubeBtn" class="disconnect-btn"
+                style="display:none">Disconnect</button>
+            </div>
+            <div class="oauth-pair">
+              <button type="button" id="connectTwitterBtn">🔗 Connect Twitter <span class="status-badge"
+                  id="status-twitter">Missing</span><span class="status-spinner" id="spinner-twitter"
+                  aria-hidden="true"></span></button>
+              <button type="button" id="disconnectTwitterBtn" class="disconnect-btn"
+                style="display:none">Disconnect</button>
+            </div>
+          </div>
+
+          <!-- hidden token stores used by renderer.js -->
+          <input type="hidden" id="instagramToken" />
+          <input type="hidden" id="tiktokToken" />
+          <input type="hidden" id="youtubeToken" />
+          <input type="hidden" id="twitterToken" />
+          </fieldset>
+
+          <!-- AI Provider Authentication -->
+          <fieldset class="oauth-fieldset">
+            <legend>Connect AI Providers</legend>
+            <div class="feature-highlight" style="margin-bottom: 15px">
+              <strong>🤖 Connect your AI providers to unlock content generation</strong>
+              <p style="margin: 5px 0; font-size: 0.85rem; color: #718096">
+                Your API keys are encrypted and stored securely
+              </p>
+              <button type="button" id="reopenSetupWizard"
+                style="margin-top: 10px; padding: 8px 16px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                📖 Show Setup Guide
+              </button>
+            </div>
             <div class="oauth-buttons">
-              <div class="oauth-pair">
-                <button type="button" id="connectInstagramBtn">🔗 Connect Instagram <span class="status-badge"
-                    id="status-instagram">Missing</span><span class="status-spinner" id="spinner-instagram"
-                    aria-hidden="true"></span></button>
-                <button type="button" id="disconnectInstagramBtn" class="disconnect-btn"
-                  style="display:none">Disconnect</button>
-              </div>
-              <div class="oauth-pair">
-                <button type="button" id="connectTikTokBtn">🔗 Connect TikTok <span class="status-badge"
-                    id="status-tiktok">Missing</span><span class="status-spinner" id="spinner-tiktok"
-                    aria-hidden="true"></span></button>
-                <button type="button" id="disconnectTikTokBtn" class="disconnect-btn"
-                  style="display:none">Disconnect</button>
-              </div>
-              <div class="oauth-pair">
-                <button type="button" id="connectYouTubeBtn">🔗 Connect YouTube <span class="status-badge"
-                    id="status-youtube">Missing</span><span class="status-spinner" id="spinner-youtube"
-                    aria-hidden="true"></span></button>
-                <button type="button" id="disconnectYouTubeBtn" class="disconnect-btn"
-                  style="display:none">Disconnect</button>
-              </div>
-              <div class="oauth-pair">
-                <button type="button" id="connectTwitterBtn">🔗 Connect Twitter <span class="status-badge"
-                    id="status-twitter">Missing</span><span class="status-spinner" id="spinner-twitter"
-                    aria-hidden="true"></span></button>
-                <button type="button" id="disconnectTwitterBtn" class="disconnect-btn"
-                  style="display:none">Disconnect</button>
+              <button type="button" id="connectOpenAIBtn" class="ai-connect-btn" data-provider="openai">
+                <span class="connect-icon">🔗</span>
+                <span class="provider-name">Connect OpenAI</span>
+                <span class="connected-badge" style="display: none">✓ Connected</span>
+              </button>
+              <button type="button" id="connectRunwayBtn" class="ai-connect-btn" data-provider="runway">
+                <span class="connect-icon">🔗</span>
+                <span class="provider-name">Connect Runway ML</span>
+                <span class="connected-badge" style="display: none">✓ Connected</span>
+              </button>
+              <div style="width:100%; margin-top:8px; display:flex; gap:8px;">
+                <button type="button" id="resetAllBtn" class="small-action-btn danger">Reset Connections & Clear
+                  All</button>
               </div>
             </div>
 
-            <!-- hidden token stores used by renderer.js -->
-            <input type="hidden" id="instagramToken" />
-            <input type="hidden" id="tiktokToken" />
-            <input type="hidden" id="youtubeToken" />
-            <input type="hidden" id="twitterToken" />
+            <!-- Hidden fields to store active provider and encrypted keys -->
+            <input type="hidden" id="aiProvider" value="openai" />
+            <input type="hidden" id="openaiApiKey" />
+            <input type="hidden" id="runwayApiKey" />
           </fieldset>
 
-          <!-- Hashtags -->
+          <!-- Platforms -->
           <fieldset>
-            <legend>Hashtags</legend>
-            <label>Hashtag Mode
-              <select id="hashtagMode">
-                <option value="auto">Auto Generate</option>
-                <option value="manual">Manual Entry</option>
-              </select>
-            </label>
-            <label id="manualHashtagLabel" style="display: none">
-              Manual Hashtags
-              <input type="text" id="manualHashtags" placeholder="#ai #fun" />
-            </label>
+            <legend>Target Platforms</legend>
+            <div class="platform-grid">
+              <div class="checkbox-item">
+                <input type="checkbox" id="instagram" />
+                <label for="instagram">Instagram</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="tiktok" />
+                <label for="tiktok">TikTok</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="youtube" />
+                <label for="youtube">YouTube</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="twitter" />
+                <label for="twitter">Twitter</label>
+              </div>
+            </div>
           </fieldset>
 
         </form>
@@ -898,71 +957,8 @@ Top Text 2|Bottom Text 2"></textarea>
           </div>
         </fieldset>
 
-        <!-- AI Provider Authentication -->
-        <fieldset class="oauth-fieldset">
-          <legend>Connect AI Providers</legend>
-          <div class="feature-highlight" style="margin-bottom: 15px">
-            <strong>🤖 Connect your AI providers to unlock content generation</strong>
-            <p style="margin: 5px 0; font-size: 0.85rem; color: #718096">
-              Your API keys are encrypted and stored securely
-            </p>
-            <button type="button" id="reopenSetupWizard"
-              style="margin-top: 10px; padding: 8px 16px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-              📖 Show Setup Guide
-            </button>
-          </div>
-          <div class="oauth-buttons">
-            <button type="button" id="connectOpenAIBtn" class="ai-connect-btn" data-provider="openai">
-              <span class="connect-icon">🔗</span>
-              <span class="provider-name">Connect OpenAI</span>
-              <span class="connected-badge" style="display: none">✓ Connected</span>
-            </button>
-            <button type="button" id="connectRunwayBtn" class="ai-connect-btn" data-provider="runway">
-              <span class="connect-icon">🔗</span>
-              <span class="provider-name">Connect Runway ML</span>
-              <span class="connected-badge" style="display: none">✓ Connected</span>
-            </button>
-            <div style="width:100%; margin-top:8px; display:flex; gap:8px;">
-              <button type="button" id="resetAllBtn" class="small-action-btn danger">Reset Connections & Clear
-                All</button>
-            </div>
-          </div>
-
-          <!-- Hidden fields to store active provider and encrypted keys -->
-          <input type="hidden" id="aiProvider" value="openai" />
-          <input type="hidden" id="openaiApiKey" />
-          <input type="hidden" id="runwayApiKey" />
-        </fieldset>
-
-        <!-- Platforms -->
-        <fieldset>
-          <legend>Target Platforms</legend>
-          <div class="platform-grid">
-            <div class="checkbox-item">
-              <input type="checkbox" id="instagram" />
-              <label for="instagram">Instagram</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="tiktok" />
-              <label for="tiktok">TikTok</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="youtube" />
-              <label for="youtube">YouTube</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="twitter" />
-              <label for="twitter">Twitter</label>
-            </div>
-          </div>
-        </fieldset>
-
-        <fieldset class="oauth-fieldset">
-          <legend>Connect Your Social Media Accounts</legend>
-        </form>
-
       </div>
-      <!-- END SECTION: SETTINGS -->
+      <!-- END SECTION: SCHEDULE -->
 
       <!-- SECTION: STATS -->
       <div id="section-stats" class="content-section">
