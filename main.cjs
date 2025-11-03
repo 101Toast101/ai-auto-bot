@@ -1189,7 +1189,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
           const downloadMatch = output.match(/(\d+)%\|/);
           // Extract progress from output like "Progress: 35% | Step 14/40"
           const stepMatch = output.match(/Progress:\s*(\d+)%/);
-          
+
           if (downloadMatch) {
             const percent = parseInt(downloadMatch[1]);
             safeSend(mainWindow, 'local-video-progress', {
