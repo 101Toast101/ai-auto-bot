@@ -79,10 +79,10 @@ const validateSettings = (obj) => {
     }
   }
   if ("aiProvider" in obj) {
-    const validProviders = ["openai", "runway"];
+    const validProviders = ["openai", "runway", ""];
     if (!validProviders.includes(String(obj.aiProvider))) {
       errors.push(
-        `Invalid aiProvider. Must be one of: ${validProviders.join(", ")}`,
+        `Invalid aiProvider. Must be one of: ${validProviders.join(", ")} or empty`,
       );
     }
   }
