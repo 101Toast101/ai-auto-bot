@@ -226,6 +226,18 @@
             </select>
           </label>
 
+          <!-- Local AI Quality Preset (shown only for local models) -->
+          <label id="localQualityLabel" style="display: none;">
+            Quality Preset
+            <select id="localQuality">
+              <option value="auto">🎯 Auto (Detect GPU)</option>
+              <option value="low">⚡ Low - 15 steps (~15 min CPU)</option>
+              <option value="fast">🚀 Fast - 20 steps (~20 min on 6GB GPU)</option>
+              <option value="medium">⭐ Medium - 30 steps (~5 min on 8GB GPU)</option>
+              <option value="high">💎 High - 50 steps (~3 min on 12GB+ GPU)</option>
+            </select>
+          </label>
+
           <!-- Provider Capabilities Info -->
           <div id="providerInfo" class="info-box"
             style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px; margin: 10px 0; display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.9em;">

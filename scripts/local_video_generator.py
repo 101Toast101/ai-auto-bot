@@ -40,38 +40,102 @@ def check_dependencies():
 
     return True, []
 
-def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320):
+def get_gpu_settings():
+    """Detect GPU and return optimal settings"""
+    try:
+        import torch
+        
+        if not torch.cuda.is_available():
+            return {
+                'device': 'cpu',
+                'dtype': 'float32',
+                'steps': 15,
+                'vram_gb': 0,
+                'quality': 'low',
+                'est_time_min': 15
+            }
+        
+        # Get GPU info
+        vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        gpu_name = torch.cuda.get_device_name(0)
+        
+        print(f"Detected: {gpu_name} with {vram_gb:.1f}GB VRAM", file=sys.stderr, flush=True)
+        
+        # Preset configurations based on VRAM
+        if vram_gb >= 12:  # RTX 3060 12GB, RTX 4070+
+            return {
+                'device': 'cuda',
+                'dtype': 'float16',
+                'steps': 50,
+                'vram_gb': vram_gb,
+                'quality': 'high',
+                'est_time_min': 3,
+                'enable_xformers': True
+            }
+        elif vram_gb >= 8:  # RTX 3070, RTX 4060
+            return {
+                'device': 'cuda',
+                'dtype': 'float16',
+                'steps': 30,
+                'vram_gb': vram_gb,
+                'quality': 'medium',
+                'est_time_min': 5,
+                'enable_xformers': False
+            }
+        else:  # RTX 2060, RTX 3050 (6GB or less)
+            return {
+                'device': 'cuda',
+                'dtype': 'float16',
+                'steps': 20,
+                'vram_gb': vram_gb,
+                'quality': 'fast',
+                'est_time_min': 20,
+                'enable_xformers': False
+            }
+    except Exception as e:
+        print(f"Error detecting GPU: {e}", file=sys.stderr)
+        return {
+            'device': 'cpu',
+            'dtype': 'float32',
+            'steps': 15,
+            'vram_gb': 0,
+            'quality': 'low',
+            'est_time_min': 15
+        }
+
+def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, quality_override=None):
     """Generate video using Zeroscope V2"""
     from diffusers import DiffusionPipeline
     import torch
 
     print(f"Loading Zeroscope V2 model...", file=sys.stderr)
 
-    # Use GPU if available, otherwise CPU with float32
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+    # Get optimal settings for detected GPU
+    gpu_settings = get_gpu_settings()
+    
+    device = gpu_settings['device']
+    dtype = torch.float16 if gpu_settings['dtype'] == 'float16' else torch.float32
+    
+    # Allow quality override from command line
+    if quality_override:
+        quality_map = {'low': 15, 'fast': 20, 'medium': 30, 'high': 50}
+        inference_steps = quality_map.get(quality_override, gpu_settings['steps'])
+    else:
+        inference_steps = gpu_settings['steps']
 
     pipe = DiffusionPipeline.from_pretrained(
         "cerspense/zeroscope_v2_576w",
         torch_dtype=dtype
     )
     pipe = pipe.to(device)
-    
-    # Enable memory optimizations for GPUs with limited VRAM
+
+    # Enable memory optimizations for all GPUs
     if device == "cuda":
         pipe.enable_attention_slicing()
         pipe.enable_vae_slicing()
 
     print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr, flush=True)
-
-    # Use fewer steps - balance quality vs speed
-    # RTX 2060 6GB is slower, so use 20 steps instead of 40
-    inference_steps = 15 if device == "cpu" else 20
-
-    if device == "cpu":
-        print(f"⚠️ WARNING: CPU generation takes 10-15 minutes. Using {inference_steps} steps for faster results.", file=sys.stderr, flush=True)
-    else:
-        print(f"✅ GPU detected! Generation optimized for your GPU (20 steps = ~20-30 minutes).", file=sys.stderr, flush=True)
+    print(f"Quality: {gpu_settings['quality'].upper()} ({inference_steps} steps, est. {gpu_settings['est_time_min']} min)", file=sys.stderr, flush=True)
 
     print(f"Progress: 0% | Step 0/{inference_steps} - Starting...", file=sys.stderr, flush=True)
 
@@ -193,6 +257,8 @@ def main():
     parser.add_argument('--duration', type=int, default=3, help='Video duration in seconds')
     parser.add_argument('--width', type=int, default=576, help='Video width')
     parser.add_argument('--height', type=int, default=320, help='Video height')
+    parser.add_argument('--quality', choices=['low', 'fast', 'medium', 'high'], 
+                       help='Quality preset (overrides auto-detection): low=15 steps, fast=20, medium=30, high=50')
 
     args = parser.parse_args()
 
@@ -212,7 +278,7 @@ def main():
 
         # Generate based on model
         if args.model == 'zeroscope':
-            output_path = generate_zeroscope(args.prompt, args.output, args.duration, args.width, args.height)
+            output_path = generate_zeroscope(args.prompt, args.output, args.duration, args.width, args.height, args.quality)
         elif args.model == 'modelscope':
             output_path = generate_modelscope(args.prompt, args.output, args.duration, args.width, args.height)
         elif args.model == 'stable-diffusion-video':

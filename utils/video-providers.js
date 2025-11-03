@@ -375,7 +375,7 @@ class ZeroscopeProvider extends VideoProvider {
     super('local'); // No API key needed
   }
 
-  async generate({ prompt, duration, dimensions }) {
+  async generate({ prompt, duration, dimensions, quality }) {
     if (!prompt) {
       throw new Error('Prompt is required');
     }
@@ -392,6 +392,7 @@ class ZeroscopeProvider extends VideoProvider {
         duration: duration || 3,
         width: width,
         height: height,
+        quality: quality, // Pass quality setting
       });
 
       if (!result.success) {

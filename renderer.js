@@ -3450,12 +3450,22 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
             ? { width: 1792, height: 1024 }
             : { width: 1024, height: 1792 };
 
+      // Get quality setting for local models
+      let quality = null;
+      if (isLocalModel) {
+        const qualitySelect = $("localQuality");
+        if (qualitySelect && qualitySelect.value !== 'auto') {
+          quality = qualitySelect.value;
+        }
+      }
+
       // Start generation
       const result = await videoProvider.generate({
         prompt: prompt,
         duration: duration,
         aspectRatio: aspectRatio,
         dimensions: dimensions,
+        quality: quality,
       });
 
       // Poll for completion
@@ -3568,6 +3578,13 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       const dummyProvider = createVideoProvider(providerName, 'dummy-key-for-capabilities');
       const caps = dummyProvider.getCapabilities();
 
+      // Show/hide quality selector for local models
+      const localQualityLabel = $('localQualityLabel');
+      const isLocalModel = ['zeroscope', 'modelscope', 'stable-video'].includes(providerName);
+      if (localQualityLabel) {
+        localQualityLabel.style.display = isLocalModel ? 'block' : 'none';
+      }
+
       // Update UI elements
       const qualityEl = $('providerQuality');
       const timeEl = $('providerTime');
@@ -3596,9 +3613,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         if (parseInt(durationInput.value) > caps.maxDuration) {
           durationInput.value = caps.maxDuration;
         }
-      }
-
-      // Show note if available
+      }      // Show note if available
       if (caps.note) {
         console.log(`[Provider Info] ${providerName}: ${caps.note}`);
       }

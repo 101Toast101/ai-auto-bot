@@ -1086,7 +1086,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
   const crypto = require('crypto');
 
   try {
-    const { model, prompt, duration, width, height } = options;
+    const { model, prompt, duration, width, height, quality } = options;
 
     // Validate inputs
     if (!model || !prompt) {
@@ -1163,6 +1163,11 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
       '--width', String(width || 576),
       '--height', String(height || 320),
     ];
+    
+    // Add optional quality parameter
+    if (quality) {
+      args.push('--quality', quality);
+    }
 
     console.log('[Local AI] Running:', pythonCmd, args.join(' '));
 
