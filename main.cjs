@@ -1163,12 +1163,12 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
       '--width', String(width || 576),
       '--height', String(height || 320),
     ];
-    
+
     // Add optional quality parameter
     if (quality) {
       args.push('--quality', quality);
     }
-    
+
     // Add optional custom steps parameter
     if (customSteps) {
       args.push('--steps', String(customSteps));

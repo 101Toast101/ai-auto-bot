@@ -44,7 +44,7 @@ def get_gpu_settings():
     """Detect GPU and return optimal settings"""
     try:
         import torch
-        
+
         if not torch.cuda.is_available():
             return {
                 'device': 'cpu',
@@ -54,13 +54,13 @@ def get_gpu_settings():
                 'quality': 'low',
                 'est_time_min': 15
             }
-        
+
         # Get GPU info
         vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
         gpu_name = torch.cuda.get_device_name(0)
-        
+
         print(f"Detected: {gpu_name} with {vram_gb:.1f}GB VRAM", file=sys.stderr, flush=True)
-        
+
         # Preset configurations based on VRAM
         if vram_gb >= 12:  # RTX 3060 12GB, RTX 4070+
             return {
@@ -112,16 +112,16 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, q
 
     # Get optimal settings for detected GPU
     gpu_settings = get_gpu_settings()
-    
+
     device = gpu_settings['device']
     dtype = torch.float16 if gpu_settings['dtype'] == 'float16' else torch.float32
-    
+
     # Determine inference steps (priority: custom > quality preset > auto-detected)
     if custom_steps:
         inference_steps = custom_steps
         print(f"Using custom steps: {inference_steps}", file=sys.stderr, flush=True)
     elif quality_override:
-        quality_map = {'low': 15, 'fast': 20, 'medium': 30, 'high': 50}
+        quality_map = {'ultra-low': 8, 'low': 15, 'fast': 20, 'medium': 30, 'high': 50}
         inference_steps = quality_map.get(quality_override, gpu_settings['steps'])
     else:
         inference_steps = gpu_settings['steps']
@@ -260,9 +260,10 @@ def main():
     parser.add_argument('--duration', type=int, default=3, help='Video duration in seconds')
     parser.add_argument('--width', type=int, default=576, help='Video width')
     parser.add_argument('--height', type=int, default=320, help='Video height')
-    parser.add_argument('--quality', choices=['low', 'fast', 'medium', 'high', 'custom'], 
-                       help='Quality preset (overrides auto-detection): low=15 steps, fast=20, medium=30, high=50')
-    parser.add_argument('--steps', type=int, 
+    parser.add_argument('--quality', choices=['ultra-low', 'low', 'fast', 'medium', 'high', 'custom'],
+                       help='Quality preset (overrides auto-detection): ultra-low=8 steps, low=15, fast=20, medium=30, high=50')
+    parser.add_argument('--steps', type=int,
+                       help='Custom number of inference steps (5-100). Overrides quality preset.')
                        help='Custom number of inference steps (10-100). Overrides quality preset.')
 
     args = parser.parse_args()
