@@ -22,14 +22,6 @@ try {
   };
 }
 
-// Debug logging
-function logDebug(msg) {
-  const ts = new Date().toISOString();
-  console.warn(`[Preload ${ts}] ${msg}`);
-}
-
-logDebug("Initializing IPC bridge...");
-
 /**
  * Exposes secure API to renderer process via window.api
  * All IPC communication flows through these methods
@@ -70,5 +62,3 @@ contextBridge.exposeInMainWorld("api", {
   // Optional options: { full: true } will also remove provider configs and AI keys
   resetConnections: (options) => ipcRenderer.invoke(IPC_CHANNELS.RESET_CONNECTIONS, options || {}),
 });
-
-logDebug("IPC bridge initialized successfully!");

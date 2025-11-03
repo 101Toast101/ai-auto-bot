@@ -167,7 +167,6 @@ class StateManager {
     }
   }
 
-  // Time travel debugging (development only)
   getHistory() {
     return [...this.history];
   }

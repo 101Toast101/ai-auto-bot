@@ -115,8 +115,6 @@
 
   // Initialize video features
   async function initializeVideoFeatures() {
-    console.warn("Initializing video features...");
-
     // Use event delegation for dynamically created library items
     document.addEventListener("click", async function (e) {
       // Handle video conversion button
@@ -160,7 +158,6 @@
     // Listen for video progress updates
     if (window.api && window.api.onVideoProgress) {
       window.api.onVideoProgress((progress) => {
-        console.warn("Video progress:", progress);
         if (progress.progress !== undefined) {
           updateProgress(progress.progress);
         }
@@ -171,14 +168,10 @@
   // Handle video conversion
   async function handleVideoConversion(itemId) {
     try {
-      console.warn("Starting video conversion for item:", itemId);
-
       const library = await loadLibraryItem(itemId);
       if (!library || !library.url) {
         throw new Error("Invalid library item - missing URL");
       }
-
-      console.warn("Converting image to video:", library.url);
 
       // Show progress indicator
       showProgress("Converting to video...");
@@ -189,8 +182,6 @@
         resolution: "1080x1080",
         fps: 30,
       });
-
-      console.warn("Video generation result:", result);
 
       if (result && result.success) {
         // Update library with new video
@@ -405,7 +396,6 @@
           const now = Date.now();
           if (now < settingsWriteLockUntil) {
             const waitMs = settingsWriteLockUntil - now;
-            console.warn(`Delaying write to ${filePath} for ${waitMs}ms due to recent reset`);
             await new Promise((res) => setTimeout(res, waitMs));
           }
         }
@@ -419,18 +409,15 @@
             if (!marker || !marker.success) {break;} // not present
             // if present, wait a bit and retry
             const waitMs = 250;
-            console.warn(`Reset marker present, waiting ${waitMs}ms before writing settings.json`);
             await new Promise((res) => setTimeout(res, waitMs));
             tries += 1;
           }
-        } catch (e) {
+        } catch {
           // fallback - if something goes wrong just proceed
-          console.warn("Failed while waiting for reset marker, proceeding to write settings.json", e);
         }
       }
 
       const result = await window.api.writeFile(filePath, content);
-      console.warn(`Write file ${filePath}:`, result.success ? "success" : "failed");
       return result;
     } catch (e) {
       console.error(`Error writing file ${filePath}:`, e);
@@ -1491,9 +1478,6 @@
           quantity,
           textMode,
         );
-        console.warn(
-          `[Bulk Video] Generated ${textVariations.length} text variations`,
-        );
         hideSpinner();
 
         const strategy = $("bulkTemplateStrategy")?.value || "random";
@@ -1501,10 +1485,6 @@
         if (strategy === "single") {
           templateToUse = $("bulkSingleTemplate")?.value || "tenguy";
         }
-
-        console.warn(
-          `[Bulk Video] Template strategy: ${strategy}, platforms: ${platforms.length}`,
-        );
 
         for (let i = 0; i < quantity; i++) {
           const variation = textVariations[i];
@@ -1515,9 +1495,6 @@
 
           for (const dims of platforms) {
             const memeUrl = `https://api.memegen.link/images/${template}/${formatMemeText(variation.top)}/${formatMemeText(variation.bottom)}.png`;
-            console.warn(
-              `[Bulk Video] Processing ${i + 1}/${quantity} - ${dims.name}: ${memeUrl.substring(0, 80)}...`,
-            );
 
             showSpinner(
               `Converting to video ${i * platforms.length + platforms.indexOf(dims) + 1}/${quantity * platforms.length}...`,
@@ -2607,27 +2584,6 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     }
 
     addLogEntry(`Content type set to ${val}`);
-
-    // Debugging: log computed grid placement for meme/video fields
-    try {
-      const computedMeme = memeFields
-        ? window.getComputedStyle(memeFields)
-        : null;
-      const computedVideo = videoFields
-        ? window.getComputedStyle(videoFields)
-        : null;
-      const msg =
-        `[DEBUG] Meme: grid-column=${computedMeme ? computedMeme.gridColumn : "n/a"}, grid-row=${computedMeme ? computedMeme.gridRow : "n/a"}\n` +
-        `[DEBUG] Video: grid-column=${computedVideo ? computedVideo.gridColumn : "n/a"}, grid-row=${computedVideo ? computedVideo.gridRow : "n/a"}`;
-      console.warn(msg);
-      const uiDebug = $("uiDebug");
-      if (uiDebug) {
-        uiDebug.style.display = "block";
-        uiDebug.textContent = msg + "\n" + (uiDebug.textContent || "");
-      }
-    } catch (e) {
-      console.warn("[DEBUG] error computing styles:", e);
-    }
   }
 
   // VIDEO GENERATION FUNCTIONS

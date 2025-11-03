@@ -498,19 +498,14 @@ ipcMain.handle("start-oauth", async (event, provider) => {
     return { success: false, error: { message: "Unknown provider" } };
   }
 
-  // Debug logging
-  console.warn(`[OAuth Debug] Provider: ${provider}`);
-  console.warn(`[OAuth Debug] Client ID: ${P.clientId}`);
-  console.warn(`[OAuth Debug] Auth URL: ${P.authUrl}`);
-
   // Check if credentials are configured - require clientId but allow empty clientSecret for providers that use PKCE
   // Treat empty string, placeholder values, or undefined as "not configured"
-  const clientIdInvalid = !P.clientId || 
+  const clientIdInvalid = !P.clientId ||
                           P.clientId.trim() === "" ||
-                          P.clientId.toLowerCase().startsWith("your") || 
+                          P.clientId.toLowerCase().startsWith("your") ||
                           P.clientId.toLowerCase().includes("test") ||
                           P.clientId.toLowerCase().includes("placeholder");
-  
+
   if (clientIdInvalid) {
     return {
       success: false,
@@ -694,7 +689,6 @@ function getValidatorForFile(filePath) {
 
 // IPC handler: read a file
 ipcMain.handle("READ_FILE", async (_evt, filePath) => {
-  console.warn("[IPC] READ_FILE:", filePath);
   try {
     const content = await fs.promises.readFile(filePath, "utf-8");
     return { success: true, content };
@@ -705,7 +699,6 @@ ipcMain.handle("READ_FILE", async (_evt, filePath) => {
 
 // IPC handler: write a file WITH VALIDATION
 ipcMain.handle("WRITE_FILE", async (_evt, { filePath, content }) => {
-  console.warn("[IPC] WRITE_FILE:", filePath);
   try {
     // If attempting to write settings.json shortly after a reset, block writes that reintroduce provider configs.
     try {
@@ -1017,10 +1010,6 @@ function startScheduler() {
       });
 
       for (const post of postsToExecute) {
-        console.warn(
-          `[Scheduler] Executing scheduled post: ${post.scheduledTime}`,
-        );
-
         // Mark as posted
         post.posted = true;
         post.postedAt = new Date().toISOString();
@@ -1044,15 +1033,12 @@ function startScheduler() {
       console.error("[Scheduler] Error:", error.message);
     }
   }, 60000); // Check every minute
-
-  console.warn("[Scheduler] Started - checking every 60 seconds");
 }
 
 function stopScheduler() {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.warn("[Scheduler] Stopped");
   }
 }
 
