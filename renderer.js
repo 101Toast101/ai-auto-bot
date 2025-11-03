@@ -2180,6 +2180,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       });
     }
 
+    // Debug: Log aiProvider value before saving
+    addLogEntry(`🔍 Debug: aiProvider value = "${data.aiProvider}" (type: ${typeof data.aiProvider})`);
+
     // Save card layout positions
     const fieldsets = Array.from(form.querySelectorAll("fieldset"));
     const layout = {};

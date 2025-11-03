@@ -1,5 +1,12 @@
 // utils/sanitize.js - HTML sanitization utilities to prevent XSS
-const { logSecurity } = require('./logger.cjs');
+
+/**
+ * Log security events (renderer-safe version)
+ * @param {string} message - Security message to log
+ */
+function logSecurity(message) {
+  console.warn(`[SECURITY] ${message}`);
+}
 
 /**
  * Escape HTML special characters to prevent XSS attacks
