@@ -128,6 +128,15 @@ const validateSettings = (obj) => {
   if ("recurrence" in obj && !validateRecurrence(obj.recurrence)) {
     errors.push("Invalid recurrence value");
   }
+
+  // Validate aiProvider if present (optional field)
+  if ("aiProvider" in obj) {
+    const validProviders = ["openai", "runway", ""];
+    if (!validProviders.includes(String(obj.aiProvider))) {
+      errors.push("Invalid aiProvider. Must be one of: openai, runway");
+    }
+  }
+
   const encryptedFields = [
     "openaiApiKey",
     "runwayApiKey",
@@ -149,8 +158,9 @@ const validateSettings = (obj) => {
   // Security: Check for unexpected extra keys (optional - can be relaxed)
   const allowedKeys = [
     'timezoneSelect', 'contentType', 'hashtagMode', 'memeMode', 'platforms',
-    'darkMode', 'recurrence', ...encryptedFields, 'caption', 'hashtags',
-    'customText', 'postingSchedule', 'autoPost', 'scheduleTime'
+    'darkMode', 'recurrence', 'aiProvider', ...encryptedFields, 'caption', 'hashtags',
+    'customText', 'postingSchedule', 'autoPost', 'scheduleTime', 'fieldsetLayout',
+    'isDarkMode'
   ];
 
   for (const key of Object.keys(obj)) {
