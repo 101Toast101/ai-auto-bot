@@ -261,7 +261,7 @@ ai-auto-bot/
   - 25 images = $1.00
   - 100 images = $4.00
   - See pricing: [openai.com/pricing](https://openai.com/pricing)
-  
+
 - **Runway Gen-3 Alpha**: ~$0.05-0.50 per second of video
   - 10-second video ≈ $0.50-5.00
   - Pricing varies by quality/features
