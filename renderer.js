@@ -3484,8 +3484,34 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
     } catch (error) {
       hideSpinner();
-      $("errorContainer").textContent =
-        `AI video generation failed: ${error.message}`;
+      
+      // Check if this is a Python setup error
+      const isPythonError = error.message.includes('Python is not installed') || 
+                           error.message.includes('Missing Python package') ||
+                           error.message.includes('pip install');
+      
+      if (isPythonError) {
+        // Show setup guide for local models
+        const errorHtml = `
+          <div style="text-align: left;">
+            <strong>⚠️ Python Setup Required</strong>
+            <p>${error.message.replace(/\n/g, '<br>')}</p>
+            <div style="margin-top: 15px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 6px;">
+              <strong>Quick Setup:</strong><br>
+              1. Install Python from <a href="https://www.python.org/downloads/" target="_blank" style="color: #60a5fa;">python.org</a><br>
+              2. Run: <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px;">pip install torch diffusers transformers accelerate</code><br>
+              3. Try generating again!
+            </div>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #9ca3af;">
+              💡 <strong>Alternative:</strong> Use paid APIs (Runway/Luma) for instant generation without setup.
+            </p>
+          </div>
+        `;
+        $("errorContainer").innerHTML = errorHtml;
+      } else {
+        $("errorContainer").textContent = `AI video generation failed: ${error.message}`;
+      }
+      
       $("errorContainer").style.display = "block";
       addLogEntry(`AI video error: ${error.message}`);
       console.error("[AI Video] Error:", error);

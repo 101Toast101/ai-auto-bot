@@ -1084,29 +1084,65 @@ ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
 ipcMain.handle('generate-local-video', async (_evt, options) => {
   const { spawn } = require('child_process');
   const crypto = require('crypto');
-  
+
   try {
     const { model, prompt, duration, width, height } = options;
-    
+
     // Validate inputs
     if (!model || !prompt) {
       return { success: false, error: 'Model and prompt are required' };
     }
-    
+
     // Generate unique output filename
     const outputDir = path.join(__dirname, 'data', 'generated', 'videos');
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-    
+
     const timestamp = Date.now();
     const hash = crypto.createHash('md5').update(prompt).digest('hex').slice(0, 8);
     const outputFile = path.join(outputDir, `${model}_${timestamp}_${hash}.mp4`);
+
+    // Determine Python command based on platform
+    const pythonCommands = process.platform === 'win32' 
+      ? ['python', 'python3', 'py'] 
+      : ['python3', 'python'];
     
-    // Check if Python is available
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
     const scriptPath = path.join(__dirname, 'scripts', 'local_video_generator.py');
-    
+
+    // Try to find a working Python executable
+    let pythonCmd = null;
+    for (const cmd of pythonCommands) {
+      try {
+        const testProcess = spawn(cmd, ['--version'], { shell: true });
+        await new Promise((resolve) => {
+          testProcess.on('close', (code) => {
+            if (code === 0) {
+              pythonCmd = cmd;
+            }
+            resolve();
+          });
+          testProcess.on('error', () => resolve());
+        });
+        if (pythonCmd) break;
+      } catch (err) {
+        continue;
+      }
+    }
+
+    if (!pythonCmd) {
+      return {
+        success: false,
+        error: 'Python is not installed. FREE local AI models require Python 3.8+.\n\n' +
+               '📥 Install Python:\n' +
+               '  • Windows: https://www.python.org/downloads/\n' +
+               '  • Mac: brew install python3\n' +
+               '  • Linux: sudo apt install python3\n\n' +
+               '📖 See docs/LOCAL_AI_SETUP.md for full setup instructions.\n\n' +
+               '💡 Tip: Use paid APIs (Runway/Luma) for instant generation without setup.'
+      };
+    }
+
     // Build command arguments
     const args = [
       scriptPath,
@@ -1117,23 +1153,23 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
       '--width', String(width || 576),
       '--height', String(height || 320),
     ];
-    
+
     return new Promise((resolve) => {
-      const process = spawn(pythonCmd, args);
+      const childProcess = spawn(pythonCmd, args, { shell: true });
       let stdout = '';
       let stderr = '';
-      
-      process.stdout.on('data', (data) => {
+
+      childProcess.stdout.on('data', (data) => {
         stdout += data.toString();
       });
-      
-      process.stderr.on('data', (data) => {
+
+      childProcess.stderr.on('data', (data) => {
         stderr += data.toString();
         // Log progress to console
         console.log('[Local AI]', data.toString().trim());
       });
-      
-      process.on('close', (code) => {
+
+      childProcess.on('close', (code) => {
         if (code === 0) {
           try {
             // Parse JSON result from Python script
@@ -1147,21 +1183,39 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
             resolve({ success: false, error: `Failed to parse Python output: ${stdout}` });
           }
         } else {
-          resolve({ 
-            success: false, 
-            error: `Python process exited with code ${code}. Error: ${stderr || 'Unknown error'}` 
+          // Provide helpful error messages
+          let errorMsg = stderr || 'Unknown error';
+          
+          // Check for common errors
+          if (stderr.includes('No module named')) {
+            const missingModule = stderr.match(/No module named '(\w+)'/)?.[1];
+            errorMsg = `Missing Python package: ${missingModule}\n\n` +
+                      `Install with: pip install torch diffusers transformers accelerate\n\n` +
+                      `See docs/LOCAL_AI_SETUP.md for full setup instructions.`;
+          } else if (stderr.includes('CUDA') || stderr.includes('out of memory')) {
+            errorMsg = `GPU out of memory. Try:\n` +
+                      `  • Close other applications\n` +
+                      `  • Use ModelScope (lower resolution)\n` +
+                      `  • Switch to CPU mode`;
+          }
+          
+          resolve({
+            success: false,
+            error: `Python generation failed (code ${code}):\n\n${errorMsg}`
           });
         }
       });
-      
-      process.on('error', (err) => {
-        resolve({ 
-          success: false, 
-          error: `Failed to start Python: ${err.message}. Make sure Python is installed and in PATH.` 
+
+      childProcess.on('error', (err) => {
+        resolve({
+          success: false,
+          error: `Failed to start Python: ${err.message}\n\n` +
+                 `Make sure Python is installed and added to PATH.\n` +
+                 `See docs/LOCAL_AI_SETUP.md for setup instructions.`
         });
       });
     });
-    
+
   } catch (error) {
     logError('generate-local-video error:', error);
     return { success: false, error: error.message };

@@ -32,7 +32,7 @@ pip install diffusers transformers accelerate
 The models will be downloaded automatically on first use:
 
 - **Zeroscope V2**: ~7 GB
-- **ModelScope**: ~5 GB  
+- **ModelScope**: ~5 GB
 - **Stable Video Diffusion**: ~10 GB
 
 Total: ~22 GB
