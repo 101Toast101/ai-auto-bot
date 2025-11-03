@@ -32,7 +32,7 @@ function validateEnvironmentVariables() {
   const requiredVars = [
     'ENCRYPTION_KEY',
   ];
-  
+
   const optionalOAuthVars = {
     instagram: ['INSTAGRAM_CLIENT_ID', 'INSTAGRAM_CLIENT_SECRET'],
     tiktok: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'],
@@ -41,10 +41,10 @@ function validateEnvironmentVariables() {
   };
 
   const missing = requiredVars.filter(v => !process.env[v]);
-  
+
   if (missing.length > 0) {
     logError(`CRITICAL: Missing required environment variables: ${missing.join(', ')}`);
-    dialog.showErrorBoxSync('Configuration Error', 
+    dialog.showErrorBoxSync('Configuration Error',
       `Missing required environment variables:\n${missing.join('\n')}\n\nPlease check your .env file.`);
     app.quit();
     return false;
@@ -339,7 +339,7 @@ app.whenReady().then(() => {
 
   // Mark startup as complete and log metrics
   perfMonitor.recordStartupComplete();
-  
+
   // Log performance summary every hour
   setInterval(() => {
     perfMonitor.logMetricsSummary();
@@ -349,7 +349,7 @@ app.whenReady().then(() => {
 // Auto-updater configuration
 function checkForUpdates() {
   autoUpdater.checkForUpdatesAndNotify();
-  
+
   autoUpdater.on('update-available', () => {
     logInfo('Update available. Downloading...');
     if (mainWindow) {

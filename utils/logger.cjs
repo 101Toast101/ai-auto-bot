@@ -28,20 +28,20 @@ function ensureLogsDir() {
 function writeToFile(filePath, message) {
   try {
     ensureLogsDir();
-    
+
     // Check file size and rotate if > 5MB
     if (fs.existsSync(filePath)) {
       const stats = fs.statSync(filePath);
       if (stats.size > 5 * 1024 * 1024) {
         const backupPath = filePath.replace('.log', `.${Date.now()}.log`);
         fs.renameSync(filePath, backupPath);
-        
+
         // Keep only last 5 rotated logs
         const logFiles = fs.readdirSync(logsDir)
           .filter(f => f.startsWith(path.basename(filePath, '.log')) && f.endsWith('.log'))
           .sort()
           .reverse();
-        
+
         if (logFiles.length > 5) {
           logFiles.slice(5).forEach(f => {
             try {
@@ -53,7 +53,7 @@ function writeToFile(filePath, message) {
         }
       }
     }
-    
+
     fs.appendFileSync(filePath, message + '\n', 'utf8');
   } catch (err) {
     // Fallback to console if file write fails
@@ -64,7 +64,7 @@ function writeToFile(filePath, message) {
 function logInfo(msg) {
   const timestamp = new Date().toISOString();
   const logMessage = `[INFO] ${timestamp} — ${msg}`;
-  
+
   if (isProd) {
     writeToFile(infoLogPath, logMessage);
   } else {
@@ -76,7 +76,7 @@ function logError(msg, err) {
   const timestamp = new Date().toISOString();
   const errorDetails = err ? `\n${err.stack || err.message || err}` : '';
   const logMessage = `[ERROR] ${timestamp} — ${msg}${errorDetails}`;
-  
+
   if (isProd) {
     writeToFile(errorLogPath, logMessage);
   } else {
@@ -87,7 +87,7 @@ function logError(msg, err) {
 function logWarn(msg) {
   const timestamp = new Date().toISOString();
   const logMessage = `[WARN] ${timestamp} — ${msg}`;
-  
+
   if (isProd) {
     writeToFile(infoLogPath, logMessage);
   } else {
@@ -98,10 +98,10 @@ function logWarn(msg) {
 function logSecurity(msg) {
   const timestamp = new Date().toISOString();
   const logMessage = `[SECURITY] ${timestamp} — ${msg}`;
-  
+
   // Always log security events to file, even in dev
   writeToFile(errorLogPath, logMessage);
-  
+
   if (!isProd) {
     console.error(logMessage);
   }

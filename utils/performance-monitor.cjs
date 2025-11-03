@@ -9,10 +9,10 @@ class PerformanceMonitor {
       memoryUsage: [],
       operations: new Map()
     };
-    
+
     // Start monitoring
     this.markStartup();
-    
+
     // Monitor memory every 5 minutes
     setInterval(() => {
       this.recordMemoryUsage();
@@ -28,7 +28,7 @@ class PerformanceMonitor {
       const duration = Date.now() - this.startupTime;
       this.metrics.startupDuration = duration;
       logInfo(`App startup completed in ${duration}ms`);
-      
+
       // Warn if startup is slow
       if (duration > 5000) {
         logWarn(`Slow startup detected: ${duration}ms (target: < 5000ms)`);
@@ -47,7 +47,7 @@ class PerformanceMonitor {
     };
 
     this.metrics.memoryUsage.push(memoryMB);
-    
+
     // Keep only last 24 hours of memory snapshots (288 samples at 5 min intervals)
     if (this.metrics.memoryUsage.length > 288) {
       this.metrics.memoryUsage.shift();
@@ -87,7 +87,7 @@ class PerformanceMonitor {
 
   getMetrics() {
     const currentMemory = this.recordMemoryUsage();
-    
+
     return {
       startup: {
         duration: this.metrics.startupDuration,

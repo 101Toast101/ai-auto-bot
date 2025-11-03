@@ -14,7 +14,7 @@ beforeEach(() => {
   // Setup mocks
   consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
   consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
-  
+
   // Mock fs functions
   fs.existsSync = jest.fn().mockReturnValue(true);
   fs.statSync = jest.fn().mockReturnValue({ size: 1024 });
@@ -23,7 +23,7 @@ beforeEach(() => {
   fs.readdirSync = jest.fn().mockReturnValue([]);
   fs.renameSync = jest.fn();
   fs.unlinkSync = jest.fn();
-  
+
   // Clear all mocks
   jest.clearAllMocks();
 });
