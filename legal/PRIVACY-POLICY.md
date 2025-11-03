@@ -104,11 +104,11 @@ AI Auto Bot is not intended for users under the age of 13. We do not knowingly c
 
 We may update this Privacy Policy from time to time. Changes will be reflected in the app's documentation and the "Last Updated" date above.
 
-## Contact
+## 9. Contact Us
 
-If you have questions about this Privacy Policy, please contact:
+If you have any questions about this Privacy Policy, please contact us at:
 
-- **Email**: Crottyjonathan@yahoo.com
+- **GitHub**: github.com/101Toast101/ai-auto-bot
 - **Developer**: CROTTY
 - **GitHub**: https://github.com/101Toast101/ai-auto-bot
 

@@ -154,9 +154,8 @@ These terms are governed by the laws of [Your Jurisdiction], without regard to c
 
 For questions about these Terms of Service:
 
-- **Email**: Crottyjonathan@yahoo.com
-- **Developer**: CROTTY
 - **GitHub**: https://github.com/101Toast101/ai-auto-bot
+- **Developer**: CROTTY
 
 ## 18. Severability
 
