@@ -132,8 +132,9 @@ const validateSettings = (obj) => {
   // Validate aiProvider if present (optional field)
   if ("aiProvider" in obj) {
     const validProviders = ["openai", "runway", ""];
-    if (!validProviders.includes(String(obj.aiProvider))) {
-      errors.push("Invalid aiProvider. Must be one of: openai, runway");
+    const providerValue = String(obj.aiProvider);
+    if (!validProviders.includes(providerValue)) {
+      errors.push(`Invalid aiProvider: "${providerValue}". Must be one of: openai, runway, or empty`);
     }
   }
 
