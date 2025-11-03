@@ -381,13 +381,17 @@ class ZeroscopeProvider extends VideoProvider {
     }
 
     try {
+      // Zeroscope has strict dimension limits - use safe defaults
+      const width = Math.min(dimensions?.width || 576, 576);
+      const height = Math.min(dimensions?.height || 320, 320);
+      
       // Call main process to run local Python model
       const result = await window.api.generateLocalVideo({
         model: 'zeroscope',
         prompt: prompt,
         duration: duration || 3,
-        width: dimensions?.width || 576,
-        height: dimensions?.height || 320,
+        width: width,
+        height: height,
       });
 
       if (!result.success) {
@@ -443,12 +447,16 @@ class ModelScopeProvider extends VideoProvider {
     }
 
     try {
+      // ModelScope has strict dimension limits
+      const width = Math.min(dimensions?.width || 256, 256);
+      const height = Math.min(dimensions?.height || 256, 256);
+      
       const result = await window.api.generateLocalVideo({
         model: 'modelscope',
         prompt: prompt,
         duration: duration || 2,
-        width: dimensions?.width || 256,
-        height: dimensions?.height || 256,
+        width: width,
+        height: height,
       });
 
       if (!result.success) {

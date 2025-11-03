@@ -47,16 +47,17 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320):
 
     print(f"Loading Zeroscope V2 model...", file=sys.stderr)
 
+    # Use GPU if available, otherwise CPU with float32
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
     pipe = DiffusionPipeline.from_pretrained(
         "cerspense/zeroscope_v2_576w",
-        torch_dtype=torch.float16
+        torch_dtype=dtype
     )
-
-    # Use GPU if available
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = pipe.to(device)
 
-    print(f"Generating video (device: {device})...", file=sys.stderr)
+    print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr)
 
     # Generate video frames
     video_frames = pipe(
@@ -80,17 +81,24 @@ def generate_modelscope(prompt, output_path, duration=2, width=256, height=256):
 
     print(f"Loading ModelScope model...", file=sys.stderr)
 
+    # Use GPU if available, otherwise CPU with float32
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
+    kwargs = {"torch_dtype": dtype}
+    if torch.cuda.is_available():
+        kwargs["variant"] = "fp16"
+
     pipe = DiffusionPipeline.from_pretrained(
         "damo-vilab/text-to-video-ms-1.7b",
-        torch_dtype=torch.float16,
-        variant="fp16"
+        **kwargs
     )
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = pipe.to(device)
-    pipe.enable_model_cpu_offload()
+    
+    if device == "cuda":
+        pipe.enable_model_cpu_offload()
 
-    print(f"Generating video (device: {device})...", file=sys.stderr)
+    print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr)
 
     video_frames = pipe(
         prompt,
@@ -111,31 +119,38 @@ def generate_stable_video(prompt, output_path, duration=4, width=1024, height=57
 
     print(f"Loading Stable Video Diffusion model...", file=sys.stderr)
 
+    # Use GPU if available, otherwise CPU with float32
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
     # First generate an image with Stable Diffusion
     from diffusers import StableDiffusionPipeline
 
     image_pipe = StableDiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-2-1",
-        torch_dtype=torch.float16
+        torch_dtype=dtype
     )
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     image_pipe = image_pipe.to(device)
 
-    print(f"Generating initial image...", file=sys.stderr)
+    print(f"Generating initial image (device: {device}, dtype: {dtype})...", file=sys.stderr)
     image = image_pipe(prompt).images[0]
     image = image.resize((width, height))
 
     # Now convert to video
     print(f"Converting to video...", file=sys.stderr)
 
+    kwargs = {"torch_dtype": dtype}
+    if torch.cuda.is_available():
+        kwargs["variant"] = "fp16"
+
     video_pipe = StableVideoDiffusionPipeline.from_pretrained(
         "stabilityai/stable-video-diffusion-img2vid-xt",
-        torch_dtype=torch.float16,
-        variant="fp16"
+        **kwargs
     )
     video_pipe = video_pipe.to(device)
-    video_pipe.enable_model_cpu_offload()
+    
+    if device == "cuda":
+        video_pipe.enable_model_cpu_offload()
 
     frames = video_pipe(
         image,
