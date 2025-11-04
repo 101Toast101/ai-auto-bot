@@ -687,9 +687,30 @@ body.dark .highlighted-fieldset {
   padding: 10px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-secondary);
+  background: white;
   color: var(--text-primary);
   cursor: pointer;
+}
+
+body.dark .full-width-select {
+  background: var(--bg-secondary);
+}
+
+/* Meme Preview Image */
+.meme-preview-img {
+  display: block;
+  margin: 0 auto 12px auto;
+  border-radius: 8px;
+  border: 2px solid rgba(74, 144, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px;
+}
+
+body.dark .meme-preview-img {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(74, 144, 226, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Template Preview */
@@ -744,6 +765,20 @@ body.dark .form-group:not(:last-child) {
 }
 
 /* Template Form (Settings section) */
+.template-fieldset {
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+}
+
+.template-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
 #templateForm {
   display: none;
   margin-top: 16px;
@@ -751,6 +786,7 @@ body.dark .form-group:not(:last-child) {
   background: var(--glass-bg);
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  position: relative;
 }
 
 body.dark #templateForm {

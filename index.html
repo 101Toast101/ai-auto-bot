@@ -235,8 +235,7 @@
 
           <fieldset>
             <legend>Preview</legend>
-            <img id="memePreview" width="300" alt="Live Meme Preview"
-              style="display: block; margin: 0 auto; border: 1px solid #e2e8f0" />
+            <img id="memePreview" width="300" alt="Live Meme Preview" class="meme-preview-img" />
             <button type="button" id="saveMemeToLibrary" class="save-btn">
               💾 Save to Library
             </button>
@@ -974,20 +973,21 @@ Top Text 2|Bottom Text 2"></textarea>
           </fieldset>
 
           <!-- Content Templates -->
-          <fieldset>
+          <fieldset class="template-fieldset">
             <legend>📝 Content Templates</legend>
             <p style="margin: 0 0 16px 0; color: var(--text-secondary); font-size: 0.9rem;">
               Create reusable templates with variables like {platform}, {date}, {hashtags}, {username}
             </p>
 
-            <!-- Template List -->
-            <div id="templateList">
-              <!-- Templates will be rendered here -->
-            </div>
+            <div class="template-container">
+              <!-- Template List -->
+              <div id="templateList">
+                <!-- Templates will be rendered here -->
+              </div>
 
-            <!-- Add/Edit Template Form -->
-            <div id="templateForm">
-              <h3 id="templateFormTitle">New Template</h3>
+              <!-- Add/Edit Template Form -->
+              <div id="templateForm">
+                <h3 id="templateFormTitle">New Template</h3>
 
               <input type="hidden" id="editingTemplateId" />
 
@@ -1062,6 +1062,7 @@ Top Text 2|Bottom Text 2"></textarea>
               <span style="font-size: 1.2em;">+</span>
               <span>Create New Template</span>
             </button>
+            </div>
           </fieldset>
 
         </form>
