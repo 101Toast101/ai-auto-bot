@@ -24,7 +24,7 @@ class AccessibilityManager {
     this.addSkipLinks();
     this.enhanceFormAccessibility();
     this.setupARIALiveRegions();
-    
+
     // Features initialized successfully
   }
 
@@ -49,7 +49,7 @@ class AccessibilityManager {
       height: 1px;
       overflow: hidden;
     `;
-    
+
     document.body.appendChild(announcer);
     this.screenReaderAnnouncer = announcer;
   }
@@ -66,7 +66,7 @@ class AccessibilityManager {
 
     this.screenReaderAnnouncer.setAttribute('aria-live', priority);
     this.screenReaderAnnouncer.textContent = '';
-    
+
     // Small delay to ensure screen readers notice the change
     setTimeout(() => {
       this.screenReaderAnnouncer.textContent = message;
@@ -82,7 +82,7 @@ class AccessibilityManager {
       if (e.key === 'Escape') {
         this.handleEscapeKey();
       }
-      
+
       if (e.key === 'Tab') {
         this.handleTabKey(e);
       }
@@ -117,7 +117,7 @@ class AccessibilityManager {
 
   /**
    * Handle Tab key for focus trapping in modals
-   * @param {KeyboardEvent} e 
+   * @param {KeyboardEvent} e
    */
   handleTabKey(e) {
     if (this.focusTrapStack.length === 0) {
@@ -175,14 +175,14 @@ class AccessibilityManager {
 
   /**
    * Trap focus within an element (for modals)
-   * @param {HTMLElement} element 
+   * @param {HTMLElement} element
    */
   trapFocus(element) {
     this.focusTrapStack.push(element);
-    
+
     // Store previously focused element
     element.dataset.previousFocus = document.activeElement ? document.activeElement.id || 'body' : 'body';
-    
+
     // Focus first focusable element
     const focusable = element.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
     if (focusable) {
@@ -192,7 +192,7 @@ class AccessibilityManager {
 
   /**
    * Release focus trap
-   * @param {HTMLElement} element 
+   * @param {HTMLElement} element
    */
   releaseFocus(element) {
     const index = this.focusTrapStack.indexOf(element);
@@ -217,7 +217,7 @@ class AccessibilityManager {
       <a href="#main-content" class="skip-link">Skip to main content</a>
       <a href="#navigation" class="skip-link">Skip to navigation</a>
     `;
-    
+
     document.body.insertBefore(skipLinks, document.body.firstChild);
 
     // Add main-content ID if not exists
@@ -236,7 +236,7 @@ class AccessibilityManager {
       const placeholder = input.getAttribute('placeholder');
       const name = input.getAttribute('name');
       const id = input.getAttribute('id');
-      
+
       if (placeholder) {
         input.setAttribute('aria-label', placeholder);
       } else if (name) {
@@ -284,7 +284,7 @@ class AccessibilityManager {
   setupHighContrastMode() {
     // Detect system high contrast mode
     const supportsHighContrast = window.matchMedia('(prefers-contrast: high)').matches;
-    
+
     if (supportsHighContrast) {
       this.enableHighContrast();
     }
@@ -346,7 +346,7 @@ class AccessibilityManager {
    */
   addShortcut(key, handler, description) {
     this.keyboardShortcuts.set(key, { handler, description });
-    
+
     document.addEventListener('keydown', (e) => {
       const combo = [
         e.ctrlKey && 'Ctrl',

@@ -14,7 +14,8 @@
       worker-src 'self' blob:;
     " />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <meta name="description" content="AI-powered social media automation tool for creating and scheduling content across multiple platforms">
+  <meta name="description"
+    content="AI-powered social media automation tool for creating and scheduling content across multiple platforms">
   <title>AI Auto Bot - Social Media Content Generator</title>
   <link rel="stylesheet" href="styles.css" />
   <!-- Security utilities MUST load first -->
@@ -41,18 +42,18 @@
       <!-- Account Switcher -->
       <div class="account-switcher">
         <button type="button" id="accountSwitcherBtn" class="account-switcher-btn"
-          aria-label="Switch between connected accounts"
-          aria-expanded="false"
-          aria-controls="accountSwitcherMenu"
+          aria-label="Switch between connected accounts" aria-expanded="false" aria-controls="accountSwitcherMenu"
           title="Switch between connected accounts">
           <span class="account-icon" aria-hidden="true">👤</span>
           <span class="account-name">All Accounts</span>
           <span class="account-arrow" aria-hidden="true">▼</span>
         </button>
-        <div id="accountSwitcherMenu" class="account-switcher-menu" role="menu" aria-hidden="true" style="display: none;">
+        <div id="accountSwitcherMenu" class="account-switcher-menu" role="menu" aria-hidden="true"
+          style="display: none;">
           <div class="account-menu-header">
             <span>Active Accounts</span>
-            <button type="button" id="closeAccountMenu" class="close-menu-btn" aria-label="Close account menu">✕</button>
+            <button type="button" id="closeAccountMenu" class="close-menu-btn"
+              aria-label="Close account menu">✕</button>
           </div>
           <div class="account-menu-list" role="group">
             <!-- Dynamic account list will be populated here -->
@@ -103,7 +104,8 @@
         <input type="checkbox" id="darkModeToggle" aria-label="Toggle dark mode" />
         <span class="slider" aria-hidden="true"></span>
       </label>
-      <button type="button" id="high-contrast-toggle" class="btn-secondary" aria-label="Toggle high contrast mode" title="Toggle high contrast mode">
+      <button type="button" id="high-contrast-toggle" class="btn-secondary" aria-label="Toggle high contrast mode"
+        title="Toggle high contrast mode">
         <span aria-hidden="true">◐</span> High Contrast
       </button>
     </div>
@@ -1323,11 +1325,11 @@ Top Text 2|Bottom Text 2"></textarea>
 
     </div>
     <!-- END CONTAINER -->
-  </div>
-  <!-- END MAIN CONTENT -->
+    </div>
+    <!-- END MAIN CONTENT -->
 
-  <!-- Provider Config Modal (for social provider client id/secret entry) -->
-  <div id="providerConfigModal" style="
+    <!-- Provider Config Modal (for social provider client id/secret entry) -->
+    <div id="providerConfigModal" style="
         display: none;
         position: fixed;
         top: 0;
@@ -1339,7 +1341,7 @@ Top Text 2|Bottom Text 2"></textarea>
         align-items: center;
         justify-content: center;
       ">
-    <div style="
+      <div style="
           background: var(--glass-bg);
           max-width: 520px;
           width: 94%;
@@ -1347,7 +1349,7 @@ Top Text 2|Bottom Text 2"></textarea>
           border-radius: 12px;
           position: relative;
         ">
-      <button id="closeProviderConfig" style="
+        <button id="closeProviderConfig" style="
             position: absolute;
             top: 12px;
             right: 12px;
@@ -1359,15 +1361,15 @@ Top Text 2|Bottom Text 2"></textarea>
             cursor: pointer;
           ">×</button>
 
-      <h2 id="providerConfigTitle">Configure Provider</h2>
+        <h2 id="providerConfigTitle">Configure Provider</h2>
 
-      <p style="color: #718096; font-size: 0.95rem; margin-bottom: 12px">
-        To use this provider, you need OAuth credentials from their developer portal.
-        <strong>All credentials are stored locally and encrypted.</strong>
-      </p>
+        <p style="color: #718096; font-size: 0.95rem; margin-bottom: 12px">
+          To use this provider, you need OAuth credentials from their developer portal.
+          <strong>All credentials are stored locally and encrypted.</strong>
+        </p>
 
-      <!-- Help Section with Links -->
-      <div id="providerHelpSection" style="
+        <!-- Help Section with Links -->
+        <div id="providerHelpSection" style="
             background: #edf2f7;
             border-left: 4px solid #4299e1;
             padding: 12px;
@@ -1375,17 +1377,17 @@ Top Text 2|Bottom Text 2"></textarea>
             border-radius: 6px;
             font-size: 0.9rem;
           ">
-        <div style="font-weight: 600; margin-bottom: 8px; color: #2d3748">📋 Setup Instructions:</div>
-        <ol style="margin: 8px 0 8px 20px; line-height: 1.6; color: #4a5568">
-          <li>Visit the developer portal (link below)</li>
-          <li>Create an app and get your Client ID & Secret</li>
-          <li>Set redirect URI to: <code
-              style="background: #cbd5e0; padding: 2px 6px; border-radius: 3px">http://localhost:3000/oauth/callback</code>
-          </li>
-          <li>Enter credentials below and click "Save & Connect"</li>
-        </ol>
-        <div style="margin-top: 10px">
-          <a id="providerPortalLink" href="#" target="_blank" style="
+          <div style="font-weight: 600; margin-bottom: 8px; color: #2d3748">📋 Setup Instructions:</div>
+          <ol style="margin: 8px 0 8px 20px; line-height: 1.6; color: #4a5568">
+            <li>Visit the developer portal (link below)</li>
+            <li>Create an app and get your Client ID & Secret</li>
+            <li>Set redirect URI to: <code
+                style="background: #cbd5e0; padding: 2px 6px; border-radius: 3px">http://localhost:3000/oauth/callback</code>
+            </li>
+            <li>Enter credentials below and click "Save & Connect"</li>
+          </ol>
+          <div style="margin-top: 10px">
+            <a id="providerPortalLink" href="#" target="_blank" style="
                 color: #3182ce;
                 text-decoration: none;
                 font-weight: 600;
@@ -1393,72 +1395,72 @@ Top Text 2|Bottom Text 2"></textarea>
                 align-items: center;
                 gap: 4px;
               ">
-            🔗 Open Developer Portal →
-          </a>
+              🔗 Open Developer Portal →
+            </a>
+          </div>
         </div>
+
+        <fieldset style="margin-top: 12px; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px">
+          <label style="display:block; margin-bottom:8px">
+            <div style="font-weight:600; margin-bottom:6px">Client ID</div>
+            <input id="providerClientId" type="text" style="width:100%; padding:8px;" />
+          </label>
+
+          <label style="display:block; margin-bottom:8px">
+            <div style="font-weight:600; margin-bottom:6px">Client Secret</div>
+            <input id="providerClientSecret" type="password" style="width:100%; padding:8px;" />
+          </label>
+
+          <label style="display:block; margin-bottom:8px">
+            <div style="font-weight:600; margin-bottom:6px">Redirect URI</div>
+            <input id="providerRedirectUri" type="text" style="width:100%; padding:8px;"
+              value="http://localhost:3000/oauth/callback" />
+          </label>
+
+          <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+            <button id="saveProviderConfig"
+              style="padding:10px 14px; background:var(--blue-gradient); color:white; border:none; border-radius:6px;">Save
+              & Connect</button>
+            <button id="cancelProviderConfig"
+              style="padding:10px 14px; background:#e2e8e0; border:none; border-radius:6px;">Cancel</button>
+          </div>
+        </fieldset>
       </div>
-
-      <fieldset style="margin-top: 12px; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px">
-        <label style="display:block; margin-bottom:8px">
-          <div style="font-weight:600; margin-bottom:6px">Client ID</div>
-          <input id="providerClientId" type="text" style="width:100%; padding:8px;" />
-        </label>
-
-        <label style="display:block; margin-bottom:8px">
-          <div style="font-weight:600; margin-bottom:6px">Client Secret</div>
-          <input id="providerClientSecret" type="password" style="width:100%; padding:8px;" />
-        </label>
-
-        <label style="display:block; margin-bottom:8px">
-          <div style="font-weight:600; margin-bottom:6px">Redirect URI</div>
-          <input id="providerRedirectUri" type="text" style="width:100%; padding:8px;"
-            value="http://localhost:3000/oauth/callback" />
-        </label>
-
-        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
-          <button id="saveProviderConfig"
-            style="padding:10px 14px; background:var(--blue-gradient); color:white; border:none; border-radius:6px;">Save
-            & Connect</button>
-          <button id="cancelProviderConfig"
-            style="padding:10px 14px; background:#e2e8e0; border:none; border-radius:6px;">Cancel</button>
-        </div>
-      </fieldset>
     </div>
-  </div>
 
-  <!-- Content Preview Modal -->
-  <div id="previewModal" class="preview-modal">
-    <div class="preview-content">
-      <div class="preview-header">
-        <div class="preview-title">Preview Post</div>
-        <button class="preview-close" id="closePreviewModal">&times;</button>
-      </div>
-      <div class="preview-body">
-        <div class="preview-platform-tabs">
-          <button class="preview-platform-tab active" data-platform="instagram">Instagram</button>
-          <button class="preview-platform-tab" data-platform="tiktok">TikTok</button>
-          <button class="preview-platform-tab" data-platform="youtube">YouTube</button>
-          <button class="preview-platform-tab" data-platform="twitter">Twitter</button>
+    <!-- Content Preview Modal -->
+    <div id="previewModal" class="preview-modal">
+      <div class="preview-content">
+        <div class="preview-header">
+          <div class="preview-title">Preview Post</div>
+          <button class="preview-close" id="closePreviewModal">&times;</button>
         </div>
-        <div class="preview-platform-content active" data-platform="instagram">
-          <img id="previewImageInstagram" class="preview-image" src="" alt="Preview" />
-          <div id="previewCaptionInstagram" class="preview-caption"></div>
+        <div class="preview-body">
+          <div class="preview-platform-tabs">
+            <button class="preview-platform-tab active" data-platform="instagram">Instagram</button>
+            <button class="preview-platform-tab" data-platform="tiktok">TikTok</button>
+            <button class="preview-platform-tab" data-platform="youtube">YouTube</button>
+            <button class="preview-platform-tab" data-platform="twitter">Twitter</button>
+          </div>
+          <div class="preview-platform-content active" data-platform="instagram">
+            <img id="previewImageInstagram" class="preview-image" src="" alt="Preview" />
+            <div id="previewCaptionInstagram" class="preview-caption"></div>
+          </div>
+          <div class="preview-platform-content" data-platform="tiktok">
+            <img id="previewImageTiktok" class="preview-image" src="" alt="Preview" />
+            <div id="previewCaptionTiktok" class="preview-caption"></div>
+          </div>
+          <div class="preview-platform-content" data-platform="youtube">
+            <img id="previewImageYoutube" class="preview-image" src="" alt="Preview" />
+            <div id="previewCaptionYoutube" class="preview-caption"></div>
+          </div>
+          <div class="preview-platform-content" data-platform="twitter">
+            <img id="previewImageTwitter" class="preview-image" src="" alt="Preview" />
+            <div id="previewCaptionTwitter" class="preview-caption"></div>
+          </div>
         </div>
-        <div class="preview-platform-content" data-platform="tiktok">
-          <img id="previewImageTiktok" class="preview-image" src="" alt="Preview" />
-          <div id="previewCaptionTiktok" class="preview-caption"></div>
-        </div>
-        <div class="preview-platform-content" data-platform="youtube">
-          <img id="previewImageYoutube" class="preview-image" src="" alt="Preview" />
-          <div id="previewCaptionYoutube" class="preview-caption"></div>
-        </div>
-        <div class="preview-platform-content" data-platform="twitter">
-          <img id="previewImageTwitter" class="preview-image" src="" alt="Preview" />
-          <div id="previewCaptionTwitter" class="preview-caption"></div>
-        </div>
-      </div>
-      <div class="preview-footer">
-        <button id="previewConfirmPost" style="
+        <div class="preview-footer">
+          <button id="previewConfirmPost" style="
           padding: 10px 24px;
           background: var(--blue-gradient);
           color: white;
@@ -1467,24 +1469,24 @@ Top Text 2|Bottom Text 2"></textarea>
           cursor: pointer;
           font-weight: 600;
         ">Post Now</button>
-        <button id="cancelPreviewModal" style="
+          <button id="cancelPreviewModal" style="
           padding: 10px 24px;
           background: #e5e7eb;
           border: none;
           border-radius: 6px;
           cursor: pointer;
         ">Cancel</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="renderer.js"></script>
-  <script>
-    // Initialize security features after page load
-    if (typeof initSecurityFeatures === 'function') {
-      initSecurityFeatures();
-    }
-  </script>
+    <script src="renderer.js"></script>
+    <script>
+      // Initialize security features after page load
+      if (typeof initSecurityFeatures === 'function') {
+        initSecurityFeatures();
+      }
+    </script>
 </body>
 
 </html>
