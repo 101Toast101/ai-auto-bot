@@ -162,8 +162,10 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, q
     ).frames
 
     # Export video
+    print(f"Exporting video to {output_path}...", file=sys.stderr, flush=True)
     from diffusers.utils import export_to_video
     export_to_video(video_frames, output_path, fps=8)
+    print(f"Video saved successfully!", file=sys.stderr, flush=True)
 
     return output_path
 
