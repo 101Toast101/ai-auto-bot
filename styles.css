@@ -55,7 +55,7 @@ body {
   clip: auto;
   overflow: visible;
   padding: 10px 15px; /* Smaller padding */
-  background: rgba(74, 144, 226, 0.9);
+  background: #4a90e2; /* Fully opaque */
   color: white;
   text-decoration: none;
   border-radius: 6px;
