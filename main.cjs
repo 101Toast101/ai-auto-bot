@@ -372,10 +372,9 @@ app.whenReady().then(() => {
     startScheduler();
   }, 5000); // Wait 5 seconds for app to fully initialize
 
-  // Check for updates (production only)
-  if (!process.defaultApp) {
-    checkForUpdates();
-  }
+  // TODO: Enable auto-updater after creating signed installer
+  // Currently disabled to prevent errors with unpacked builds
+  // checkForUpdates();
 
   // Mark startup as complete and log metrics
   perfMonitor.recordStartupComplete();
@@ -397,7 +396,7 @@ function checkForUpdates() {
   try {
     // Lazy load autoUpdater only when packaged to avoid app-update.yml errors
     const { autoUpdater } = require("electron-updater");
-    
+
     autoUpdater.checkForUpdatesAndNotify();
 
     autoUpdater.on('update-available', () => {
