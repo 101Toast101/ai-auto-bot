@@ -211,14 +211,27 @@ class AccessibilityManager {
    * Add skip links for keyboard users
    */
   addSkipLinks() {
-    const skipLinks = document.createElement('div');
-    skipLinks.className = 'skip-links';
-    skipLinks.innerHTML = `
-      <a href="#main-content" class="skip-link">Skip to main content</a>
-      <a href="#navigation" class="skip-link">Skip to navigation</a>
+    // Find the navigation list (after Stats & Logs)
+    const navList = document.querySelector('.sidebar-nav');
+    if (!navList) return;
+
+    // Create skip links as navigation items
+    const skipLinksHTML = `
+      <li class="nav-item skip-link-item">
+        <a href="#main-content" class="skip-link-nav">
+          <span class="nav-icon" aria-hidden="true">⏭️</span>
+          <span class="nav-label">Skip to Content</span>
+        </a>
+      </li>
+      <li class="nav-item skip-link-item">
+        <a href="#sidebar" class="skip-link-nav">
+          <span class="nav-icon" aria-hidden="true">🧭</span>
+          <span class="nav-label">Skip to Navigation</span>
+        </a>
+      </li>
     `;
 
-    document.body.insertBefore(skipLinks, document.body.firstChild);
+    navList.insertAdjacentHTML('beforeend', skipLinksHTML);
 
     // Add main-content ID if not exists
     const mainContent = document.querySelector('main, .app-content, #app-container');

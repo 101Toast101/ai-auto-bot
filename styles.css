@@ -23,48 +23,29 @@ body {
   display: flex;
 }
 
-/* ACCESSIBILITY - Skip Links (hidden until Tab focus) */
-.skip-links {
-  position: absolute;
-  top: -1000px;
-  left: -1000px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  z-index: 9999;
+/* ACCESSIBILITY - Skip Links as Nav Items */
+.skip-link-item {
+  opacity: 0.7;
 }
 
-.skip-link {
-  position: absolute;
-  top: -1000px;
-  left: -1000px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+.skip-link-item:hover {
+  opacity: 1;
 }
 
-.skip-link:focus {
-  position: fixed;
-  top: auto;
-  bottom: 180px; /* Position above Dark Mode toggle */
-  left: 15px;
-  width: calc(var(--sidebar-width) - 30px); /* Narrower, with padding */
-  height: auto;
-  clip: auto;
-  overflow: visible;
-  padding: 10px 15px; /* Smaller padding */
-  background: #4a90e2; /* Fully opaque */
-  color: white;
+.skip-link-nav {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  background: transparent;
+  border: none;
+  color: inherit;
   text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500; /* Less bold */
-  font-size: 13px; /* Smaller text */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-  z-index: 101; /* Just above sidebar */
-  text-align: center;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
 }
 
 /* SIDEBAR NAVIGATION */
