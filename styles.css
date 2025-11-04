@@ -28,18 +28,13 @@ body {
   display: none; /* Hidden by default */
 }
 
-/* Show skip links when they receive focus (Tab key) */
+/* Show skip links ONLY when they receive focus (Tab key) */
 .skip-link-item:focus-within {
-  display: flex;
-}
-
-/* Also show when keyboard navigation is active */
-body.keyboard-navigation .skip-link-item {
   display: flex;
   opacity: 0.7;
 }
 
-body.keyboard-navigation .skip-link-item:hover {
+.skip-link-item:focus-within:hover {
   opacity: 1;
 }
 
