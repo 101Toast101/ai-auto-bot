@@ -9,6 +9,7 @@
     "dist": "electron-builder",
     "dist:dir": "electron-builder --dir",
     "dist:unsigned": "electron-builder --win --x64 --dir",
+    "dist:installer": "electron-builder --win --x64",
     "init:key": "node scripts/init-encryption.cjs",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -78,6 +79,13 @@
     "win": {
       "target": "nsis",
       "icon": "ABS.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AI Auto Bot"
     },
     "linux": {
       "target": [
