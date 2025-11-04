@@ -2114,7 +2114,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         : Object.keys(data).map((k) => ({ id: k, name: data[k].name || k }));
 
       let html =
-        '<option value="ai-generator">🤖 AI Generator (Prompt/URL)</option>';
+        '<option value="">-- Select a meme template --</option>';
+      html += '<option value="ai-generator">🤖 AI Generator (Prompt/URL)</option>';
       html += allTemplates
         .map((t) => `<option value="${t.id}">${t.name || t.id}</option>`)
         .join("");
