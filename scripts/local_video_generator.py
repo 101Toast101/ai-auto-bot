@@ -163,9 +163,34 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, q
 
     # Export video
     print(f"Exporting video to {output_path}...", file=sys.stderr, flush=True)
-    from diffusers.utils import export_to_video
-    export_to_video(video_frames, output_path, fps=8)
-    print(f"Video saved successfully!", file=sys.stderr, flush=True)
+    
+    try:
+        # Try using imageio backend first (preferred)
+        from diffusers.utils import export_to_video
+        export_to_video(video_frames[0], output_path, fps=8)
+        print(f"Video saved successfully!", file=sys.stderr, flush=True)
+    except Exception as export_error:
+        # Fallback: Manual export using OpenCV
+        print(f"Imageio export failed, trying OpenCV fallback: {export_error}", file=sys.stderr, flush=True)
+        import cv2
+        import numpy as np
+        
+        # Get frame dimensions
+        first_frame = video_frames[0][0]
+        height, width = first_frame.shape[:2]
+        
+        # Initialize video writer
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(output_path, fourcc, 8, (width, height))
+        
+        # Write frames
+        for frame in video_frames[0]:
+            # Convert from RGB to BGR for OpenCV
+            frame_bgr = cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR)
+            out.write(frame_bgr)
+        
+        out.release()
+        print(f"Video saved successfully using OpenCV!", file=sys.stderr, flush=True)
 
     return output_path
 
