@@ -155,7 +155,7 @@ These terms are governed by the laws of [Your Jurisdiction], without regard to c
 For questions about these Terms of Service:
 
 - **GitHub**: https://github.com/101Toast101/ai-auto-bot
-- **Developer**: CROTTY
+- **Developer**: SNAX
 
 ## 18. Severability
 

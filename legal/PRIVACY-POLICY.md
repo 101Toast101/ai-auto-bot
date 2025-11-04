@@ -108,9 +108,13 @@ We may update this Privacy Policy from time to time. Changes will be reflected i
 
 If you have any questions about this Privacy Policy, please contact us at:
 
+## Contact Information
+
 - **GitHub**: github.com/101Toast101/ai-auto-bot
-- **Developer**: CROTTY
+- **Developer**: SNAX
 - **GitHub**: https://github.com/101Toast101/ai-auto-bot
+
+---
 
 ## Open Source
 

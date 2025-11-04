@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Electron: Debug Main",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/electron/dist/electron.exe",
+            "args": [
+                "."
+            ],
+            "runtimeArgs": [
+                "--enable-logging"
+            ],
+            "console": "integratedTerminal",
+            "outputCapture": "std"
+        }
+    ]
+}

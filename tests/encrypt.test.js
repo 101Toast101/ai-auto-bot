@@ -62,7 +62,7 @@ describe("Encryption Utilities", () => {
     // Invalid format (not enough parts)
     const result1 = decrypt("invalid:data");
     expect(typeof result1).toBe("string");
-    
+
     // Invalid hex in IV - decrypt will fail gracefully
     const result2 = decrypt("ZZZZ:valid:data");
     expect(typeof result2).toBe("string");
@@ -92,15 +92,15 @@ describe("Encryption Utilities", () => {
   test("encrypted data has correct format", () => {
     const plaintext = "test-data";
     const encrypted = encrypt(plaintext);
-    
+
     // Format should be: iv:authTag:encryptedData
     const parts = encrypted.split(":");
     expect(parts).toHaveLength(3);
-    
+
     // IV should be 32 hex characters (16 bytes)
     expect(parts[0]).toHaveLength(32);
     expect(/^[0-9a-f]+$/.test(parts[0])).toBe(true);
-    
+
     // Auth tag should be 32 hex characters (16 bytes)
     expect(parts[1]).toHaveLength(32);
     expect(/^[0-9a-f]+$/.test(parts[1])).toBe(true);
@@ -109,12 +109,12 @@ describe("Encryption Utilities", () => {
   test("decrypt handles corrupted auth tag", () => {
     const plaintext = "test-data";
     const encrypted = encrypt(plaintext);
-    
+
     // Corrupt the auth tag
     const parts = encrypted.split(":");
     parts[1] = "0".repeat(32); // Invalid auth tag
     const corrupted = parts.join(":");
-    
+
     // Should return original corrupted string when decryption fails
     const result = decrypt(corrupted);
     // Verify it didn't crash and returned something
@@ -124,12 +124,12 @@ describe("Encryption Utilities", () => {
   test("decrypt handles corrupted ciphertext", () => {
     const plaintext = "test-data";
     const encrypted = encrypt(plaintext);
-    
+
     // Corrupt the ciphertext
     const parts = encrypted.split(":");
     parts[2] = parts[2].slice(0, -4) + "0000";
     const corrupted = parts.join(":");
-    
+
     // Should return original corrupted string when decryption fails
     const result = decrypt(corrupted);
     // Verify it didn't crash and returned something
@@ -140,7 +140,7 @@ describe("Encryption Utilities", () => {
     // Whitespace is treated as actual content to encrypt
     const result1 = encrypt("   ");
     const result2 = encrypt("\n\t");
-    
+
     // Should return encrypted strings (not empty)
     expect(result1).toBeTruthy();
     expect(result2).toBeTruthy();
@@ -152,7 +152,7 @@ describe("Encryption Utilities", () => {
     const apiKey = "sk-proj-1234567890abcdefghijklmnopqrstuvwxyz";
     const encrypted = encrypt(apiKey);
     const decrypted = decrypt(encrypted);
-    
+
     expect(encrypted).not.toBe(apiKey);
     expect(decrypted).toBe(apiKey);
   });
@@ -161,7 +161,7 @@ describe("Encryption Utilities", () => {
     const token = "ya29.a0AfH6SMBx..."; // OAuth token format
     const encrypted = encrypt(token);
     const decrypted = decrypt(encrypted);
-    
+
     expect(decrypted).toBe(token);
   });
 });

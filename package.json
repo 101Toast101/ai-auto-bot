@@ -16,7 +16,7 @@
     "lint:fix": "eslint . --fix",
     "security-check": "npm audit"
   },
-  "author": "CROTTY",
+  "author": "SNAX",
   "dependencies": {
     "axios": "^1.12.2",
     "dotenv": "^17.2.2",
@@ -81,7 +81,7 @@
       ],
       "forceCodeSigning": false,
       "icon": "ABS.ico",
-      "publisherName": "CROTTY"
+      "publisherName": "SNAX"
     },
     "linux": {
       "target": [
