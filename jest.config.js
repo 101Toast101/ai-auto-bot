@@ -18,4 +18,5 @@ module.exports = {
     '/node_modules/',
     '/coverage/',
   ],
+  silent: true, // Suppress console output during tests (logs still written to files in production)
 };
