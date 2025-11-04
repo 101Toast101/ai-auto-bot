@@ -8,7 +8,7 @@
     "start": "electron .",
     "dist": "electron-builder",
     "dist:dir": "electron-builder --dir",
-    "dist:unsigned": "electron-builder --win --x64 --dir -c.win.sign=false -c.win.requestedExecutionLevel=asInvoker",
+    "dist:unsigned": "electron-builder --win --x64 --dir",
     "init:key": "node scripts/init-encryption.cjs",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -76,12 +76,8 @@
       "entitlements": "entitlements.mac.plist"
     },
     "win": {
-      "target": [
-        "nsis"
-      ],
-      "forceCodeSigning": false,
-      "icon": "ABS.ico",
-      "publisherName": "SNAX"
+      "target": "nsis",
+      "icon": "ABS.ico"
     },
     "linux": {
       "target": [
