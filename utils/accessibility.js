@@ -21,7 +21,7 @@ class AccessibilityManager {
     this.setupKeyboardNavigation();
     this.setupFocusManagement();
     this.setupHighContrastMode();
-    this.addSkipLinks();
+    // Skip links removed - not needed for single-page app
     this.enhanceFormAccessibility();
     this.setupARIALiveRegions();
 
