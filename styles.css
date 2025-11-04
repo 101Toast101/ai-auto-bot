@@ -25,10 +25,21 @@ body {
 
 /* ACCESSIBILITY - Skip Links as Nav Items */
 .skip-link-item {
+  display: none; /* Hidden by default */
+}
+
+/* Show skip links when they receive focus (Tab key) */
+.skip-link-item:focus-within {
+  display: flex;
+}
+
+/* Also show when keyboard navigation is active */
+body.keyboard-navigation .skip-link-item {
+  display: flex;
   opacity: 0.7;
 }
 
-.skip-link-item:hover {
+body.keyboard-navigation .skip-link-item:hover {
   opacity: 1;
 }
 
@@ -46,6 +57,12 @@ body {
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
+}
+
+.skip-link-nav:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: -2px;
+  background: rgba(74, 144, 226, 0.1);
 }
 
 /* SIDEBAR NAVIGATION */
