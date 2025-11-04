@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="styles.css" />
   <!-- Security utilities MUST load first -->
   <script src="utils/sanitize.js"></script>
+  <script src="utils/security-warnings.js"></script>
   <!-- Toast and keyboard shortcuts -->
   <script src="utils/toast.js"></script>
   <script src="utils/keyboard-shortcuts.js"></script>
@@ -1459,6 +1460,12 @@ Top Text 2|Bottom Text 2"></textarea>
   </div>
 
   <script src="renderer.js"></script>
+  <script>
+    // Initialize security features after page load
+    if (typeof initSecurityFeatures === 'function') {
+      initSecurityFeatures();
+    }
+  </script>
 </body>
 
 </html>

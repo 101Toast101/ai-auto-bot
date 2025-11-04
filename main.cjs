@@ -115,10 +115,35 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // Enhanced security: Disable remote module and disable web navigation to untrusted sites
+      enableRemoteModule: false,
+      disableBlinkFeatures: 'Auxclick', // Prevent middle-click attacks
     },
   });
 
   mainWindow.loadFile(path.join(__dirname, "index.html"));
+
+  // Security: Prevent navigation to external sites (anti-phishing)
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    const parsedUrl = new URL(navigationUrl);
+    // Only allow local file navigation
+    if (parsedUrl.protocol !== 'file:') {
+      event.preventDefault();
+      logWarn(`Blocked navigation attempt to: ${navigationUrl}`);
+    }
+  });
+
+  // Security: Prevent opening new windows (anti-popup attacks)
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // Only allow OAuth windows we explicitly create
+    if (url.includes('instagram.com') || url.includes('tiktok.com') || 
+        url.includes('google.com') || url.includes('twitter.com')) {
+      logInfo(`Allowing OAuth window: ${url}`);
+      return { action: 'allow' };
+    }
+    logWarn(`Blocked window open attempt: ${url}`);
+    return { action: 'deny' };
+  });
 
   // Zoom controls - Ctrl+Plus, Ctrl+Minus, Ctrl+0
   mainWindow.webContents.on("before-input-event", (event, input) => {
@@ -621,6 +646,22 @@ ipcMain.handle("start-oauth", async (event, provider) => {
   }
   try {
     let resolved = false; // Track if promise has been resolved
+
+    // SECURITY: Show OAuth URL verification dialog (anti-social engineering)
+    const oauthDomain = new URL(P.authUrl).hostname;
+    const verifyResult = dialog.showMessageBoxSync(mainWindow, {
+      type: 'question',
+      buttons: ['Continue', 'Cancel'],
+      defaultId: 0,
+      title: 'OAuth Security Verification',
+      message: `You are about to connect to ${provider}`,
+      detail: `Please verify you will be redirected to the OFFICIAL website:\n\n✅ ${oauthDomain}\n\n⚠️ If you see a different URL, it may be a phishing attempt.\n\nOnly enter your credentials on the official ${provider} website.`,
+      noLink: true
+    });
+
+    if (verifyResult !== 0) {
+      return { success: false, reason: "canceled" };
+    }
 
     return new Promise((resolve, reject) => {
     // For Twitter, use system browser (Electron has rendering issues with Twitter)
