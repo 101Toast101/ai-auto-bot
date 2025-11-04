@@ -14,11 +14,14 @@
       worker-src 'self' blob:;
     " />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>AI Auto Bot</title>
+  <meta name="description" content="AI-powered social media automation tool for creating and scheduling content across multiple platforms">
+  <title>AI Auto Bot - Social Media Content Generator</title>
   <link rel="stylesheet" href="styles.css" />
   <!-- Security utilities MUST load first -->
   <script src="utils/sanitize.js"></script>
   <script src="utils/security-warnings.js"></script>
+  <!-- Accessibility utilities -->
+  <script src="utils/accessibility.js"></script>
   <!-- Toast and keyboard shortcuts -->
   <script src="utils/toast.js"></script>
   <script src="utils/keyboard-shortcuts.js"></script>
@@ -32,23 +35,26 @@
 
 <body>
   <!-- SIDEBAR NAVIGATION -->
-  <nav id="sidebar">
+  <nav id="sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-header">
       <h2>🎬 AI Auto Bot</h2>
       <!-- Account Switcher -->
       <div class="account-switcher">
         <button type="button" id="accountSwitcherBtn" class="account-switcher-btn"
+          aria-label="Switch between connected accounts"
+          aria-expanded="false"
+          aria-controls="accountSwitcherMenu"
           title="Switch between connected accounts">
-          <span class="account-icon">👤</span>
+          <span class="account-icon" aria-hidden="true">👤</span>
           <span class="account-name">All Accounts</span>
-          <span class="account-arrow">▼</span>
+          <span class="account-arrow" aria-hidden="true">▼</span>
         </button>
-        <div id="accountSwitcherMenu" class="account-switcher-menu" style="display: none;">
+        <div id="accountSwitcherMenu" class="account-switcher-menu" role="menu" aria-hidden="true" style="display: none;">
           <div class="account-menu-header">
             <span>Active Accounts</span>
-            <button type="button" id="closeAccountMenu" class="close-menu-btn">✕</button>
+            <button type="button" id="closeAccountMenu" class="close-menu-btn" aria-label="Close account menu">✕</button>
           </div>
-          <div class="account-menu-list">
+          <div class="account-menu-list" role="group">
             <!-- Dynamic account list will be populated here -->
             <div class="account-menu-empty">
               <p>No accounts connected</p>
@@ -58,40 +64,53 @@
         </div>
       </div>
     </div>
-    <ul class="sidebar-nav">
-      <li class="nav-item active" data-section="generate">
-        <span class="nav-icon">✨</span>
-        <span class="nav-label">Generate</span>
+    <ul class="sidebar-nav" role="menubar">
+      <li class="nav-item active" data-section="generate" role="none">
+        <button type="button" role="menuitem" aria-current="page" aria-label="Generate content section">
+          <span class="nav-icon" aria-hidden="true">✨</span>
+          <span class="nav-label">Generate</span>
+        </button>
       </li>
-      <li class="nav-item" data-section="schedule">
-        <span class="nav-icon">📅</span>
-        <span class="nav-label">Schedule</span>
+      <li class="nav-item" data-section="schedule" role="none">
+        <button type="button" role="menuitem" aria-label="Schedule posts section">
+          <span class="nav-icon" aria-hidden="true">📅</span>
+          <span class="nav-label">Schedule</span>
+        </button>
       </li>
-      <li class="nav-item" data-section="library">
-        <span class="nav-icon">📚</span>
-        <span class="nav-label">Library</span>
+      <li class="nav-item" data-section="library" role="none">
+        <button type="button" role="menuitem" aria-label="Content library section">
+          <span class="nav-icon" aria-hidden="true">📚</span>
+          <span class="nav-label">Library</span>
+        </button>
       </li>
-      <li class="nav-item" data-section="settings">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-label">Settings</span>
+      <li class="nav-item" data-section="settings" role="none">
+        <button type="button" role="menuitem" aria-label="Settings section">
+          <span class="nav-icon" aria-hidden="true">⚙️</span>
+          <span class="nav-label">Settings</span>
+        </button>
       </li>
-      <li class="nav-item" data-section="stats">
-        <span class="nav-icon">💰</span>
-        <span class="nav-label">Stats & Logs</span>
+      <li class="nav-item" data-section="stats" role="none">
+        <button type="button" role="menuitem" aria-label="Statistics and logs section">
+          <span class="nav-icon" aria-hidden="true">💰</span>
+          <span class="nav-label">Stats & Logs</span>
+        </button>
       </li>
     </ul>
     <div class="sidebar-footer">
       <label class="toggle">
-        <span class="nav-icon">🌙</span>
+        <span class="nav-icon" aria-hidden="true">🌙</span>
         Dark Mode
-        <input type="checkbox" id="darkModeToggle" />
-        <span class="slider"></span>
+        <input type="checkbox" id="darkModeToggle" aria-label="Toggle dark mode" />
+        <span class="slider" aria-hidden="true"></span>
       </label>
+      <button type="button" id="high-contrast-toggle" class="btn-secondary" aria-label="Toggle high contrast mode" title="Toggle high contrast mode">
+        <span aria-hidden="true">◐</span> High Contrast
+      </button>
     </div>
   </nav>
 
   <!-- MAIN CONTENT AREA -->
-  <div class="main-content">
+  <main class="main-content" id="main-content" role="main">
     <div class="container">
 
       <!-- SECTION: GENERATE -->
