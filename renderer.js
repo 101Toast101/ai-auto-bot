@@ -3869,7 +3869,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
     // Get media upload group wrapper
     const mediaUploadGroup = document.getElementById("mediaUploadGroup");
-    
+
     // Hide all optional fields first
     if (promptLabel) {
       promptLabel.style.display = "none";
