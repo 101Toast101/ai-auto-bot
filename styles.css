@@ -744,7 +744,7 @@ body.dark select {
   pointer-events: none;
 }
 
-.meme-preview-img[src]:not([src=""]) ~ .meme-preview-placeholder {
+.meme-preview-img[src]:not([src=""])~.meme-preview-placeholder {
   display: none;
 }
 
