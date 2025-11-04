@@ -21,7 +21,7 @@ Your RTX 2060 (6GB) is perfectly safe for AI video generation. Modern GPUs are d
 
 **NO.** This is exactly what GPUs are designed for. Consider:
 
-1. **Gaming Comparison**: 
+1. **Gaming Comparison**:
    - 3 hours of gaming = 95-100% GPU for 3 hours straight
    - 10-step video generation = 95-100% GPU for ~8 minutes
    - Your GPU handles FAR more stress during a gaming session
@@ -177,7 +177,7 @@ NVIDIA recommends **500W PSU minimum** for RTX 2060 systems.
 - Monitor goes black and system reboots
 - GPU makes coil whine (high-pitched noise)
 
-**Solution**: 
+**Solution**:
 - Upgrade PSU to 550W+ (costs $40-80)
 - Or use lower quality settings (reduces power draw slightly)
 
