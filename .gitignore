@@ -1,39 +1,112 @@
-// ========================================
-// .gitignore
-// ========================================
-/node_modules
+# ========================================
+# AI Auto Bot - .gitignore
+# ========================================
+
+# ========================================
+# Dependencies
+# ========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================================
+# Build outputs
+# ========================================
 /dist
-/logs
+/out
+*.pid
+*.seed
+
+# ========================================
+# Environment & Secrets (CRITICAL - NEVER COMMIT)
+# ========================================
 .env
-.DS_Store
-/coverage/
-*.bak
-*.log
-*-snapshot.txt
-folder-snapshot.txt
-structure.txt
-
-# User data and secrets - NEVER commit these
-/data/*
-!data/*.example
-!data/README.md
-
-# Prevent tracking of centralized restore points/backups
-/restore-points/
-
-# Sensitive credentials
-client_secret_*.json
-credentials/
+.env.local
+.env.*.local
 *.pem
 *.p12
 *.key
 *.crt
+client_secret_*.json
 
-ai-auto-bot-filter.git/
+# ========================================
+# User Data & Encryption (CRITICAL - NEVER COMMIT)
+# ========================================
+/data/*
+!data/*.example
+!data/README.md
+/data/.encryption_key
+.encryption_key
 
-# Python cache files
+# ========================================
+# IDE & Editor Files (User-Specific)
+# ========================================
+.vs/                # Visual Studio
+.vscode/            # VS Code
+.idea/              # WebStorm/IntelliJ
+*.swp               # Vim
+*.swo
+*~
+.DS_Store           # macOS
+*.sublime-workspace # Sublime Text
+*.sublime-project
+
+# ========================================
+# Test & Coverage
+# ========================================
+/coverage
+/coverage/
+*.lcov
+.nyc_output
+/test-results/
+
+# ========================================
+# Python (for local AI video generation)
+# ========================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ========================================
+# Logs
+# ========================================
+/logs
+*.log
+app.log
+error.log
+combined.log
+
+# ========================================
+# Temporary Files & Snapshots
+# ========================================
+*.bak
+*.tmp
+*.temp
+*-snapshot.txt
+folder-snapshot.txt
+structure.txt
+
+# ========================================
+# Backups & Restore Points
+# ========================================
+/restore-points/
+/backups/
+*.bundle
+
+# ========================================
+# Credentials Directory
+# ========================================
+credentials/
+
+# ========================================
+# Misc
+# ========================================
+ai-auto-bot-filter.git/
