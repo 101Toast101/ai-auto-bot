@@ -7,7 +7,7 @@
  */
 function showSecurityTipsDialog() {
   const hasSeenTips = localStorage.getItem('hasSeenSecurityTips');
-  
+
   if (hasSeenTips) {
     return; // Don't show again
   }
@@ -20,7 +20,7 @@ function showSecurityTipsDialog() {
         <span style="font-size: 2rem;">🛡️</span>
         <h2>Security Tips - Please Read</h2>
       </div>
-      
+
       <div class="security-dialog-content">
         <div class="security-tip">
           <h3>🔐 Protect Your API Keys</h3>
@@ -87,7 +87,9 @@ function showSecurityTipsDialog() {
  * Helps prevent screen capture and shoulder surfing
  */
 function maskApiKeyInput(inputElement, showToggleButton = true) {
-  if (!inputElement) return;
+  if (!inputElement) {
+    return;
+  }
 
   // Create wrapper for input + toggle button
   const wrapper = document.createElement('div');
@@ -141,7 +143,9 @@ function maskApiKeyInput(inputElement, showToggleButton = true) {
  * Prevents clipboard sniffing malware from reading sensitive data
  */
 function clearClipboardAfterPaste(inputElement, delay = 2000) {
-  if (!inputElement) return;
+  if (!inputElement) {
+    return;
+  }
 
   inputElement.addEventListener('paste', () => {
     // Show notification that clipboard will be cleared
@@ -149,10 +153,9 @@ function clearClipboardAfterPaste(inputElement, delay = 2000) {
       try {
         // Clear clipboard by copying empty string
         navigator.clipboard.writeText('').catch(() => {
-          // Fallback: Some browsers don't allow this
-          console.log('Clipboard clear not supported by browser');
+          // Fallback: Some browsers don't allow this - silently ignore
         });
-        
+
         // Show subtle notification
         const notification = document.createElement('div');
         notification.textContent = '🔒 Clipboard cleared for security';
@@ -166,9 +169,9 @@ function clearClipboardAfterPaste(inputElement, delay = 2000) {
         notification.style.zIndex = '10000';
         notification.style.fontSize = '14px';
         notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
           notification.style.opacity = '0';
           notification.style.transition = 'opacity 0.5s';

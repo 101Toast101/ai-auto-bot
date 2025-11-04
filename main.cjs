@@ -136,7 +136,7 @@ function createWindow() {
   // Security: Prevent opening new windows (anti-popup attacks)
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     // Only allow OAuth windows we explicitly create
-    if (url.includes('instagram.com') || url.includes('tiktok.com') || 
+    if (url.includes('instagram.com') || url.includes('tiktok.com') ||
         url.includes('google.com') || url.includes('twitter.com')) {
       logInfo(`Allowing OAuth window: ${url}`);
       return { action: 'allow' };
