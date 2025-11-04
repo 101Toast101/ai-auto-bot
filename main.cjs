@@ -1,6 +1,7 @@
 require("dotenv").config(); // Load environment variables
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
-const { autoUpdater } = require("electron-updater");
+// Don't import autoUpdater at top level - it tries to load app-update.yml immediately
+// We'll lazy load it only when packaged
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -73,7 +74,7 @@ function validateEnvironmentVariables() {
 
 function loadSavedProviderConfig(provider) {
   try {
-    const dataDir = app.isPackaged 
+    const dataDir = app.isPackaged
       ? path.join(app.getPath('userData'), 'data')
       : path.join(__dirname, "data");
     const cfgPath = path.join(dataDir, "settings.json");
@@ -332,10 +333,10 @@ app.whenReady().then(() => {
 
   // Initialize data directory
   // Use app.getPath('userData') for packaged apps, __dirname for development
-  const dataDir = app.isPackaged 
+  const dataDir = app.isPackaged
     ? path.join(app.getPath('userData'), 'data')
     : path.join(__dirname, "data");
-    
+
   if (!fs.existsSync(dataDir)) {
     logInfo("Creating data directory...");
     fs.mkdirSync(dataDir, { recursive: true });
@@ -394,6 +395,9 @@ function checkForUpdates() {
   }
 
   try {
+    // Lazy load autoUpdater only when packaged to avoid app-update.yml errors
+    const { autoUpdater } = require("electron-updater");
+    
     autoUpdater.checkForUpdatesAndNotify();
 
     autoUpdater.on('update-available', () => {
@@ -429,7 +433,7 @@ function checkForUpdates() {
       logInfo('Auto-update check failed (this is normal for local builds):', err.message);
     });
   } catch (err) {
-    // Catch any initialization errors
+    // Catch any initialization errors (e.g., missing app-update.yml)
     logInfo('Auto-updater not available:', err.message);
   }
 }
@@ -1123,7 +1127,7 @@ ipcMain.handle("DELETE_ACCOUNT", async (_evt, { platform, accountId }) => {
 // IPC handler: Reset connections and clear activity log
 ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
   try {
-    const dataDir = app.isPackaged 
+    const dataDir = app.isPackaged
       ? path.join(app.getPath('userData'), 'data')
       : path.join(__dirname, "data");
     const resetMarkerPath = path.join(dataDir, ".recent_reset");
