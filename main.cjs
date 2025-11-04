@@ -33,8 +33,9 @@ const perfMonitor = new PerformanceMonitor();
 
 // Validate required environment variables on startup
 function validateEnvironmentVariables() {
+  // Note: ENCRYPTION_KEY is optional - utils/encrypt.js will generate one if missing
   const requiredVars = [
-    'ENCRYPTION_KEY',
+    // ENCRYPTION_KEY removed - handled by fallback in encrypt.js
   ];
 
   const optionalOAuthVars = {
