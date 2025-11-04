@@ -73,7 +73,10 @@ function validateEnvironmentVariables() {
 
 function loadSavedProviderConfig(provider) {
   try {
-    const cfgPath = path.join(__dirname, "data", "settings.json");
+    const dataDir = app.isPackaged 
+      ? path.join(app.getPath('userData'), 'data')
+      : path.join(__dirname, "data");
+    const cfgPath = path.join(dataDir, "settings.json");
     if (!fs.existsSync(cfgPath)) {return null;}
     const raw = fs.readFileSync(cfgPath, "utf8");
     const settings = JSON.parse(raw || "{}");
@@ -328,7 +331,11 @@ app.whenReady().then(() => {
   registerVideoHandlers(ipcMain, BrowserWindow);
 
   // Initialize data directory
-  const dataDir = path.join(__dirname, "data");
+  // Use app.getPath('userData') for packaged apps, __dirname for development
+  const dataDir = app.isPackaged 
+    ? path.join(app.getPath('userData'), 'data')
+    : path.join(__dirname, "data");
+    
   if (!fs.existsSync(dataDir)) {
     logInfo("Creating data directory...");
     fs.mkdirSync(dataDir, { recursive: true });
@@ -1104,7 +1111,9 @@ ipcMain.handle("DELETE_ACCOUNT", async (_evt, { platform, accountId }) => {
 // IPC handler: Reset connections and clear activity log
 ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
   try {
-    const dataDir = path.join(__dirname, "data");
+    const dataDir = app.isPackaged 
+      ? path.join(app.getPath('userData'), 'data')
+      : path.join(__dirname, "data");
     const resetMarkerPath = path.join(dataDir, ".recent_reset");
     const tokensPath = path.join(dataDir, "tokens.json");
     const activityPath = path.join(dataDir, "activity_log.json");
