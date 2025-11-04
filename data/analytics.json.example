@@ -1,0 +1,46 @@
+{
+  "posts": [],
+  "summary": {
+    "totalPosts": 0,
+    "totalImpressions": 0,
+    "totalEngagement": 0,
+    "avgEngagementRate": 0,
+    "platforms": {
+      "instagram": {
+        "posts": 0,
+        "impressions": 0,
+        "engagement": 0
+      },
+      "tiktok": {
+        "posts": 0,
+        "impressions": 0,
+        "engagement": 0
+      },
+      "youtube": {
+        "posts": 0,
+        "impressions": 0,
+        "engagement": 0
+      },
+      "twitter": {
+        "posts": 0,
+        "impressions": 0,
+        "engagement": 0
+      }
+    },
+    "bestPostingTimes": {
+      "hourOfDay": {},
+      "dayOfWeek": {}
+    },
+    "contentTypePerformance": {
+      "meme": {
+        "posts": 0,
+        "avgEngagement": 0
+      },
+      "video": {
+        "posts": 0,
+        "avgEngagement": 0
+      }
+    }
+  },
+  "lastUpdated": null
+}

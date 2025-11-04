@@ -56,6 +56,12 @@ contextBridge.exposeInMainWorld("api", {
   onScheduledPost: (callback) => {
     ipcRenderer.on("EXECUTE_SCHEDULED_POST", (_event, post) => callback(post));
   },
+  onScheduledPostSuccess: (callback) => {
+    ipcRenderer.on("SCHEDULED_POST_SUCCESS", (_event, data) => callback(data));
+  },
+  onScheduledPostFailure: (callback) => {
+    ipcRenderer.on("SCHEDULED_POST_FAILURE", (_event, data) => callback(data));
+  },
   // Disconnect a social platform (removes local token)
   disconnect: (platform) => ipcRenderer.invoke(IPC_CHANNELS.DISCONNECT_SOCIAL, platform),
   // Refresh a platform token using stored refresh token
@@ -65,4 +71,18 @@ contextBridge.exposeInMainWorld("api", {
   resetConnections: (options) => ipcRenderer.invoke(IPC_CHANNELS.RESET_CONNECTIONS, options || {}),
   // Restart the app (for post-reset clean slate)
   restartApp: () => ipcRenderer.send('restart-app'),
+
+  // Analytics Operations
+  readAnalytics: () => ipcRenderer.invoke('read-analytics'),
+  writeAnalytics: (data) => ipcRenderer.invoke('write-analytics', data),
+  recordAnalyticsEvent: (postData) => ipcRenderer.invoke('record-analytics-event', postData),
+  getAnalyticsSummary: () => ipcRenderer.invoke('get-analytics-summary'),
+  updatePostMetrics: (postId, metrics) => ipcRenderer.invoke('update-post-metrics', { postId, metrics }),
+
+  // Multi-Account Operations
+  getAllAccounts: (platform) => ipcRenderer.invoke('GET_ALL_ACCOUNTS', platform),
+  setDefaultAccount: (platform, accountId) => ipcRenderer.invoke('SET_DEFAULT_ACCOUNT', { platform, accountId }),
+  deleteAccount: (platform, accountId) => ipcRenderer.invoke('DELETE_ACCOUNT', { platform, accountId }),
+  onDefaultAccountChanged: (callback) => ipcRenderer.on('default-account-changed', (_event, data) => callback(data)),
+  onAccountDeleted: (callback) => ipcRenderer.on('account-deleted', (_event, data) => callback(data)),
 });

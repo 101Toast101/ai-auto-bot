@@ -91,10 +91,9 @@ describe("validateSettings", () => {
     const validSettings = {
       contentType: "meme",
       aiProvider: "openai",
-      apiKey: "test-key",
-      quality: "720p",
-      aspectRatio: "16:9",
-      framerate: "30",
+      openaiApiKey: "test-key",
+      platforms: ["instagram", "tiktok"],
+      darkMode: false,
     };
 
     const result = validateSettings(validSettings);

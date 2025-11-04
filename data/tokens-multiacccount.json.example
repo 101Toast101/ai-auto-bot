@@ -1,0 +1,68 @@
+{
+  "instagram": {
+    "accounts": [
+      {
+        "accountId": "unique-id-1",
+        "accountName": "My Personal",
+        "username": "@myhandle",
+        "access_token": "ENCRYPTED_TOKEN_HERE",
+        "expires_at": 1234567890000,
+        "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE",
+        "isDefault": true,
+        "connectedAt": "2025-11-03T00:00:00.000Z"
+      },
+      {
+        "accountId": "unique-id-2",
+        "accountName": "Business Page",
+        "username": "@mybusiness",
+        "access_token": "ENCRYPTED_TOKEN_HERE",
+        "expires_at": 1234567890000,
+        "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE",
+        "isDefault": false,
+        "connectedAt": "2025-11-03T01:00:00.000Z"
+      }
+    ]
+  },
+  "tiktok": {
+    "accounts": [
+      {
+        "accountId": "unique-id-3",
+        "accountName": "Main TikTok",
+        "username": "@tiktokuser",
+        "access_token": "ENCRYPTED_TOKEN_HERE",
+        "expires_at": 1234567890000,
+        "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE",
+        "isDefault": true,
+        "connectedAt": "2025-11-03T00:00:00.000Z"
+      }
+    ]
+  },
+  "youtube": {
+    "accounts": [
+      {
+        "accountId": "unique-id-4",
+        "accountName": "YouTube Channel",
+        "username": "channel@example.com",
+        "access_token": "ENCRYPTED_TOKEN_HERE",
+        "expires_at": 1234567890000,
+        "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE",
+        "isDefault": true,
+        "connectedAt": "2025-11-03T00:00:00.000Z"
+      }
+    ]
+  },
+  "twitter": {
+    "accounts": [
+      {
+        "accountId": "unique-id-5",
+        "accountName": "Twitter Main",
+        "username": "@twitterhandle",
+        "access_token": "ENCRYPTED_TOKEN_HERE",
+        "expires_at": 1234567890000,
+        "refresh_token": "ENCRYPTED_REFRESH_TOKEN_HERE",
+        "isDefault": true,
+        "connectedAt": "2025-11-03T00:00:00.000Z"
+      }
+    ]
+  }
+}
