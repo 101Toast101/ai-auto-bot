@@ -387,39 +387,51 @@ app.whenReady().then(() => {
 
 // Auto-updater configuration
 function checkForUpdates() {
-  autoUpdater.checkForUpdatesAndNotify();
+  // Skip auto-update checks for unpacked/development builds
+  if (!app.isPackaged) {
+    logInfo('Skipping auto-update check (development mode)');
+    return;
+  }
 
-  autoUpdater.on('update-available', () => {
-    logInfo('Update available. Downloading...');
-    if (mainWindow) {
-      dialog.showMessageBox(mainWindow, {
-        type: 'info',
-        title: 'Update Available',
-        message: 'A new version is available. It will be downloaded in the background.',
-        buttons: ['OK']
-      });
-    }
-  });
+  try {
+    autoUpdater.checkForUpdatesAndNotify();
 
-  autoUpdater.on('update-downloaded', () => {
-    logInfo('Update downloaded. Will install on quit.');
-    if (mainWindow) {
-      dialog.showMessageBox(mainWindow, {
-        type: 'info',
-        title: 'Update Ready',
-        message: 'A new version has been downloaded. It will be installed when you quit the app.',
-        buttons: ['Restart Now', 'Later']
-      }).then((result) => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
-      });
-    }
-  });
+    autoUpdater.on('update-available', () => {
+      logInfo('Update available. Downloading...');
+      if (mainWindow) {
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'Update Available',
+          message: 'A new version is available. It will be downloaded in the background.',
+          buttons: ['OK']
+        });
+      }
+    });
 
-  autoUpdater.on('error', (err) => {
-    logError('Update error', err);
-  });
+    autoUpdater.on('update-downloaded', () => {
+      logInfo('Update downloaded. Will install on quit.');
+      if (mainWindow) {
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'Update Ready',
+          message: 'A new version has been downloaded. It will be installed when you quit the app.',
+          buttons: ['Restart Now', 'Later']
+        }).then((result) => {
+          if (result.response === 0) {
+            autoUpdater.quitAndInstall();
+          }
+        });
+      }
+    });
+
+    autoUpdater.on('error', (err) => {
+      // Silently ignore errors (e.g., no internet, no update server)
+      logInfo('Auto-update check failed (this is normal for local builds):', err.message);
+    });
+  } catch (err) {
+    // Catch any initialization errors
+    logInfo('Auto-updater not available:', err.message);
+  }
 }
 
 app.on("window-all-closed", () => {
