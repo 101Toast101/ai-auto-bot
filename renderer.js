@@ -3867,6 +3867,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     const createVarBtn = $("createVariationsBtn");
     const varResults = $("variationResults");
 
+    // Get media upload group wrapper
+    const mediaUploadGroup = document.getElementById("mediaUploadGroup");
+    
     // Hide all optional fields first
     if (promptLabel) {
       promptLabel.style.display = "none";
@@ -3879,6 +3882,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     }
     if (maskImageLabel) {
       maskImageLabel.style.display = "none";
+    }
+    if (mediaUploadGroup) {
+      mediaUploadGroup.style.display = "none";
     }
     if (createVarBtn) {
       createVarBtn.style.display = "none";
@@ -3912,6 +3918,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       if (promptLabel) {
         promptLabel.style.display = "";
       }
+      if (mediaUploadGroup) {
+        mediaUploadGroup.style.display = "";
+      }
       if (sourceImageLabel) {
         sourceImageLabel.style.display = "";
       }
@@ -3925,6 +3934,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         actionBtn.textContent = "Edit Image";
       }
     } else if (val === "variations") {
+      if (mediaUploadGroup) {
+        mediaUploadGroup.style.display = "";
+      }
       if (sourceImageLabel) {
         sourceImageLabel.style.display = "";
       }

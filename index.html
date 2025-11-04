@@ -158,63 +158,80 @@
         <!-- Meme Fields -->
         <fieldset id="memeFields">
           <legend>Meme</legend>
-          <label>Meme Mode
-            <select id="memeMode">
-              <option value="template">Use Template</option>
-              <option value="generate">AI Generate</option>
-              <option value="edit">AI Edit Image</option>
-              <option value="variations">Create Variations</option>
-            </select>
-          </label>
-          <label>Template
-            <input type="text" id="memeSearch" placeholder="Search templates..." style="margin-bottom: 5px" />
-            <select id="memeTemplate">
-              <option value="ai-generator">🤖 AI Generator</option>
-            </select>
-          </label>
-          <label>
-            Top Text
-            <input type="text" id="memeTopText" placeholder="Top text" />
-          </label>
-          <label>
-            Bottom Text
-            <input type="text" id="memeBottomText" placeholder="Bottom text" />
-          </label>
+          
+          <!-- Mode Selection Group -->
+          <div class="form-group">
+            <div class="form-group-title">Mode Selection</div>
+            <label>Meme Mode
+              <select id="memeMode">
+                <option value="template">Use Template</option>
+                <option value="generate">AI Generate</option>
+                <option value="edit">AI Edit Image</option>
+                <option value="variations">Create Variations</option>
+              </select>
+            </label>
+            <label>Template
+              <input type="text" id="memeSearch" placeholder="Search templates..." style="margin-bottom: 5px" />
+              <select id="memeTemplate">
+                <option value="ai-generator">🤖 AI Generator</option>
+              </select>
+            </label>
+          </div>
 
-          <label id="promptLabel" style="display: none">
-            AI Prompt
-            <textarea id="aiPrompt" placeholder="Describe the meme you want..." rows="3"></textarea>
-          </label>
+          <!-- Text Content Group -->
+          <div class="form-group">
+            <div class="form-group-title">Text Content</div>
+            <label>
+              Top Text
+              <input type="text" id="memeTopText" placeholder="Top text" />
+            </label>
+            <label>
+              Bottom Text
+              <input type="text" id="memeBottomText" placeholder="Bottom text" />
+            </label>
 
-          <label id="sourceImageLabel" style="display: none">
-            Source Image
-            <div class="drop-zone" id="sourceImageDropZone">
-              <div class="drop-zone-icon">📁</div>
-              <div class="drop-zone-text">Drag & Drop Image Here</div>
-              <div class="drop-zone-hint">or click to browse</div>
-            </div>
-            <input type="file" id="sourceImage" accept="image/*" style="display:none" />
-          </label>
+            <label id="promptLabel" style="display: none">
+              AI Prompt
+              <textarea id="aiPrompt" placeholder="Describe the meme you want..." rows="3"></textarea>
+            </label>
+          </div>
 
-          <label id="maskImageLabel" style="display: none">
-            Mask Image (optional)
-            <div class="drop-zone" id="maskImageDropZone">
-              <div class="drop-zone-icon">📁</div>
-              <div class="drop-zone-text">Drag & Drop Mask Here</div>
-              <div class="drop-zone-hint">or click to browse</div>
-            </div>
-            <input type="file" id="maskImage" accept="image/*" style="display:none" />
-          </label>
+          <!-- Media Upload Group -->
+          <div class="form-group" id="mediaUploadGroup" style="display: none;">
+            <div class="form-group-title">Media Upload</div>
+            <label id="sourceImageLabel">
+              Source Image
+              <div class="drop-zone" id="sourceImageDropZone">
+                <div class="drop-zone-icon">📁</div>
+                <div class="drop-zone-text">Drag & Drop Image Here</div>
+                <div class="drop-zone-hint">or click to browse</div>
+              </div>
+              <input type="file" id="sourceImage" accept="image/*" style="display:none" />
+            </label>
 
-          <button type="button" id="actionBtn" class="action-btn" style="display: none;">
-            Generate
-          </button>
+            <label id="maskImageLabel">
+              Mask Image (optional)
+              <div class="drop-zone" id="maskImageDropZone">
+                <div class="drop-zone-icon">📁</div>
+                <div class="drop-zone-text">Drag & Drop Mask Here</div>
+                <div class="drop-zone-hint">or click to browse</div>
+              </div>
+              <input type="file" id="maskImage" accept="image/*" style="display:none" />
+            </label>
+          </div>
 
-          <button type="button" id="createVariationsBtn" class="action-btn" style="display: none;">
-            Create Variations
-          </button>
+          <!-- Action Buttons Group -->
+          <div class="form-group">
+            <button type="button" id="actionBtn" class="action-btn" style="display: none;">
+              Generate
+            </button>
 
-          <div id="variationResults" style="display: none; margin-top: 10px"></div>
+            <button type="button" id="createVariationsBtn" class="action-btn" style="display: none;">
+              Create Variations
+            </button>
+
+            <div id="variationResults" style="display: none; margin-top: 10px"></div>
+          </div>
 
           <fieldset>
             <legend>Preview</legend>
@@ -964,50 +981,40 @@ Top Text 2|Bottom Text 2"></textarea>
             </p>
 
             <!-- Template List -->
-            <div id="templateList" style="margin-bottom: 16px; display: grid; gap: 12px;">
+            <div id="templateList">
               <!-- Templates will be rendered here -->
             </div>
 
             <!-- Add/Edit Template Form -->
-            <div id="templateForm"
-              style="display: none; margin-top: 16px; padding: 16px; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--border-color);">
-              <h3 id="templateFormTitle" style="margin: 0 0 16px 0; color: var(--text-primary);">New Template</h3>
+            <div id="templateForm">
+              <h3 id="templateFormTitle">New Template</h3>
 
               <input type="hidden" id="editingTemplateId" />
 
-              <div style="margin-bottom: 12px;">
-                <label for="templateName"
-                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Template
-                  Name</label>
-                <input type="text" id="templateName" placeholder="e.g., Product Launch, Daily Motivation"
-                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);" />
+              <div class="template-form-field">
+                <label for="templateName" class="template-form-label">Template Name</label>
+                <input type="text" id="templateName" class="template-form-input"
+                  placeholder="e.g., Product Launch, Daily Motivation" />
               </div>
 
-              <div style="margin-bottom: 12px;">
-                <label for="templateCaption"
-                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Caption
-                  Template</label>
-                <textarea id="templateCaption" rows="4"
-                  placeholder="Use variables: {platform}, {date}, {username}, {hashtags}"
-                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-family: inherit; resize: vertical;"></textarea>
-                <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-secondary);">
+              <div class="template-form-field">
+                <label for="templateCaption" class="template-form-label">Caption Template</label>
+                <textarea id="templateCaption" class="template-form-textarea" rows="4"
+                  placeholder="Use variables: {platform}, {date}, {username}, {hashtags}"></textarea>
+                <div class="template-form-hint">
                   Available variables: {platform}, {date}, {time}, {username}, {account}, {hashtags}
                 </div>
               </div>
 
-              <div style="margin-bottom: 12px;">
-                <label for="templateHashtags"
-                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Default
-                  Hashtags</label>
-                <input type="text" id="templateHashtags" placeholder="#example #hashtags #template"
-                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);" />
+              <div class="template-form-field">
+                <label for="templateHashtags" class="template-form-label">Default Hashtags</label>
+                <input type="text" id="templateHashtags" class="template-form-input"
+                  placeholder="#example #hashtags #template" />
               </div>
 
-              <div style="margin-bottom: 12px;">
-                <label for="templateCategory"
-                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Category</label>
-                <select id="templateCategory"
-                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);">
+              <div class="template-form-field">
+                <label for="templateCategory" class="template-form-label">Category</label>
+                <select id="templateCategory" class="template-form-select">
                   <option value="marketing">Marketing</option>
                   <option value="lifestyle">Lifestyle</option>
                   <option value="content">Content</option>
@@ -1018,44 +1025,40 @@ Top Text 2|Bottom Text 2"></textarea>
                 </select>
               </div>
 
-              <div style="margin-bottom: 16px;">
-                <label style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Target
-                  Platforms</label>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <div class="template-form-field">
+                <label class="template-form-label">Target Platforms</label>
+                <div class="template-platform-grid">
+                  <label class="template-platform-label">
                     <input type="checkbox" id="templatePlatformInstagram" value="instagram" />
                     <span>📷 Instagram</span>
                   </label>
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <label class="template-platform-label">
                     <input type="checkbox" id="templatePlatformTiktok" value="tiktok" />
                     <span>🎵 TikTok</span>
                   </label>
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <label class="template-platform-label">
                     <input type="checkbox" id="templatePlatformYoutube" value="youtube" />
                     <span>▶️ YouTube</span>
                   </label>
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <label class="template-platform-label">
                     <input type="checkbox" id="templatePlatformTwitter" value="twitter" />
                     <span>🐦 Twitter</span>
                   </label>
                 </div>
               </div>
 
-              <div style="display: flex; gap: 8px;">
-                <button type="button" id="saveTemplateBtn"
-                  style="flex: 1; padding: 10px; background: var(--blue-gradient); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+              <div class="template-button-group">
+                <button type="button" id="saveTemplateBtn" class="template-button-primary">
                   💾 Save Template
                 </button>
-                <button type="button" id="cancelTemplateBtn"
-                  style="padding: 10px 20px; background: var(--glass-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+                <button type="button" id="cancelTemplateBtn" class="template-button-secondary">
                   Cancel
                 </button>
               </div>
             </div>
 
             <!-- Add Template Button -->
-            <button type="button" id="addTemplateBtn"
-              style="width: 100%; padding: 12px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button type="button" id="addTemplateBtn" class="template-add-button">
               <span style="font-size: 1.2em;">+</span>
               <span>Create New Template</span>
             </button>
