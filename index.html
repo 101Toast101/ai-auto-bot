@@ -989,79 +989,79 @@ Top Text 2|Bottom Text 2"></textarea>
               <div id="templateForm">
                 <h3 id="templateFormTitle">New Template</h3>
 
-              <input type="hidden" id="editingTemplateId" />
+                <input type="hidden" id="editingTemplateId" />
 
-              <div class="template-form-field">
-                <label for="templateName" class="template-form-label">Template Name</label>
-                <input type="text" id="templateName" class="template-form-input"
-                  placeholder="e.g., Product Launch, Daily Motivation" />
-              </div>
+                <div class="template-form-field">
+                  <label for="templateName" class="template-form-label">Template Name</label>
+                  <input type="text" id="templateName" class="template-form-input"
+                    placeholder="e.g., Product Launch, Daily Motivation" />
+                </div>
 
-              <div class="template-form-field">
-                <label for="templateCaption" class="template-form-label">Caption Template</label>
-                <textarea id="templateCaption" class="template-form-textarea" rows="4"
-                  placeholder="Use variables: {platform}, {date}, {username}, {hashtags}"></textarea>
-                <div class="template-form-hint">
-                  Available variables: {platform}, {date}, {time}, {username}, {account}, {hashtags}
+                <div class="template-form-field">
+                  <label for="templateCaption" class="template-form-label">Caption Template</label>
+                  <textarea id="templateCaption" class="template-form-textarea" rows="4"
+                    placeholder="Use variables: {platform}, {date}, {username}, {hashtags}"></textarea>
+                  <div class="template-form-hint">
+                    Available variables: {platform}, {date}, {time}, {username}, {account}, {hashtags}
+                  </div>
+                </div>
+
+                <div class="template-form-field">
+                  <label for="templateHashtags" class="template-form-label">Default Hashtags</label>
+                  <input type="text" id="templateHashtags" class="template-form-input"
+                    placeholder="#example #hashtags #template" />
+                </div>
+
+                <div class="template-form-field">
+                  <label for="templateCategory" class="template-form-label">Category</label>
+                  <select id="templateCategory" class="template-form-select">
+                    <option value="marketing">Marketing</option>
+                    <option value="lifestyle">Lifestyle</option>
+                    <option value="content">Content</option>
+                    <option value="engagement">Engagement</option>
+                    <option value="educational">Educational</option>
+                    <option value="promotional">Promotional</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div class="template-form-field">
+                  <label class="template-form-label">Target Platforms</label>
+                  <div class="template-platform-grid">
+                    <label class="template-platform-label">
+                      <input type="checkbox" id="templatePlatformInstagram" value="instagram" />
+                      <span>📷 Instagram</span>
+                    </label>
+                    <label class="template-platform-label">
+                      <input type="checkbox" id="templatePlatformTiktok" value="tiktok" />
+                      <span>🎵 TikTok</span>
+                    </label>
+                    <label class="template-platform-label">
+                      <input type="checkbox" id="templatePlatformYoutube" value="youtube" />
+                      <span>▶️ YouTube</span>
+                    </label>
+                    <label class="template-platform-label">
+                      <input type="checkbox" id="templatePlatformTwitter" value="twitter" />
+                      <span>🐦 Twitter</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="template-button-group">
+                  <button type="button" id="saveTemplateBtn" class="template-button-primary">
+                    💾 Save Template
+                  </button>
+                  <button type="button" id="cancelTemplateBtn" class="template-button-secondary">
+                    Cancel
+                  </button>
                 </div>
               </div>
 
-              <div class="template-form-field">
-                <label for="templateHashtags" class="template-form-label">Default Hashtags</label>
-                <input type="text" id="templateHashtags" class="template-form-input"
-                  placeholder="#example #hashtags #template" />
-              </div>
-
-              <div class="template-form-field">
-                <label for="templateCategory" class="template-form-label">Category</label>
-                <select id="templateCategory" class="template-form-select">
-                  <option value="marketing">Marketing</option>
-                  <option value="lifestyle">Lifestyle</option>
-                  <option value="content">Content</option>
-                  <option value="engagement">Engagement</option>
-                  <option value="educational">Educational</option>
-                  <option value="promotional">Promotional</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div class="template-form-field">
-                <label class="template-form-label">Target Platforms</label>
-                <div class="template-platform-grid">
-                  <label class="template-platform-label">
-                    <input type="checkbox" id="templatePlatformInstagram" value="instagram" />
-                    <span>📷 Instagram</span>
-                  </label>
-                  <label class="template-platform-label">
-                    <input type="checkbox" id="templatePlatformTiktok" value="tiktok" />
-                    <span>🎵 TikTok</span>
-                  </label>
-                  <label class="template-platform-label">
-                    <input type="checkbox" id="templatePlatformYoutube" value="youtube" />
-                    <span>▶️ YouTube</span>
-                  </label>
-                  <label class="template-platform-label">
-                    <input type="checkbox" id="templatePlatformTwitter" value="twitter" />
-                    <span>🐦 Twitter</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="template-button-group">
-                <button type="button" id="saveTemplateBtn" class="template-button-primary">
-                  💾 Save Template
-                </button>
-                <button type="button" id="cancelTemplateBtn" class="template-button-secondary">
-                  Cancel
-                </button>
-              </div>
-            </div>
-
-            <!-- Add Template Button -->
-            <button type="button" id="addTemplateBtn" class="template-add-button">
-              <span style="font-size: 1.2em;">+</span>
-              <span>Create New Template</span>
-            </button>
+              <!-- Add Template Button -->
+              <button type="button" id="addTemplateBtn" class="template-add-button">
+                <span style="font-size: 1.2em;">+</span>
+                <span>Create New Template</span>
+              </button>
             </div>
           </fieldset>
 
