@@ -218,13 +218,13 @@ class AccessibilityManager {
     // Create skip links as navigation items
     const skipLinksHTML = `
       <li class="nav-item skip-link-item">
-        <a href="#main-content" class="skip-link-nav">
+        <a href="#main-content" class="skip-link-nav" data-skip-link>
           <span class="nav-icon" aria-hidden="true">⏭️</span>
           <span class="nav-label">Skip to Content</span>
         </a>
       </li>
       <li class="nav-item skip-link-item">
-        <a href="#sidebar" class="skip-link-nav">
+        <a href="#sidebar" class="skip-link-nav" data-skip-link>
           <span class="nav-icon" aria-hidden="true">🧭</span>
           <span class="nav-label">Skip to Navigation</span>
         </a>
@@ -238,6 +238,19 @@ class AccessibilityManager {
     if (mainContent && !mainContent.id) {
       mainContent.id = 'main-content';
     }
+
+    // Add click handlers to skip links
+    document.querySelectorAll('[data-skip-link]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('href').substring(1);
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.focus();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
   }
 
   /**
