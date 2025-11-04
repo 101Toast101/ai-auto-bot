@@ -6180,22 +6180,6 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       });
     });
 
-    // Add reset layout button handler
-    const resetBtn = $("resetLayoutBtn");
-    if (resetBtn) {
-      resetBtn.addEventListener("click", () => {
-        // Remove all custom grid positions
-        fieldsets.forEach((fs) => {
-          fs.style.gridColumn = "";
-          fs.style.gridRow = "";
-        });
-
-        // Clear saved layout
-        saveLayout();
-        addLogEntry("🔄 Layout reset to default");
-      });
-    }
-
     addLogEntry("🎯 Drag-and-drop enabled - Drag cards to any grid position!");
   }
 

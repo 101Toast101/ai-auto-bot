@@ -693,12 +693,15 @@ body.dark .highlighted-fieldset {
 }
 
 body.dark .full-width-select {
-  background: var(--bg-secondary);
+  background: #2d3748;
+  color: #e2e8f0;
 }
 
 /* Meme Preview Image */
 .meme-preview-img {
   display: block;
+  max-width: 400px;
+  width: 100%;
   margin: 0 auto 12px auto;
   border-radius: 8px;
   border: 2px solid rgba(74, 144, 226, 0.3);
@@ -777,16 +780,22 @@ body.dark .form-group:not(:last-child) {
   gap: 16px;
   flex: 1;
   min-height: 0;
+  position: relative;
 }
 
 #templateForm {
   display: none;
-  margin-top: 16px;
-  padding: 16px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 20px;
   background: var(--glass-bg);
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 body.dark #templateForm {
