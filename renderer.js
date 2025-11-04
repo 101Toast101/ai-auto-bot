@@ -2594,10 +2594,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       library.unshift(item); // Add to beginning
       await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
 
-      // Refresh library display if on library tab
-      if ($('libraryTab')?.classList.contains('active')) {
-        await displayLibraryContent();
-      }
+      // Always refresh library display so new videos appear immediately
+      await displayLibraryContent();
 
       addLogEntry(`📚 Video saved to library: ${item.id}`);
       return item;
