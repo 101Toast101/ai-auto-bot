@@ -101,7 +101,7 @@
         </header>
 
         <!-- Top-bar Controls -->
-        <div id="controls">
+        <div id="controls" class="section-controls">
           <div id="errorContainer" class="error-container" style="color: red; margin: 10px 0; display: none"></div>
           <button type="button" id="previewPostBtn" title="Preview before posting (Ctrl+P)">👁️ Preview</button>
           <button type="button" id="postNowBtn">Post Now</button>
@@ -112,7 +112,6 @@
           <button type="button" id="resetLayoutBtn" title="Reset all cards to default layout">
             Reset Layout
           </button>
-          <!-- Hidden UI debug area (removed) -->
         </div>
 
         <!-- Content Type -->
@@ -127,22 +126,19 @@
         </fieldset>
 
         <!-- Content Templates -->
-        <fieldset id="templateSelector"
-          style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(156, 39, 176, 0.1)); border: 2px solid rgba(74, 144, 226, 0.3);">
+        <fieldset id="templateSelector" class="highlighted-fieldset">
           <legend>📝 Use Template (Optional)</legend>
           <p style="margin: 0 0 12px 0; color: var(--text-secondary); font-size: 0.9rem;">
             Quick-start with a pre-made template
           </p>
 
           <label>Select Template
-            <select id="templateSelect"
-              style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);">
+            <select id="templateSelect" class="full-width-select">
               <option value="">-- Choose a template --</option>
             </select>
           </label>
 
-          <div id="templatePreview"
-            style="display: none; margin-top: 12px; padding: 12px; background: var(--glass-bg); border-radius: 6px; border: 1px solid var(--border-color);">
+          <div id="templatePreview" class="template-preview" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
               <div>
                 <div id="templatePreviewName" style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
@@ -151,12 +147,9 @@
               </div>
               <div id="templatePreviewPlatforms" style="display: flex; gap: 4px; font-size: 1.2em;"></div>
             </div>
-            <div id="templatePreviewCaption"
-              style="padding: 8px; background: var(--bg-secondary); border-radius: 4px; font-size: 0.9rem; color: var(--text-primary); white-space: pre-wrap; margin-bottom: 8px;">
-            </div>
+            <div id="templatePreviewCaption" class="template-preview-caption"></div>
             <div id="templatePreviewHashtags" style="font-size: 0.85rem; color: var(--accent-color);"></div>
-            <button type="button" id="applyTemplateBtn"
-              style="width: 100%; margin-top: 12px; padding: 10px; background: var(--blue-gradient); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+            <button type="button" id="applyTemplateBtn" class="action-btn full-width">
               ✨ Apply Template
             </button>
           </div>
@@ -213,29 +206,11 @@
             <input type="file" id="maskImage" accept="image/*" style="display:none" />
           </label>
 
-          <button type="button" id="actionBtn" style="
-            display: none;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: var(--blue-gradient);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-          ">
+          <button type="button" id="actionBtn" class="action-btn" style="display: none;">
             Generate
           </button>
 
-          <button type="button" id="createVariationsBtn" style="
-            display: none;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: var(--blue-gradient);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-          ">
+          <button type="button" id="createVariationsBtn" class="action-btn" style="display: none;">
             Create Variations
           </button>
 
@@ -245,17 +220,7 @@
             <legend>Preview</legend>
             <img id="memePreview" width="300" alt="Live Meme Preview"
               style="display: block; margin: 0 auto; border: 1px solid #e2e8f0" />
-            <button type="button" id="saveMemeToLibrary" class="toolbar-btn" style="
-              margin-top: 10px;
-              width: 100%;
-              padding: 8px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 600;
-            ">
+            <button type="button" id="saveMemeToLibrary" class="save-btn">
               💾 Save to Library
             </button>
           </fieldset>
@@ -314,11 +279,10 @@
           </label>
 
           <!-- Provider Capabilities Info -->
-          <div id="providerInfo" class="info-box"
-            style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px; margin: 10px 0; display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.9em;">
-            <span id="providerQuality" style="color: #60a5fa;">Quality: Professional</span>
-            <span id="providerTime" style="color: #60a5fa;">Est. Time: 2 min</span>
-            <span id="providerCost" style="color: #60a5fa;">Cost: $0.50/10s</span>
+          <div id="providerInfo" class="info-box">
+            <span id="providerQuality">Quality: Professional</span>
+            <span id="providerTime">Est. Time: 2 min</span>
+            <span id="providerCost">Cost: $0.50/10s</span>
           </div>
 
           <label id="videoPromptLabel">
@@ -368,15 +332,7 @@
             </select>
           </label>
 
-          <button type="button" id="generateVideoBtn" style="
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: var(--blue-gradient);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-          ">
+          <button type="button" id="generateVideoBtn" class="action-btn">
             Generate Video
           </button>
         </fieldset>
@@ -839,9 +795,10 @@ Top Text 2|Bottom Text 2"></textarea>
 
         <!-- CONFIG MANAGER -->
         <div id="configManager">
-          <input type="text" id="configNameInput" placeholder="Config Name"
-            style="padding: 8px; width: 60%; margin-right: 8px" />
-          <button type="button" id="saveConfigBtn">Save Config</button>
+          <div class="filter-bar">
+            <input type="text" id="configNameInput" placeholder="Config Name" />
+            <button type="button" id="saveConfigBtn">Save Config</button>
+          </div>
 
           <fieldset id="savedConfigsFieldset">
             <legend>Saved Configurations</legend>
@@ -852,10 +809,9 @@ Top Text 2|Bottom Text 2"></textarea>
         <!-- Content Library (moved outside form) -->
         <fieldset id="libraryFieldset">
           <legend>Content Library</legend>
-          <div style="margin-bottom: 15px">
-            <input type="text" id="librarySearch" placeholder="Search by caption, hashtag, or platform..."
-              style="width: 70%; margin-right: 10px" />
-            <select id="libraryFilter" style="width: 25%">
+          <div class="filter-bar">
+            <input type="text" id="librarySearch" placeholder="Search by caption, hashtag, or platform..." />
+            <select id="libraryFilter">
               <option value="all">All Content</option>
               <option value="meme">Memes Only</option>
               <option value="video">Videos Only</option>
@@ -863,13 +819,7 @@ Top Text 2|Bottom Text 2"></textarea>
               <option value="draft">Drafts</option>
             </select>
           </div>
-          <div id="libraryGrid" style="
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            max-height: 500px;
-            overflow-y: auto;
-          ">
+          <div id="libraryGrid" class="library-grid">
             <p style="text-align: center; color: #718096; padding: 40px">
               No content yet
             </p>

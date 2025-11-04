@@ -540,6 +540,172 @@ body.dark .library-item {
   box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
 }
 
+/* Section Controls (reusable control bar pattern) */
+.section-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(74, 144, 226, 0.05);
+  border-radius: 8px;
+}
+
+body.dark .section-controls {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.section-controls label {
+  font-weight: 600;
+  color: #4a90e2;
+  margin-right: 8px;
+}
+
+body.dark .section-controls label {
+  color: #60a5fa;
+}
+
+/* Info Box (provider info, hints, etc.) */
+.info-box {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px 0;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+}
+
+body.dark .info-box {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.info-box span {
+  color: #60a5fa;
+}
+
+/* Filter Bar (search + filters) */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-bar input[type="text"] {
+  flex: 2;
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.filter-bar select {
+  flex: 1;
+  min-width: 150px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Action Button (primary action button style) */
+.action-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: var(--blue-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn.full-width {
+  width: 100%;
+}
+
+/* Save Button (library save style) */
+.save-btn {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.save-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Highlighted Fieldset (special emphasis) */
+.highlighted-fieldset {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(156, 39, 176, 0.1));
+  border: 2px solid rgba(74, 144, 226, 0.3) !important;
+}
+
+body.dark .highlighted-fieldset {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(156, 39, 176, 0.15));
+  border-color: rgba(74, 144, 226, 0.4) !important;
+}
+
+/* Full Width Select */
+.full-width-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Template Preview */
+.template-preview {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--glass-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+body.dark .template-preview {
+  background: var(--glass-bg-dark);
+}
+
+.template-preview-caption {
+  padding: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  margin-bottom: 8px;
+}
+
 #saveConfigBtn {
   background: var(--blue-gradient);
   color: #fff;
@@ -1122,11 +1288,12 @@ body.dark .feature-highlight p {
 }
 
 /* Library */
-#libraryGrid {
+#libraryGrid,
+.library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 2px;
-  max-height: 400px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  max-height: 500px;
   overflow-y: auto;
 }
 
@@ -2311,7 +2478,8 @@ body.dark .cost-total .cost-label {
   padding: 8px 15px;
   border: 2px solid rgba(74, 144, 226, 0.3);
   border-radius: 6px;
-  background: white;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s;

@@ -7153,7 +7153,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     try {
       const result = await window.api.readFile('data/scheduledPosts.json');
       if (!result.success) {
-        console.error('Failed to load scheduled posts:', result.error);
+        console.warn('Scheduled posts file not found, initializing empty calendar');
+        // Initialize empty calendar - this is normal on first run
+        calendar.removeAllEvents();
         return;
       }
 
@@ -7191,7 +7193,10 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
     } catch (error) {
       console.error('Error loading calendar events:', error);
-      showNotification('Failed to load calendar events', 'error');
+      // Don't show error notification for empty calendar on first run
+      if (error.message && !error.message.includes('ENOENT')) {
+        showNotification('Failed to load calendar events', 'error');
+      }
     }
   }
 
