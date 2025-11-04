@@ -1,5 +1,4 @@
 // renderer.js - Complete Frontend Logic
-/* global JSZip GIF */
 /* exported handleImportSettings reuseLibraryItem deleteLibraryItem handleVideoGeneration handleMemeSelection handleVideoModeChange addDownloadButton */
 (function () {
   const $ = (id) => document.getElementById(id);

@@ -213,7 +213,9 @@ class AccessibilityManager {
   addSkipLinks() {
     // Find the navigation list (after Stats & Logs)
     const navList = document.querySelector('.sidebar-nav');
-    if (!navList) return;
+    if (!navList) {
+      return;
+    }
 
     // Create skip links as navigation items
     const skipLinksHTML = `
