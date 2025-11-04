@@ -624,7 +624,13 @@
       if (item.url) {
         if (item.type === "video" || item.contentType === "video") {
           const video = document.createElement("video");
-          video.src = item.url;
+          // Convert Windows path to file:// URL if needed
+          let videoUrl = item.url;
+          if (videoUrl && !videoUrl.startsWith('http') && !videoUrl.startsWith('blob:') && !videoUrl.startsWith('file://')) {
+            // It's a local path - convert to file:// URL
+            videoUrl = 'file:///' + videoUrl.replace(/\\/g, '/');
+          }
+          video.src = videoUrl;
           video.style.cssText =
             "max-width: 100%; max-height: 100%; object-fit: contain;";
           video.controls = true;
