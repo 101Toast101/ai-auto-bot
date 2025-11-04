@@ -47,9 +47,10 @@ body {
 
 .skip-link:focus {
   position: fixed;
-  top: 10px;
+  top: auto;
+  bottom: 180px; /* Position above Dark Mode toggle */
   left: 10px;
-  width: auto;
+  width: calc(var(--sidebar-width) - 20px);
   height: auto;
   clip: auto;
   overflow: visible;
@@ -61,6 +62,7 @@ body {
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 9999;
+  text-align: center;
 }
 
 /* SIDEBAR NAVIGATION */
