@@ -24,17 +24,17 @@ body {
 }
 
 /* ACCESSIBILITY - Skip Links as Nav Items */
-.skip-link-item {
-  display: none; /* Hidden by default */
+.nav-item.skip-link-item {
+  display: none !important; /* Hidden by default - override .nav-item */
 }
 
 /* Show skip links ONLY when they receive focus (Tab key) */
-.skip-link-item:focus-within {
-  display: flex;
+.nav-item.skip-link-item:focus-within {
+  display: flex !important;
   opacity: 0.7;
 }
 
-.skip-link-item:focus-within:hover {
+.nav-item.skip-link-item:focus-within:hover {
   opacity: 1;
 }
 
