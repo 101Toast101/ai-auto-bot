@@ -4,7 +4,7 @@
 const fs = require('fs');
 jest.mock('fs');
 
-const { logInfo, logError, logWarn, logSecurity } = require("../utils/logger.cjs");
+const { logInfo, logError } = require("../utils/logger.cjs");
 
 // Mock console to capture output in dev mode
 let consoleWarnSpy;

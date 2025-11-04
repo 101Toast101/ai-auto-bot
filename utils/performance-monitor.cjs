@@ -72,7 +72,9 @@ class PerformanceMonitor {
 
   endOperation(id) {
     const operation = this.metrics.operations.get(id);
-    if (!operation) return null;
+    if (!operation) {
+      return null;
+    }
 
     const duration = Date.now() - operation.startTime;
     this.metrics.operations.delete(id);
@@ -105,7 +107,9 @@ class PerformanceMonitor {
   }
 
   calculateAverageMemory() {
-    if (this.metrics.memoryUsage.length === 0) return null;
+    if (this.metrics.memoryUsage.length === 0) {
+      return null;
+    }
 
     const sum = this.metrics.memoryUsage.reduce((acc, m) => ({
       rss: acc.rss + m.rss,

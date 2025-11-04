@@ -63,9 +63,15 @@ function isTypingInInput(element) {
 function getShortcutKey(e) {
   const parts = [];
 
-  if (e.ctrlKey || e.metaKey) parts.push('ctrl');
-  if (e.altKey) parts.push('alt');
-  if (e.shiftKey) parts.push('shift');
+  if (e.ctrlKey || e.metaKey) {
+    parts.push('ctrl');
+  }
+  if (e.altKey) {
+    parts.push('alt');
+  }
+  if (e.shiftKey) {
+    parts.push('shift');
+  }
 
   const key = e.key.toLowerCase();
   if (key !== 'control' && key !== 'alt' && key !== 'shift' && key !== 'meta') {

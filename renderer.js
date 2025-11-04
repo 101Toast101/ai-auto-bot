@@ -3691,7 +3691,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         }
       }      // Show note if available
       if (caps.note) {
-        console.log(`[Provider Info] ${providerName}: ${caps.note}`);
+        console.warn(`[Provider Info] ${providerName}: ${caps.note}`);
       }
     } catch (error) {
       console.error('Failed to update provider capabilities:', error);
@@ -5913,11 +5913,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     // Initialize drag & drop for file uploads
     if (window.DragDrop) {
       window.DragDrop.init('sourceImageDropZone', 'sourceImage', (file) => {
-        console.log('Source image uploaded:', file.name);
+        console.warn('Source image uploaded:', file.name);
       });
 
       window.DragDrop.init('maskImageDropZone', 'maskImage', (file) => {
-        console.log('Mask image uploaded:', file.name);
+        console.warn('Mask image uploaded:', file.name);
       });
     }
 
@@ -6245,7 +6245,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   // ===== Content Preview Functions =====
   function showPreview(content) {
     const modal = $("previewModal");
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
 
     // Set image for all platforms
     const platforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
@@ -6401,7 +6403,9 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         }
       } else {
         const toggle = document.getElementById('sidebarToggle');
-        if (toggle) toggle.remove();
+        if (toggle) {
+          toggle.remove();
+        }
       }
     };
 
@@ -6526,20 +6530,30 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     const runwayCostEl = document.getElementById('runwayCost');
     const totalCostEl = document.getElementById('totalCost');
 
-    if (imagesEl) imagesEl.textContent = stats.imagesGenerated || 0;
+    if (imagesEl) {
+      imagesEl.textContent = stats.imagesGenerated || 0;
+    }
 
     // OpenAI DALL-E 3: $0.04 per image
     const openaiCost = (stats.imagesGenerated || 0) * 0.04;
-    if (openaiCostEl) openaiCostEl.textContent = `$${openaiCost.toFixed(2)}`;
+    if (openaiCostEl) {
+      openaiCostEl.textContent = `$${openaiCost.toFixed(2)}`;
+    }
 
-    if (videosEl) videosEl.textContent = stats.videosGenerated || 0;
+    if (videosEl) {
+      videosEl.textContent = stats.videosGenerated || 0;
+    }
 
     // Runway Gen-3: ~$0.25 per second (mid-range estimate)
     const runwayCost = (stats.videoSecondsGenerated || 0) * 0.25;
-    if (runwayCostEl) runwayCostEl.textContent = `$${runwayCost.toFixed(2)}`;
+    if (runwayCostEl) {
+      runwayCostEl.textContent = `$${runwayCost.toFixed(2)}`;
+    }
 
     const totalCost = openaiCost + runwayCost;
-    if (totalCostEl) totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
+    if (totalCostEl) {
+      totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
+    }
   }
 
   function trackImageGeneration() {
@@ -6565,7 +6579,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     };
     saveCostStats(stats);
     addLogEntry('💰 Cost tracker reset');
-    showToast('Cost tracker reset successfully', 'success');
+    showNotification('Cost tracker reset successfully', 'success');
   }
 })();
 

@@ -111,7 +111,9 @@ function handleFile(file, dropZone, onFileSelect) {
  */
 function resetDropZone(dropZoneId, placeholderText = 'Drag & Drop Image Here') {
   const dropZone = document.getElementById(dropZoneId);
-  if (!dropZone) return;
+  if (!dropZone) {
+    return;
+  }
 
   const textEl = dropZone.querySelector('.drop-zone-text');
   if (textEl) {

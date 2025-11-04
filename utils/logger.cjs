@@ -46,7 +46,7 @@ function writeToFile(filePath, message) {
           logFiles.slice(5).forEach(f => {
             try {
               fs.unlinkSync(path.join(logsDir, f));
-            } catch (e) {
+            } catch {
               // Ignore deletion errors
             }
           });

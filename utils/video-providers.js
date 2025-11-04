@@ -15,19 +15,19 @@ class VideoProvider {
 
   /**
    * Start video generation
-   * @param {Object} options - Generation options { prompt, duration, aspectRatio, dimensions }
+   * @param {Object} _options - Generation options { prompt, duration, aspectRatio, dimensions }
    * @returns {Promise<Object>} { taskId, status, pollInterval }
    */
-  async generate(options) {
+  async generate(_options) {
     throw new Error('generate() must be implemented by provider');
   }
 
   /**
    * Check generation status
-   * @param {string} taskId - Task identifier from generate()
+   * @param {string} _taskId - Task identifier from generate()
    * @returns {Promise<Object>} { status, progress, videoUrl, error }
    */
-  async checkStatus(taskId) {
+  async checkStatus(_taskId) {
     throw new Error('checkStatus() must be implemented by provider');
   }
 
@@ -231,9 +231,15 @@ class LumaProvider extends VideoProvider {
 
       // Calculate progress estimate
       let progress = 0;
-      if (data.state === 'pending') progress = 0.2;
-      if (data.state === 'dreaming') progress = 0.5;
-      if (data.state === 'completed') progress = 1.0;
+      if (data.state === 'pending') {
+        progress = 0.2;
+      }
+      if (data.state === 'dreaming') {
+        progress = 0.5;
+      }
+      if (data.state === 'completed') {
+        progress = 1.0;
+      }
 
       return {
         status: normalizedStatus,

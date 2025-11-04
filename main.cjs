@@ -1132,10 +1132,10 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
         });
         if (versionCheckResult) {
           pythonCmd = cmd;
-          console.log(`[Local AI] Found Python via '${cmd}' command`);
+          console.warn(`[Local AI] Found Python via '${cmd}' command`);
           break;
         }
-      } catch (err) {
+      } catch {
         continue;
       }
     }
@@ -1174,7 +1174,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
       args.push('--steps', String(customSteps));
     }
 
-    console.log('[Local AI] Running:', pythonCmd, args.join(' '));
+    console.warn('[Local AI] Running:', pythonCmd, args.join(' '));
 
     return new Promise((resolve) => {
       // Don't use shell: true for the actual execution to avoid quoting issues
@@ -1191,7 +1191,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
         const output = data.toString().trim();
 
         // Log progress to console
-        console.log('[Local AI]', output);
+        console.warn('[Local AI]', output);
 
         // Send progress updates to renderer
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -1240,7 +1240,7 @@ ipcMain.handle('generate-local-video', async (_evt, options) => {
             } else {
               resolve({ success: false, error: result.error });
             }
-          } catch (parseError) {
+          } catch {
             resolve({ success: false, error: `Failed to parse Python output: ${stdout}` });
           }
         } else {
