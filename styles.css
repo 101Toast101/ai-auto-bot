@@ -354,6 +354,15 @@ body.dark .nav-item.active {
 .content-section {
   display: none;
   animation: fadeIn 0.3s ease;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+body.dark .content-section {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(74, 144, 226, 0.3);
 }
 
 .content-section.active {
@@ -687,13 +696,14 @@ body.dark .highlighted-fieldset {
 .template-preview {
   margin-top: 12px;
   padding: 12px;
-  background: var(--glass-bg);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 6px;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
 body.dark .template-preview {
   background: var(--glass-bg-dark);
+  border-color: var(--border-color);
 }
 
 .template-preview-caption {
@@ -757,6 +767,8 @@ body.dark #templateForm {
   margin-bottom: 16px;
   display: grid;
   gap: 12px;
+  grid-template-columns: 1fr;
+  align-items: start;
 }
 
 .template-form-field {
