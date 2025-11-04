@@ -2564,6 +2564,50 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   // Note: renderLibrary() function removed - replaced with displayLibraryContent()
   // All calls updated to use the new function which includes Schedule buttons and proper dark mode support
 
+  async function saveVideoToLibrary(videoData) {
+    try {
+      const r = await readFileAsync(PATHS.LIBRARY);
+      const library = r.success ? safeParse(r.content, []) : [];
+
+      // Create library item
+      const item = {
+        url: videoData.localPath, // Local file path
+        type: 'video',
+        contentType: 'video',
+        platform: $('platform')?.value || 'instagram',
+        caption: videoData.prompt || 'AI Generated Video',
+        hashtags: '#AIGenerated #VideoArt',
+        metadata: {
+          provider: videoData.provider,
+          prompt: videoData.prompt,
+          duration: videoData.duration,
+          quality: videoData.quality,
+          customSteps: videoData.customSteps,
+          dimensions: videoData.dimensions,
+          generatedAt: new Date().toISOString()
+        },
+        status: 'draft',
+        id: `content_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: new Date().toISOString()
+      };
+
+      library.unshift(item); // Add to beginning
+      await writeFileAsync(PATHS.LIBRARY, JSON.stringify(library, null, 2));
+
+      // Refresh library display if on library tab
+      if ($('libraryTab')?.classList.contains('active')) {
+        await displayLibraryContent();
+      }
+
+      addLogEntry(`📚 Video saved to library: ${item.id}`);
+      return item;
+    } catch (error) {
+      console.error('Failed to save video to library:', error);
+      addLogEntry('⚠️ Failed to save video to library', 'error');
+      return null;
+    }
+  }
+
   async function reuseLibraryItem(id) {
     const r = await readFileAsync(PATHS.LIBRARY);
     const library = r.success ? safeParse(r.content, []) : [];
@@ -3506,6 +3550,23 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
 
       // Track video generation cost
       trackVideoGeneration(duration);
+
+      // Save to library if it's a local video (from local AI providers)
+      const isLocalProvider = ['zeroscope', 'modelscope', 'stable-video'].includes(provider);
+      if (isLocalProvider && videoUrl) {
+        // Extract local path from file:/// URL
+        const localPath = videoUrl.replace('file:///', '').replace(/\//g, '\\');
+        await saveVideoToLibrary({
+          localPath: localPath,
+          provider: provider,
+          prompt: prompt,
+          duration: duration,
+          quality: quality,
+          customSteps: customSteps,
+          dimensions: dimensions,
+          aspectRatio: aspectRatio
+        });
+      }
 
       hideSpinner();
       addLogEntry(`✅ AI video generated successfully using ${provider.toUpperCase()}!`);

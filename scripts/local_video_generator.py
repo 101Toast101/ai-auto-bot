@@ -137,8 +137,11 @@ def generate_zeroscope(prompt, output_path, duration=3, width=576, height=320, q
         pipe.enable_attention_slicing()
         pipe.enable_vae_slicing()
 
+    # Calculate accurate time estimate based on actual steps (RTX 2060 ~65 sec/step)
+    est_time_min = int((inference_steps * 65) / 60) + 1  # Add 1 min buffer for model loading
+
     print(f"Generating video (device: {device}, dtype: {dtype})...", file=sys.stderr, flush=True)
-    print(f"Quality: {gpu_settings['quality'].upper()} ({inference_steps} steps, est. {gpu_settings['est_time_min']} min)", file=sys.stderr, flush=True)
+    print(f"Quality: {gpu_settings['quality'].upper()} ({inference_steps} steps, est. {est_time_min} min)", file=sys.stderr, flush=True)
 
     print(f"Progress: 0% | Step 0/{inference_steps} - Starting...", file=sys.stderr, flush=True)
 
