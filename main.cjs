@@ -48,7 +48,7 @@ function validateEnvironmentVariables() {
 
   if (missing.length > 0) {
     logError(`CRITICAL: Missing required environment variables: ${missing.join(', ')}`);
-    dialog.showErrorBoxSync('Configuration Error',
+    dialog.showErrorBox('Configuration Error',
       `Missing required environment variables:\n${missing.join('\n')}\n\nPlease check your .env file.`);
     app.quit();
     return false;
