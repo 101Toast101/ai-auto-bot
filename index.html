@@ -24,6 +24,9 @@
   <script src="utils/drag-drop.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- FullCalendar for content calendar -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 </head>
 
 <body>
@@ -31,6 +34,28 @@
   <nav id="sidebar">
     <div class="sidebar-header">
       <h2>🎬 AI Auto Bot</h2>
+      <!-- Account Switcher -->
+      <div class="account-switcher">
+        <button type="button" id="accountSwitcherBtn" class="account-switcher-btn"
+          title="Switch between connected accounts">
+          <span class="account-icon">👤</span>
+          <span class="account-name">All Accounts</span>
+          <span class="account-arrow">▼</span>
+        </button>
+        <div id="accountSwitcherMenu" class="account-switcher-menu" style="display: none;">
+          <div class="account-menu-header">
+            <span>Active Accounts</span>
+            <button type="button" id="closeAccountMenu" class="close-menu-btn">✕</button>
+          </div>
+          <div class="account-menu-list">
+            <!-- Dynamic account list will be populated here -->
+            <div class="account-menu-empty">
+              <p>No accounts connected</p>
+              <small>Connect accounts in Settings</small>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <ul class="sidebar-nav">
       <li class="nav-item active" data-section="generate">
@@ -99,6 +124,42 @@
               <option value="video">Video</option>
             </select>
           </label>
+        </fieldset>
+
+        <!-- Content Templates -->
+        <fieldset id="templateSelector"
+          style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(156, 39, 176, 0.1)); border: 2px solid rgba(74, 144, 226, 0.3);">
+          <legend>📝 Use Template (Optional)</legend>
+          <p style="margin: 0 0 12px 0; color: var(--text-secondary); font-size: 0.9rem;">
+            Quick-start with a pre-made template
+          </p>
+
+          <label>Select Template
+            <select id="templateSelect"
+              style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);">
+              <option value="">-- Choose a template --</option>
+            </select>
+          </label>
+
+          <div id="templatePreview"
+            style="display: none; margin-top: 12px; padding: 12px; background: var(--glass-bg); border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+              <div>
+                <div id="templatePreviewName" style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+                </div>
+                <div id="templatePreviewCategory" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
+              </div>
+              <div id="templatePreviewPlatforms" style="display: flex; gap: 4px; font-size: 1.2em;"></div>
+            </div>
+            <div id="templatePreviewCaption"
+              style="padding: 8px; background: var(--bg-secondary); border-radius: 4px; font-size: 0.9rem; color: var(--text-primary); white-space: pre-wrap; margin-bottom: 8px;">
+            </div>
+            <div id="templatePreviewHashtags" style="font-size: 0.85rem; color: var(--accent-color);"></div>
+            <button type="button" id="applyTemplateBtn"
+              style="width: 100%; margin-top: 12px; padding: 10px; background: var(--blue-gradient); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+              ✨ Apply Template
+            </button>
+          </div>
         </fieldset>
 
         <!-- Meme Fields -->
@@ -216,6 +277,8 @@
               <optgroup label="💰 Paid API (Best Quality)">
                 <option value="runway">Runway ML Gen-3 (Professional)</option>
                 <option value="luma">Luma Dream Machine (Fast)</option>
+                <option value="haiper">Haiper AI (Cinematic)</option>
+                <option value="pika">Pika Labs (Smooth Motion)</option>
                 <option value="openai">OpenAI (Basic Animation)</option>
               </optgroup>
               <optgroup label="🆓 FREE Local AI (No API Key)">
@@ -895,6 +958,16 @@ Top Text 2|Bottom Text 2"></textarea>
                 <span class="provider-name">Connect Luma AI</span>
                 <span class="connected-badge" style="display: none">✓ Connected</span>
               </button>
+              <button type="button" id="connectHaiperAIBtn" class="ai-connect-btn" data-provider="haiper">
+                <span class="connect-icon">🔗</span>
+                <span class="provider-name">Connect Haiper AI</span>
+                <span class="connected-badge" style="display: none">✓ Connected</span>
+              </button>
+              <button type="button" id="connectPikaLabsBtn" class="ai-connect-btn" data-provider="pika">
+                <span class="connect-icon">🔗</span>
+                <span class="provider-name">Connect Pika Labs</span>
+                <span class="connected-badge" style="display: none">✓ Connected</span>
+              </button>
               <div style="width:100%; margin-top:8px; display:flex; gap:8px;">
                 <button type="button" id="resetAllBtn" class="small-action-btn danger">Reset Connections & Clear
                   All</button>
@@ -906,6 +979,8 @@ Top Text 2|Bottom Text 2"></textarea>
             <input type="hidden" id="openaiApiKey" />
             <input type="hidden" id="runwayApiKey" />
             <input type="hidden" id="lumaApiKey" />
+            <input type="hidden" id="haiperApiKey" />
+            <input type="hidden" id="pikaApiKey" />
           </fieldset>
 
           <!-- Platforms -->
@@ -931,6 +1006,111 @@ Top Text 2|Bottom Text 2"></textarea>
             </div>
           </fieldset>
 
+          <!-- Content Templates -->
+          <fieldset>
+            <legend>📝 Content Templates</legend>
+            <p style="margin: 0 0 16px 0; color: var(--text-secondary); font-size: 0.9rem;">
+              Create reusable templates with variables like {platform}, {date}, {hashtags}, {username}
+            </p>
+
+            <!-- Template List -->
+            <div id="templateList" style="margin-bottom: 16px; display: grid; gap: 12px;">
+              <!-- Templates will be rendered here -->
+            </div>
+
+            <!-- Add/Edit Template Form -->
+            <div id="templateForm"
+              style="display: none; margin-top: 16px; padding: 16px; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+              <h3 id="templateFormTitle" style="margin: 0 0 16px 0; color: var(--text-primary);">New Template</h3>
+
+              <input type="hidden" id="editingTemplateId" />
+
+              <div style="margin-bottom: 12px;">
+                <label for="templateName"
+                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Template
+                  Name</label>
+                <input type="text" id="templateName" placeholder="e.g., Product Launch, Daily Motivation"
+                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);" />
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <label for="templateCaption"
+                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Caption
+                  Template</label>
+                <textarea id="templateCaption" rows="4"
+                  placeholder="Use variables: {platform}, {date}, {username}, {hashtags}"
+                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-family: inherit; resize: vertical;"></textarea>
+                <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-secondary);">
+                  Available variables: {platform}, {date}, {time}, {username}, {account}, {hashtags}
+                </div>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <label for="templateHashtags"
+                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Default
+                  Hashtags</label>
+                <input type="text" id="templateHashtags" placeholder="#example #hashtags #template"
+                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);" />
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <label for="templateCategory"
+                  style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Category</label>
+                <select id="templateCategory"
+                  style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);">
+                  <option value="marketing">Marketing</option>
+                  <option value="lifestyle">Lifestyle</option>
+                  <option value="content">Content</option>
+                  <option value="engagement">Engagement</option>
+                  <option value="educational">Educational</option>
+                  <option value="promotional">Promotional</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500;">Target
+                  Platforms</label>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="templatePlatformInstagram" value="instagram" />
+                    <span>📷 Instagram</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="templatePlatformTiktok" value="tiktok" />
+                    <span>🎵 TikTok</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="templatePlatformYoutube" value="youtube" />
+                    <span>▶️ YouTube</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="templatePlatformTwitter" value="twitter" />
+                    <span>🐦 Twitter</span>
+                  </label>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="saveTemplateBtn"
+                  style="flex: 1; padding: 10px; background: var(--blue-gradient); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                  💾 Save Template
+                </button>
+                <button type="button" id="cancelTemplateBtn"
+                  style="padding: 10px 20px; background: var(--glass-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Add Template Button -->
+            <button type="button" id="addTemplateBtn"
+              style="width: 100%; padding: 12px; background: var(--blue-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span style="font-size: 1.2em;">+</span>
+              <span>Create New Template</span>
+            </button>
+          </fieldset>
+
         </form>
 
       </div>
@@ -943,69 +1123,95 @@ Top Text 2|Bottom Text 2"></textarea>
           <p>Schedule content for automatic posting</p>
         </header>
 
-        <!-- Scheduling & Scheduled Posts (Combined) -->
-        <fieldset id="schedulingFieldset">
-          <legend>Scheduling & Scheduled Posts</legend>
+        <!-- View Toggle Tabs -->
+        <div class="schedule-view-tabs">
+          <button class="schedule-tab active" data-view="form">Schedule</button>
+          <button class="schedule-tab" data-view="calendar">Calendar View</button>
+        </div>
 
-          <!-- Selected Content Preview -->
-          <div id="selectedContentPreview" style="
-              display: none;
-              margin-bottom: 16px;
-              padding: 12px;
-              background: rgba(72, 187, 120, 0.1);
-              border: 2px solid #48bb78;
-              border-radius: 8px;
-            ">
-            <div style="display: flex; align-items: center; gap: 12px">
-              <img id="selectedContentImg" style="
-                  width: 80px;
-                  height: 80px;
-                  object-fit: cover;
-                  border-radius: 4px;
-                " />
-              <div style="flex: 1">
-                <div style="font-weight: bold; color: #48bb78; margin-bottom: 4px">
-                  ✓ Content Selected
+        <!-- Form View (Original Scheduling) -->
+        <div id="schedule-form-view" class="schedule-view active">
+          <!-- Scheduling & Scheduled Posts (Combined) -->
+          <fieldset id="schedulingFieldset">
+            <legend>Scheduling & Scheduled Posts</legend>
+
+            <!-- Selected Content Preview -->
+            <div id="selectedContentPreview" style="
+                display: none;
+                margin-bottom: 16px;
+                padding: 12px;
+                background: rgba(72, 187, 120, 0.1);
+                border: 2px solid #48bb78;
+                border-radius: 8px;
+              ">
+              <div style="display: flex; align-items: center; gap: 12px">
+                <img id="selectedContentImg" style="
+                    width: 80px;
+                    height: 80px;
+                    object-fit: cover;
+                    border-radius: 4px;
+                  " />
+                <div style="flex: 1">
+                  <div style="font-weight: bold; color: #48bb78; margin-bottom: 4px">
+                    ✓ Content Selected
+                  </div>
+                  <div id="selectedContentInfo" style="font-size: 0.85em; color: var(--text-color, #666)"></div>
                 </div>
-                <div id="selectedContentInfo" style="font-size: 0.85em; color: var(--text-color, #666)"></div>
               </div>
             </div>
-          </div>
 
-          <label>Post At
-            <input type="datetime-local" id="scheduleDateTime" />
-          </label>
-          <label>Recurrence
-            <select id="recurrenceSelect">
-              <option value="none">None</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-            </select>
-          </label>
-          <label>Timezone
-            <select id="timezoneSelect"></select>
-          </label>
-          <button type="button" id="schedulePostBtn" class="action-btn">
-            Schedule Post
-          </button>
+            <label>Post At
+              <input type="datetime-local" id="scheduleDateTime" />
+            </label>
+            <label>Recurrence
+              <select id="recurrenceSelect">
+                <option value="none">None</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </label>
+            <label>Timezone
+              <select id="timezoneSelect"></select>
+            </label>
+            <button type="button" id="schedulePostBtn" class="action-btn">
+              Schedule Post
+            </button>
 
-          <!-- Scheduled Posts List (now part of same card) -->
-          <div style="
-              margin-top: 16px;
-              padding-top: 16px;
-              border-top: 1px solid rgba(255, 255, 255, 0.1);
-            ">
-            <h4 style="
-                margin-top: 0;
-                margin-bottom: 8px;
-                font-size: 0.9rem;
-                color: #667eea;
+            <!-- Scheduled Posts List (now part of same card) -->
+            <div style="
+                margin-top: 16px;
+                padding-top: 16px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
               ">
-              Scheduled Posts:
-            </h4>
-            <ul id="scheduledPostsList"></ul>
-          </div>
-        </fieldset>
+              <h4 style="
+                  margin-top: 0;
+                  margin-bottom: 8px;
+                  font-size: 0.9rem;
+                  color: #667eea;
+                ">
+                Scheduled Posts:
+              </h4>
+              <ul id="scheduledPostsList"></ul>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- Calendar View -->
+        <div id="schedule-calendar-view" class="schedule-view">
+          <fieldset>
+            <legend>Content Calendar</legend>
+            <div class="calendar-controls">
+              <div class="calendar-legend">
+                <span class="legend-item"><span class="legend-color" style="background: #E1306C;"></span>
+                  Instagram</span>
+                <span class="legend-item"><span class="legend-color" style="background: #000000;"></span> TikTok</span>
+                <span class="legend-item"><span class="legend-color" style="background: #FF0000;"></span> YouTube</span>
+                <span class="legend-item"><span class="legend-color" style="background: #1DA1F2;"></span> Twitter</span>
+              </div>
+            </div>
+            <div id="calendar"></div>
+          </fieldset>
+        </div>
 
       </div>
       <!-- END SECTION: SCHEDULE -->
@@ -1013,9 +1219,94 @@ Top Text 2|Bottom Text 2"></textarea>
       <!-- SECTION: STATS -->
       <div id="section-stats" class="content-section">
         <header class="section-header">
-          <h1>💰 Stats & Activity</h1>
-          <p>Track costs and view activity logs</p>
+          <h1>� Analytics & Stats</h1>
+          <p>Track performance, costs, and activity</p>
         </header>
+
+        <!-- Analytics Dashboard -->
+        <fieldset id="analyticsFieldset">
+          <legend>📊 Post Performance</legend>
+
+          <!-- Date Range Filter -->
+          <div class="analytics-controls">
+            <label for="analyticsDateRange">Time Period:</label>
+            <select id="analyticsDateRange">
+              <option value="7">Last 7 Days</option>
+              <option value="30" selected>Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+              <option value="all">All Time</option>
+            </select>
+            <button type="button" id="refreshAnalyticsBtn" class="btn-secondary">🔄 Refresh</button>
+          </div>
+
+          <!-- Analytics Summary Cards -->
+          <div class="analytics-summary">
+            <div class="summary-card">
+              <div class="summary-icon">📝</div>
+              <div class="summary-content">
+                <div class="summary-label">Total Posts</div>
+                <div class="summary-value" id="totalPostsValue">0</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon">👁️</div>
+              <div class="summary-content">
+                <div class="summary-label">Total Impressions</div>
+                <div class="summary-value" id="totalImpressionsValue">0</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon">💬</div>
+              <div class="summary-content">
+                <div class="summary-label">Total Engagement</div>
+                <div class="summary-value" id="totalEngagementValue">0</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon">📈</div>
+              <div class="summary-content">
+                <div class="summary-label">Engagement Rate</div>
+                <div class="summary-value" id="engagementRateValue">0%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="analytics-charts">
+            <!-- Posting Frequency Chart -->
+            <div class="chart-container">
+              <h3>📅 Posting Frequency</h3>
+              <canvas id="postingFrequencyChart"></canvas>
+            </div>
+
+            <!-- Engagement by Platform Chart -->
+            <div class="chart-container">
+              <h3>🌐 Engagement by Platform</h3>
+              <canvas id="platformEngagementChart"></canvas>
+            </div>
+
+            <!-- Content Type Performance Chart -->
+            <div class="chart-container">
+              <h3>🎨 Content Type Performance</h3>
+              <canvas id="contentTypeChart"></canvas>
+            </div>
+
+            <!-- Best Posting Times Heatmap -->
+            <div class="chart-container">
+              <h3>⏰ Best Posting Times</h3>
+              <div id="bestPostingTimes" class="best-times-grid">
+                <div class="best-times-section">
+                  <h4>Top Hours</h4>
+                  <div id="bestHoursContainer"></div>
+                </div>
+                <div class="best-times-section">
+                  <h4>Top Days</h4>
+                  <div id="bestDaysContainer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
 
         <!-- Cost Tracker -->
         <fieldset id="costTrackerFieldset">

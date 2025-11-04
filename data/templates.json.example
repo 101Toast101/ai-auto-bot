@@ -1,0 +1,73 @@
+{
+  "templates": [
+    {
+      "id": "template_1730678400000",
+      "name": "Product Launch",
+      "caption": "🚀 Exciting news! We're launching {product} on {date}! \n\nGet ready for something amazing. Tag a friend who needs this!\n\n{hashtags}",
+      "hashtags": "#launch #newproduct #comingsoon #excited",
+      "platforms": ["instagram", "twitter", "tiktok"],
+      "category": "marketing",
+      "createdAt": "2025-11-04T00:00:00.000Z",
+      "lastUsed": null,
+      "useCount": 0
+    },
+    {
+      "id": "template_1730678400001",
+      "name": "Daily Motivation",
+      "caption": "Good morning, {username}! 💪\n\n{quote}\n\nMake today count!\n\n{hashtags}",
+      "hashtags": "#motivation #inspiration #mindset #success",
+      "platforms": ["instagram", "twitter"],
+      "category": "lifestyle",
+      "createdAt": "2025-11-04T00:00:00.000Z",
+      "lastUsed": null,
+      "useCount": 0
+    },
+    {
+      "id": "template_1730678400002",
+      "name": "Behind The Scenes",
+      "caption": "Behind the scenes of {project} 🎬\n\nFollow along as we create magic! ✨\n\nPosted by {account}\n\n{hashtags}",
+      "hashtags": "#bts #behindthescenes #creative #process",
+      "platforms": ["instagram", "tiktok", "youtube"],
+      "category": "content",
+      "createdAt": "2025-11-04T00:00:00.000Z",
+      "lastUsed": null,
+      "useCount": 0
+    },
+    {
+      "id": "template_1730678400003",
+      "name": "Engagement Question",
+      "caption": "Quick question for you! 🤔\n\n{question}\n\nDrop your answer in the comments! 👇\n\n{hashtags}",
+      "hashtags": "#engagement #community #question #letsconnect",
+      "platforms": ["instagram", "twitter", "tiktok"],
+      "category": "engagement",
+      "createdAt": "2025-11-04T00:00:00.000Z",
+      "lastUsed": null,
+      "useCount": 0
+    },
+    {
+      "id": "template_1730678400004",
+      "name": "Tutorial/How-To",
+      "caption": "📚 How to {tutorial_topic}\n\nStep-by-step guide:\n{steps}\n\nSave this for later! 🔖\n\n{hashtags}",
+      "hashtags": "#tutorial #howto #learn #tips",
+      "platforms": ["instagram", "youtube", "tiktok"],
+      "category": "educational",
+      "createdAt": "2025-11-04T00:00:00.000Z",
+      "lastUsed": null,
+      "useCount": 0
+    }
+  ],
+  "variables": {
+    "platform": "Current platform name (instagram, tiktok, youtube, twitter)",
+    "date": "Current date (formatted)",
+    "time": "Current time (formatted)",
+    "username": "Account username",
+    "account": "Account display name",
+    "hashtags": "Custom hashtags from template",
+    "product": "Product name (user input)",
+    "quote": "Quote text (user input)",
+    "project": "Project name (user input)",
+    "question": "Question text (user input)",
+    "tutorial_topic": "Tutorial topic (user input)",
+    "steps": "Tutorial steps (user input)"
+  }
+}

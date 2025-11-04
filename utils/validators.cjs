@@ -1,4 +1,17 @@
+// Security: Maximum allowed lengths to prevent DoS
+const MAX_STRING_LENGTH = 10000;
+const MAX_ARRAY_LENGTH = 1000;
+
 const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
+
+// Security: Check for prototype pollution attempts
+const hasDangerousKeys = (obj) => {
+  if (!obj || typeof obj !== 'object') {
+    return false;
+  }
+  const dangerous = ['__proto__', 'constructor', 'prototype'];
+  return Object.keys(obj).some(key => dangerous.includes(key));
+};
 
 const validateDateTime = (v) => {
   if (!isNonEmptyString(v)) {
@@ -25,7 +38,18 @@ const validateTimezone = (v) => {
   if (v === "UTC") {
     return true;
   }
-  if (v.indexOf("/") > -1) {
+  // Security: Prevent path traversal attempts disguised as timezones
+  if (v.includes('..') || v.includes('\\') || v.includes('//')) {
+    return false;
+  }
+  // Valid timezone format: Continent/City
+  if (v.includes("/")) {
+    const parts = v.split("/");
+    if (parts.length !== 2) {return false;}
+    if (parts[0].length === 0 || parts[1].length === 0) {return false;}
+    // Both parts should be alphanumeric with underscores only
+    const validPart = /^[A-Za-z_]+$/;
+    if (!validPart.test(parts[0]) || !validPart.test(parts[1])) {return false;}
     return true;
   }
   try {
@@ -46,6 +70,12 @@ const validateSettings = (obj) => {
   if (!obj || typeof obj !== "object") {
     return { valid: false, errors: ["Settings must be an object"] };
   }
+
+  // Security: Check for prototype pollution
+  if (hasDangerousKeys(obj)) {
+    return { valid: false, errors: ["Invalid object keys detected"] };
+  }
+
   if ("timezoneSelect" in obj && !validateTimezone(obj.timezoneSelect)) {
     errors.push("Invalid timezone selected");
   }
@@ -78,17 +108,12 @@ const validateSettings = (obj) => {
       );
     }
   }
-  if ("aiProvider" in obj) {
-    const validProviders = ["openai", "runway", ""];
-    if (!validProviders.includes(String(obj.aiProvider))) {
-      errors.push(
-        `Invalid aiProvider. Must be one of: ${validProviders.join(", ")} or empty`,
-      );
-    }
-  }
+
   if ("platforms" in obj) {
     if (!Array.isArray(obj.platforms)) {
       errors.push("platforms must be an array");
+    } else if (obj.platforms.length > MAX_ARRAY_LENGTH) {
+      errors.push(`platforms array too large (max ${MAX_ARRAY_LENGTH})`);
     } else {
       obj.platforms.forEach((platform, idx) => {
         if (!validatePlatform(platform)) {
@@ -103,6 +128,16 @@ const validateSettings = (obj) => {
   if ("recurrence" in obj && !validateRecurrence(obj.recurrence)) {
     errors.push("Invalid recurrence value");
   }
+
+  // Validate aiProvider if present (optional field)
+  if ("aiProvider" in obj) {
+    const validProviders = ["openai", "runway", ""];
+    const providerValue = String(obj.aiProvider);
+    if (!validProviders.includes(providerValue)) {
+      errors.push(`Invalid aiProvider: "${providerValue}". Must be one of: openai, runway, or empty`);
+    }
+  }
+
   const encryptedFields = [
     "openaiApiKey",
     "runwayApiKey",
@@ -113,10 +148,29 @@ const validateSettings = (obj) => {
     "twitterToken",
   ];
   encryptedFields.forEach((field) => {
-    if (field in obj && obj[field] !== "" && typeof obj[field] !== "string") {
-      errors.push(`${field} must be a string or empty string`);
+    if (field in obj) {
+      if (obj[field] !== "" && typeof obj[field] !== "string") {
+        errors.push(`${field} must be a string or empty string`);
+      } else if (typeof obj[field] === "string" && obj[field].length > MAX_STRING_LENGTH) {
+        errors.push(`${field} exceeds maximum length`);
+      }
     }
   });
+
+  // Security: Check for unexpected extra keys (optional - can be relaxed)
+  const allowedKeys = [
+    'timezoneSelect', 'contentType', 'hashtagMode', 'memeMode', 'platforms',
+    'darkMode', 'recurrence', 'aiProvider', ...encryptedFields, 'caption', 'hashtags',
+    'customText', 'postingSchedule', 'autoPost', 'scheduleTime', 'fieldsetLayout',
+    'isDarkMode'
+  ];
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.includes(key)) {
+      errors.push(`Unexpected key in settings: ${key}`);
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 };
 
@@ -125,14 +179,19 @@ const validateScheduledPost = (post) => {
   if (!post || typeof post !== "object") {
     return { valid: false, errors: ["Post must be an object"] };
   }
+
+  // Security: Check for prototype pollution
+  if (hasDangerousKeys(post)) {
+    return { valid: false, errors: ["Invalid object keys detected"] };
+  }
+
   const required = ["id", "scheduleTime", "content", "createdAt"];
   for (const field of required) {
     if (!isNonEmptyString(post[field])) {
-      errors.push(`Missing or invalid ${field}`);
+      errors.push(`Missing or invalid required field: ${field}`);
+    } else if (post[field].length > MAX_STRING_LENGTH) {
+      errors.push(`Field ${field} exceeds maximum length`);
     }
-  }
-  if ("scheduleTime" in post && !validateDateTime(post.scheduleTime)) {
-    errors.push("Invalid scheduleTime format - must be ISO 8601");
   }
   if ("createdAt" in post && !validateDateTime(post.createdAt)) {
     errors.push("Invalid createdAt format - must be ISO 8601");
@@ -140,6 +199,8 @@ const validateScheduledPost = (post) => {
   if (post.platforms) {
     if (!Array.isArray(post.platforms)) {
       errors.push("platforms must be an array");
+    } else if (post.platforms.length > MAX_ARRAY_LENGTH) {
+      errors.push("platforms array too large");
     } else {
       post.platforms.forEach((platform, idx) => {
         if (!validatePlatform(platform)) {
@@ -283,6 +344,270 @@ const validateActivityLog = (obj) => {
   return { valid: errors.length === 0, errors };
 };
 
+/**
+ * Validate analytics data structure
+ * @param {Object} data - Analytics data to validate
+ * @returns {Object} { valid: boolean, error?: string }
+ */
+function validateAnalytics(data) {
+  if (!data || typeof data !== "object") {
+    return { valid: false, error: "Analytics data must be an object" };
+  }
+
+  if (hasDangerousKeys(data)) {
+    return { valid: false, error: "Analytics data contains dangerous keys" };
+  }
+
+  // Validate posts array
+  if (!Array.isArray(data.posts)) {
+    return { valid: false, error: "posts must be an array" };
+  }
+
+  if (data.posts.length > MAX_ARRAY_LENGTH) {
+    return { valid: false, error: `posts array exceeds maximum length of ${MAX_ARRAY_LENGTH}` };
+  }
+
+  // Validate each post
+  for (let i = 0; i < data.posts.length; i++) {
+    const post = data.posts[i];
+
+    if (!post || typeof post !== "object") {
+      return { valid: false, error: `Post at index ${i} must be an object` };
+    }
+
+    // Required fields
+    if (!isNonEmptyString(post.id)) {
+      return { valid: false, error: `Post at index ${i} missing id` };
+    }
+
+    if (post.id.length > MAX_STRING_LENGTH) {
+      return { valid: false, error: `Post at index ${i} id exceeds maximum length` };
+    }
+
+    if (!validatePlatform(post.platform)) {
+      return { valid: false, error: `Post at index ${i} has invalid platform` };
+    }
+
+    if (!validateDateTime(post.timestamp)) {
+      return { valid: false, error: `Post at index ${i} has invalid timestamp` };
+    }
+
+    // Optional numeric fields (must be non-negative)
+    const numericFields = ['impressions', 'engagement', 'clicks', 'shares', 'likes', 'comments'];
+    for (const field of numericFields) {
+      if (post[field] !== undefined) {
+        if (typeof post[field] !== 'number' || post[field] < 0 || !Number.isFinite(post[field])) {
+          return { valid: false, error: `Post at index ${i} has invalid ${field}` };
+        }
+      }
+    }
+
+    // Optional contentType
+    if (post.contentType !== undefined) {
+      if (!isNonEmptyString(post.contentType)) {
+        return { valid: false, error: `Post at index ${i} has invalid contentType` };
+      }
+      if (post.contentType.length > MAX_STRING_LENGTH) {
+        return { valid: false, error: `Post at index ${i} contentType exceeds maximum length` };
+      }
+    }
+  }
+
+  // Validate summary object
+  if (!data.summary || typeof data.summary !== "object") {
+    return { valid: false, error: "summary must be an object" };
+  }
+
+  if (hasDangerousKeys(data.summary)) {
+    return { valid: false, error: "summary contains dangerous keys" };
+  }
+
+  // Validate summary numeric fields
+  const summaryFields = ['totalPosts', 'totalImpressions', 'totalEngagement', 'avgEngagementRate'];
+  for (const field of summaryFields) {
+    if (data.summary[field] !== undefined) {
+      if (typeof data.summary[field] !== 'number' || data.summary[field] < 0 || !Number.isFinite(data.summary[field])) {
+        return { valid: false, error: `summary.${field} must be a non-negative number` };
+      }
+    }
+  }
+
+  // Validate platforms object
+  if (data.summary.platforms && typeof data.summary.platforms === 'object') {
+    if (hasDangerousKeys(data.summary.platforms)) {
+      return { valid: false, error: "summary.platforms contains dangerous keys" };
+    }
+
+    for (const [platform, stats] of Object.entries(data.summary.platforms)) {
+      if (!validatePlatform(platform)) {
+        return { valid: false, error: `Invalid platform in summary: ${platform}` };
+      }
+
+      if (!stats || typeof stats !== 'object') {
+        return { valid: false, error: `Platform stats for ${platform} must be an object` };
+      }
+
+      const platformFields = ['posts', 'impressions', 'engagement'];
+      for (const field of platformFields) {
+        if (stats[field] !== undefined) {
+          if (typeof stats[field] !== 'number' || stats[field] < 0 || !Number.isFinite(stats[field])) {
+            return { valid: false, error: `${platform}.${field} must be a non-negative number` };
+          }
+        }
+      }
+    }
+  }
+
+  // Validate lastUpdated
+  if (data.lastUpdated !== null && data.lastUpdated !== undefined) {
+    if (!validateDateTime(data.lastUpdated)) {
+      return { valid: false, error: "lastUpdated must be a valid ISO 8601 datetime or null" };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Validate templates.json structure
+ */
+function validateTemplates(data) {
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: "Templates data must be an object" };
+  }
+
+  // Security: Check for prototype pollution
+  if (hasDangerousKeys(data)) {
+    return { valid: false, error: "Templates data contains dangerous keys" };
+  }
+
+  // Validate templates array
+  if (!Array.isArray(data.templates)) {
+    return { valid: false, error: "templates must be an array" };
+  }
+
+  // Security: Limit array size
+  if (data.templates.length > MAX_ARRAY_LENGTH) {
+    return { valid: false, error: `templates array exceeds maximum length of ${MAX_ARRAY_LENGTH}` };
+  }
+
+  // Validate each template
+  for (let i = 0; i < data.templates.length; i++) {
+    const template = data.templates[i];
+
+    if (!template || typeof template !== 'object') {
+      return { valid: false, error: `templates[${i}] must be an object` };
+    }
+
+    // Security: Check for dangerous keys
+    if (hasDangerousKeys(template)) {
+      return { valid: false, error: `templates[${i}] contains dangerous keys` };
+    }
+
+    // Required fields
+    if (!isNonEmptyString(template.id)) {
+      return { valid: false, error: `templates[${i}].id is required and must be a non-empty string` };
+    }
+
+    if (!isNonEmptyString(template.name)) {
+      return { valid: false, error: `templates[${i}].name is required and must be a non-empty string` };
+    }
+
+    // Security: Limit string lengths
+    if (template.id.length > MAX_STRING_LENGTH) {
+      return { valid: false, error: `templates[${i}].id exceeds maximum length` };
+    }
+
+    if (template.name.length > MAX_STRING_LENGTH) {
+      return { valid: false, error: `templates[${i}].name exceeds maximum length` };
+    }
+
+    // Caption is required
+    if (!isNonEmptyString(template.caption)) {
+      return { valid: false, error: `templates[${i}].caption is required and must be a non-empty string` };
+    }
+
+    if (template.caption.length > MAX_STRING_LENGTH) {
+      return { valid: false, error: `templates[${i}].caption exceeds maximum length` };
+    }
+
+    // Hashtags (optional)
+    if (template.hashtags !== undefined && template.hashtags !== null) {
+      if (typeof template.hashtags !== 'string') {
+        return { valid: false, error: `templates[${i}].hashtags must be a string` };
+      }
+      if (template.hashtags.length > MAX_STRING_LENGTH) {
+        return { valid: false, error: `templates[${i}].hashtags exceeds maximum length` };
+      }
+    }
+
+    // Platforms array (optional)
+    if (template.platforms !== undefined) {
+      if (!Array.isArray(template.platforms)) {
+        return { valid: false, error: `templates[${i}].platforms must be an array` };
+      }
+      if (template.platforms.length > 10) {
+        return { valid: false, error: `templates[${i}].platforms array is too long` };
+      }
+      for (const platform of template.platforms) {
+        if (!validatePlatform(platform)) {
+          return { valid: false, error: `templates[${i}].platforms contains invalid platform: ${platform}` };
+        }
+      }
+    }
+
+    // Category (optional)
+    if (template.category !== undefined && template.category !== null) {
+      if (!isNonEmptyString(template.category)) {
+        return { valid: false, error: `templates[${i}].category must be a non-empty string` };
+      }
+      if (template.category.length > 100) {
+        return { valid: false, error: `templates[${i}].category exceeds maximum length` };
+      }
+    }
+
+    // Timestamps
+    if (template.createdAt !== undefined && !validateDateTime(template.createdAt)) {
+      return { valid: false, error: `templates[${i}].createdAt must be a valid ISO 8601 datetime` };
+    }
+
+    if (template.lastUsed !== null && template.lastUsed !== undefined && !validateDateTime(template.lastUsed)) {
+      return { valid: false, error: `templates[${i}].lastUsed must be a valid ISO 8601 datetime or null` };
+    }
+
+    // Use count (optional)
+    if (template.useCount !== undefined) {
+      if (typeof template.useCount !== 'number' || template.useCount < 0 || !Number.isInteger(template.useCount)) {
+        return { valid: false, error: `templates[${i}].useCount must be a non-negative integer` };
+      }
+    }
+  }
+
+  // Validate variables object (optional)
+  if (data.variables !== undefined) {
+    if (typeof data.variables !== 'object' || Array.isArray(data.variables)) {
+      return { valid: false, error: "variables must be an object" };
+    }
+
+    // Security: Check for dangerous keys
+    if (hasDangerousKeys(data.variables)) {
+      return { valid: false, error: "variables contains dangerous keys" };
+    }
+
+    // Validate each variable description
+    for (const [key, value] of Object.entries(data.variables)) {
+      if (typeof value !== 'string') {
+        return { valid: false, error: `variables.${key} must be a string` };
+      }
+      if (value.length > MAX_STRING_LENGTH) {
+        return { valid: false, error: `variables.${key} exceeds maximum length` };
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
 module.exports = {
   isNonEmptyString,
   validateTimezone,
@@ -295,4 +620,6 @@ module.exports = {
   validateSavedConfigs,
   validateLibrary,
   validateActivityLog,
+  validateAnalytics,
+  validateTemplates
 };

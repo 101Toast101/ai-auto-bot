@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { encrypt, decrypt } = require("./utils/encrypt.cjs");
-const { logInfo, logError } = require("./utils/logger.cjs");
+const { logInfo, logError, logWarn } = require("./utils/logger.cjs");
 const PerformanceMonitor = require("./utils/performance-monitor.cjs");
 const { registerVideoHandlers } = require("./handlers/video-handlers.cjs");
 const { IPC_CHANNELS } = require("./utils/ipc-constants.cjs");
@@ -15,7 +15,11 @@ const {
   validateSavedConfigs,
   validateLibrary,
   validateActivityLog,
+  validateAnalytics,
+  validateTemplates,
 } = require("./utils/validators.cjs");
+const AnalyticsManager = require("./utils/AnalyticsManager.cjs");
+const apiManager = require("./utils/api-manager.js");
 
 // Initialize Express server for OAuth callbacks
 const express = require("express");
@@ -311,6 +315,8 @@ app.whenReady().then(() => {
     "scheduledPosts.json": '{ "posts": [] }',
     "activity_log.json": '{ "logs": [] }',
     "library.json": '{ "items": [] }',
+    "analytics.json": JSON.stringify(AnalyticsManager.createEmpty(), null, 2),
+    "templates.json": '{ "templates": [], "variables": {} }',
   };
 
   Object.entries(defaultFiles).forEach(([filename, content]) => {
@@ -717,20 +723,51 @@ ipcMain.handle("start-oauth", async (event, provider) => {
           return;
         }
 
-        // Persist token securely
+        // Check how many accounts exist for this platform to generate name
+        const existingAccounts = tokenStore.loadAllAccounts(provider);
+        const accountNumber = existingAccounts.length + 1;
+        const accountName = accountNumber === 1
+          ? `${provider.charAt(0).toUpperCase() + provider.slice(1)} Account`
+          : `${provider.charAt(0).toUpperCase() + provider.slice(1)} Account ${accountNumber}`;
+
+        const accountInfo = {
+          accountId: crypto.randomBytes(16).toString('hex'),
+          accountName: accountName,
+          username: '', // Will be fetched from API later if needed
+          isDefault: existingAccounts.length === 0, // First account is default
+        };
+
+        // Persist token securely with account info
         try {
-          tokenStore.saveToken(provider, token, tokenData.expires_in || null);
+          tokenStore.saveToken(
+            provider,
+            token,
+            tokenData.expires_in || null,
+            tokenData.refresh_token || null,
+            accountInfo
+          );
         } catch (e) {
           logError("Failed to persist token:", e);
         }
 
         // Send token back to renderer
-        event.sender.send("oauth-token", { provider, token });
+        event.sender.send("oauth-token", {
+          provider,
+          token,
+          accountId: accountInfo.accountId,
+          accountName: accountInfo.accountName,
+        });
 
         resolved = true;
         authWin.close();
         // Return structured success
-        resolve({ success: true, provider, token });
+        resolve({
+          success: true,
+          provider,
+          token,
+          accountId: accountInfo.accountId,
+          accountName: accountInfo.accountName,
+        });
       } catch (err) {
         console.error("OAuth error:", err);
         if (!resolved) {
@@ -779,6 +816,9 @@ function getValidatorForFile(filePath) {
     }
     case "activity_log.json": {
       return validateActivityLog;
+    }
+    case "templates.json": {
+      return validateTemplates;
     }
     default: {
       return null;
@@ -971,6 +1011,54 @@ ipcMain.handle("DISCONNECT_SOCIAL", async (_evt, provider) => {
   }
 });
 
+// IPC handler: Get all accounts for a platform
+ipcMain.handle("GET_ALL_ACCOUNTS", async (_evt, platform) => {
+  try {
+    const accounts = tokenStore.loadAllAccounts(platform);
+    // Don't send raw tokens to renderer, only metadata
+    const safeAccounts = accounts.map(acc => ({
+      accountId: acc.accountId,
+      accountName: acc.accountName,
+      username: acc.username,
+      isDefault: acc.isDefault,
+      connectedAt: acc.connectedAt,
+      expiresAt: acc.expiresAt,
+    }));
+    return { success: true, accounts: safeAccounts };
+  } catch (err) {
+    logError("GET_ALL_ACCOUNTS error:", err);
+    return { success: false, error: { message: err.message || String(err) } };
+  }
+});
+
+// IPC handler: Set default account for a platform
+ipcMain.handle("SET_DEFAULT_ACCOUNT", async (_evt, { platform, accountId }) => {
+  try {
+    const success = tokenStore.setDefaultAccount(platform, accountId);
+    if (success && mainWindow && !mainWindow.isDestroyed()) {
+      safeSend(mainWindow, "default-account-changed", { platform, accountId });
+    }
+    return { success };
+  } catch (err) {
+    logError("SET_DEFAULT_ACCOUNT error:", err);
+    return { success: false, error: { message: err.message || String(err) } };
+  }
+});
+
+// IPC handler: Delete specific account
+ipcMain.handle("DELETE_ACCOUNT", async (_evt, { platform, accountId }) => {
+  try {
+    const deleted = tokenStore.deleteToken(platform, accountId);
+    if (deleted && mainWindow && !mainWindow.isDestroyed()) {
+      safeSend(mainWindow, "account-deleted", { platform, accountId });
+    }
+    return { success: !!deleted };
+  } catch (err) {
+    logError("DELETE_ACCOUNT error:", err);
+    return { success: false, error: { message: err.message || String(err) } };
+  }
+});
+
 // IPC handler: Reset connections and clear activity log
 ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
   try {
@@ -1077,6 +1165,143 @@ ipcMain.handle(IPC_CHANNELS.RESET_CONNECTIONS, async (_evt, options = {}) => {
   } catch (err) {
     logError("RESET_CONNECTIONS error:", err);
     return { success: false, error: { message: err.message || String(err) } };
+  }
+});
+
+// IPC handler: Read analytics data
+ipcMain.handle('read-analytics', async () => {
+  try {
+    const analyticsPath = path.join(__dirname, 'data', 'analytics.json');
+
+    // If file doesn't exist, return empty structure
+    if (!fs.existsSync(analyticsPath)) {
+      const emptyData = AnalyticsManager.createEmpty();
+      return { success: true, data: emptyData };
+    }
+
+    const content = await fs.promises.readFile(analyticsPath, 'utf-8');
+    const data = JSON.parse(content);
+
+    // Validate the data
+    const validation = validateAnalytics(data);
+    if (!validation.valid) {
+      logError('Analytics validation failed:', validation.error);
+      return { success: false, error: { message: 'Invalid analytics data', details: validation.error } };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    logError('read-analytics error:', error);
+    return { success: false, error: { message: error.message } };
+  }
+});
+
+// IPC handler: Write analytics data
+ipcMain.handle('write-analytics', async (_evt, data) => {
+  try {
+    const analyticsPath = path.join(__dirname, 'data', 'analytics.json');
+
+    // Validate the data
+    const validation = validateAnalytics(data);
+    if (!validation.valid) {
+      return { success: false, error: { message: 'Validation failed', details: validation.error } };
+    }
+
+    await fs.promises.writeFile(analyticsPath, JSON.stringify(data, null, 2), 'utf-8');
+    return { success: true };
+  } catch (error) {
+    logError('write-analytics error:', error);
+    return { success: false, error: { message: error.message } };
+  }
+});
+
+// IPC handler: Record analytics event (add post)
+ipcMain.handle('record-analytics-event', async (_evt, postData) => {
+  try {
+    const analyticsPath = path.join(__dirname, 'data', 'analytics.json');
+
+    // Read current data
+    let currentData;
+    if (fs.existsSync(analyticsPath)) {
+      const content = await fs.promises.readFile(analyticsPath, 'utf-8');
+      currentData = JSON.parse(content);
+    } else {
+      currentData = AnalyticsManager.createEmpty();
+    }
+
+    // Record the post
+    const updatedData = AnalyticsManager.recordPost(currentData, postData);
+
+    // Validate and save
+    const validation = validateAnalytics(updatedData);
+    if (!validation.valid) {
+      return { success: false, error: { message: 'Validation failed', details: validation.error } };
+    }
+
+    await fs.promises.writeFile(analyticsPath, JSON.stringify(updatedData, null, 2), 'utf-8');
+    return { success: true, data: updatedData };
+  } catch (error) {
+    logError('record-analytics-event error:', error);
+    return { success: false, error: { message: error.message } };
+  }
+});
+
+// IPC handler: Get analytics summary
+ipcMain.handle('get-analytics-summary', async () => {
+  try {
+    const analyticsPath = path.join(__dirname, 'data', 'analytics.json');
+
+    // If file doesn't exist, return empty summary
+    if (!fs.existsSync(analyticsPath)) {
+      const emptyData = AnalyticsManager.createEmpty();
+      return { success: true, summary: emptyData.summary };
+    }
+
+    const content = await fs.promises.readFile(analyticsPath, 'utf-8');
+    const data = JSON.parse(content);
+
+    return {
+      success: true,
+      summary: data.summary,
+      bestTimes: AnalyticsManager.getBestPostingTimes(data),
+      contentPerformance: AnalyticsManager.getContentTypePerformance(data)
+    };
+  } catch (error) {
+    logError('get-analytics-summary error:', error);
+    return { success: false, error: { message: error.message } };
+  }
+});
+
+// IPC handler: Update post metrics
+ipcMain.handle('update-post-metrics', async (_evt, { postId, metrics }) => {
+  try {
+    const analyticsPath = path.join(__dirname, 'data', 'analytics.json');
+
+    // Read current data
+    if (!fs.existsSync(analyticsPath)) {
+      return { success: false, error: { message: 'Analytics file not found' } };
+    }
+
+    const content = await fs.promises.readFile(analyticsPath, 'utf-8');
+    const currentData = JSON.parse(content);
+
+    // Update metrics
+    const updatedData = AnalyticsManager.updatePostMetrics(currentData, postId, metrics);
+    if (!updatedData) {
+      return { success: false, error: { message: 'Post not found' } };
+    }
+
+    // Validate and save
+    const validation = validateAnalytics(updatedData);
+    if (!validation.valid) {
+      return { success: false, error: { message: 'Validation failed', details: validation.error } };
+    }
+
+    await fs.promises.writeFile(analyticsPath, JSON.stringify(updatedData, null, 2), 'utf-8');
+    return { success: true, data: updatedData };
+  } catch (error) {
+    logError('update-post-metrics error:', error);
+    return { success: false, error: { message: error.message } };
   }
 });
 
@@ -1323,14 +1548,114 @@ function startScheduler() {
       });
 
       for (const post of postsToExecute) {
-        // Mark as posted
-        post.posted = true;
-        post.postedAt = new Date().toISOString();
+        logInfo(`[Scheduler] Attempting to post: ${post.id}`);
 
-        // Send to renderer to execute
-        const windows = BrowserWindow.getAllWindows();
-        if (windows.length > 0) {
-          safeSend(windows[0], "EXECUTE_SCHEDULED_POST", post || null);
+        // Retry logic with exponential backoff
+        let success = false;
+        let lastError = null;
+        const maxRetries = 3;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            // Get token from tokenStore
+            const tokenData = tokenStore.loadToken(post.platform);
+            if (!tokenData || !tokenData.accessToken) {
+              throw new Error(`No token found for ${post.platform}`);
+            }
+
+            const token = tokenData.accessToken;
+
+            // Call appropriate API based on platform and content type
+            let result;
+            if (post.platform === 'instagram') {
+              result = await apiManager.postToInstagram(post.mediaUrl, post.caption || '', token);
+            } else if (post.platform === 'tiktok') {
+              result = await apiManager.postToTikTok(post.mediaUrl, post.caption || '', token);
+            } else if (post.platform === 'youtube') {
+              result = await apiManager.postToYouTube(post.mediaUrl, post.caption || '', token);
+            } else if (post.platform === 'twitter') {
+              result = await apiManager.postToTwitter(post.caption || '', token);
+            } else {
+              throw new Error(`Unsupported platform: ${post.platform}`);
+            }
+
+            if (result.success) {
+              success = true;
+              post.posted = true;
+              post.postedAt = new Date().toISOString();
+              post.result = { success: true, postId: result.postId || result.tweetId };
+
+              // Record analytics event
+              try {
+                const analyticsPath = path.join(__dirname, 'data', 'analytics.json');
+                let analyticsData;
+
+                if (fs.existsSync(analyticsPath)) {
+                  const analyticsContent = await fs.promises.readFile(analyticsPath, 'utf-8');
+                  analyticsData = JSON.parse(analyticsContent);
+                } else {
+                  analyticsData = AnalyticsManager.createEmpty();
+                }
+
+                analyticsData = AnalyticsManager.recordPost(analyticsData, {
+                  id: post.id,
+                  platform: post.platform,
+                  timestamp: post.postedAt,
+                  contentType: post.contentType || 'unknown',
+                  impressions: 0, // Will be updated later when metrics are fetched
+                  engagement: 0
+                });
+
+                await fs.promises.writeFile(analyticsPath, JSON.stringify(analyticsData, null, 2), 'utf-8');
+                logInfo(`[Scheduler] Recorded analytics for post: ${post.id}`);
+              } catch (analyticsError) {
+                logError('[Scheduler] Failed to record analytics:', analyticsError);
+              }
+
+              // Notify renderer of success
+              const windows = BrowserWindow.getAllWindows();
+              if (windows.length > 0) {
+                safeSend(windows[0], "SCHEDULED_POST_SUCCESS", {
+                  post,
+                  message: `Successfully posted to ${post.platform}`
+                });
+              }
+
+              logInfo(`[Scheduler] Successfully posted: ${post.id} to ${post.platform}`);
+              break; // Success, exit retry loop
+            } else {
+              throw new Error(result.error || 'Post failed');
+            }
+          } catch (error) {
+            lastError = error;
+            logWarn(`[Scheduler] Attempt ${attempt}/${maxRetries} failed for post ${post.id}: ${error.message}`);
+
+            if (attempt < maxRetries) {
+              // Exponential backoff: 2^attempt seconds
+              const delay = Math.pow(2, attempt) * 1000;
+              logInfo(`[Scheduler] Retrying in ${delay / 1000} seconds...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
+        }
+
+        // If all retries failed
+        if (!success) {
+          post.posted = false;
+          post.failed = true;
+          post.failedAt = new Date().toISOString();
+          post.result = { success: false, error: lastError?.message || 'Unknown error' };
+
+          // Notify renderer of failure
+          const windows = BrowserWindow.getAllWindows();
+          if (windows.length > 0) {
+            safeSend(windows[0], "SCHEDULED_POST_FAILURE", {
+              post,
+              error: lastError?.message || 'Failed after 3 attempts'
+            });
+          }
+
+          logError(`[Scheduler] Failed to post ${post.id} after ${maxRetries} attempts:`, lastError);
         }
       }
 
@@ -1343,7 +1668,7 @@ function startScheduler() {
         );
       }
     } catch (error) {
-      console.error("[Scheduler] Error:", error.message);
+      logError("[Scheduler] Error:", error);
     }
   }, 60000); // Check every minute
 }

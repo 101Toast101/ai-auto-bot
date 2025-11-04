@@ -562,8 +562,250 @@ class StableVideoDiffusionProvider extends VideoProvider {
 }
 
 /**
+ * Haiper AI Provider
+ * High-quality AI video generation with creative controls
+ * Focus on cinematic quality and motion consistency
+ */
+class HaiperProvider extends VideoProvider {
+  async generate({ prompt, duration, aspectRatio }) {
+    if (!prompt) {
+      throw new Error('Prompt is required');
+    }
+
+    try {
+      const response = await fetch(
+        'https://api.haiper.ai/v1/video/generate',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            duration: Math.min(duration || 4, 6), // Max 6 seconds
+            aspect_ratio: aspectRatio || '16:9',
+            model: 'haiper-v2', // Latest model
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Haiper API error: ${response.status}`;
+        try {
+          const error = await response.json();
+          errorMessage = error.error?.message || error.message || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+            errorMessage = 'Haiper API endpoint error. Please verify your API key is valid.';
+          } else {
+            errorMessage = text || errorMessage;
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      if (!data.task_id && !data.id) {
+        throw new Error('No task ID returned from Haiper API');
+      }
+
+      return {
+        taskId: data.task_id || data.id,
+        status: 'processing',
+        pollInterval: 4000, // Check every 4 seconds
+      };
+    } catch (error) {
+      throw new Error(`Haiper generation failed: ${error.message}`);
+    }
+  }
+
+  async checkStatus(taskId) {
+    try {
+      const response = await fetch(
+        `https://api.haiper.ai/v1/video/status/${taskId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to check status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Normalize status to common format
+      let normalizedStatus = 'processing';
+      if (data.status === 'completed' || data.status === 'succeeded') {
+        normalizedStatus = 'completed';
+      } else if (data.status === 'failed' || data.status === 'error') {
+        normalizedStatus = 'failed';
+      }
+
+      // Calculate progress estimate
+      let progress = 0;
+      if (data.progress !== undefined) {
+        progress = data.progress;
+      } else if (data.status === 'pending') {
+        progress = 0.1;
+      } else if (data.status === 'processing') {
+        progress = 0.5;
+      } else if (normalizedStatus === 'completed') {
+        progress = 1.0;
+      }
+
+      return {
+        status: normalizedStatus,
+        progress: progress,
+        videoUrl: data.video_url || data.url || data.output_url,
+        error: data.error || data.error_message,
+      };
+    } catch (error) {
+      throw new Error(`Status check failed: ${error.message}`);
+    }
+  }
+
+  getCapabilities() {
+    return {
+      maxDuration: 6,
+      aspectRatios: ['16:9', '9:16', '1:1', '4:3'],
+      estimatedTime: 90, // 1.5 minutes
+      costPer10s: 0.40,
+      quality: 'High',
+      note: 'Cinematic quality with excellent motion consistency',
+    };
+  }
+}
+
+/**
+ * Pika Labs Provider
+ * Advanced AI video generation with creative controls
+ * Known for smooth motion and stylistic flexibility
+ */
+class PikaProvider extends VideoProvider {
+  async generate({ prompt, duration, aspectRatio }) {
+    if (!prompt) {
+      throw new Error('Prompt is required');
+    }
+
+    try {
+      const response = await fetch(
+        'https://api.pika.art/v1/generate',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            duration: Math.min(duration || 3, 8), // Max 8 seconds
+            aspect_ratio: aspectRatio || '16:9',
+            motion: 2, // Medium motion intensity
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Pika API error: ${response.status}`;
+        try {
+          const error = await response.json();
+          errorMessage = error.error?.message || error.message || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+            errorMessage = 'Pika API endpoint error. Please verify your API key is valid.';
+          } else {
+            errorMessage = text || errorMessage;
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      if (!data.job_id && !data.id) {
+        throw new Error('No job ID returned from Pika API');
+      }
+
+      return {
+        taskId: data.job_id || data.id,
+        status: 'processing',
+        pollInterval: 3500, // Check every 3.5 seconds
+      };
+    } catch (error) {
+      throw new Error(`Pika generation failed: ${error.message}`);
+    }
+  }
+
+  async checkStatus(taskId) {
+    try {
+      const response = await fetch(
+        `https://api.pika.art/v1/job/${taskId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to check status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Normalize status to common format
+      let normalizedStatus = 'processing';
+      if (data.status === 'completed' || data.status === 'finished') {
+        normalizedStatus = 'completed';
+      } else if (data.status === 'failed' || data.status === 'error') {
+        normalizedStatus = 'failed';
+      }
+
+      // Calculate progress estimate
+      let progress = 0;
+      if (data.progress !== undefined) {
+        progress = data.progress / 100; // Pika returns 0-100
+      } else if (data.status === 'queued') {
+        progress = 0.1;
+      } else if (data.status === 'generating') {
+        progress = 0.6;
+      } else if (normalizedStatus === 'completed') {
+        progress = 1.0;
+      }
+
+      return {
+        status: normalizedStatus,
+        progress: progress,
+        videoUrl: data.video_url || data.result_url || data.video,
+        error: data.error || data.failure_reason,
+      };
+    } catch (error) {
+      throw new Error(`Status check failed: ${error.message}`);
+    }
+  }
+
+  getCapabilities() {
+    return {
+      maxDuration: 8,
+      aspectRatios: ['16:9', '9:16', '1:1', '4:5'],
+      estimatedTime: 75, // 1 minute 15 seconds
+      costPer10s: 0.35,
+      quality: 'High',
+      note: 'Smooth motion with creative flexibility',
+    };
+  }
+}
+
+/**
  * Factory function to create video provider instances
- * @param {string} providerName - 'runway', 'luma', 'openai', 'zeroscope', 'modelscope', 'stable-video'
+ * @param {string} providerName - 'runway', 'luma', 'openai', 'haiper', 'pika', 'zeroscope', 'modelscope', 'stable-video'
  * @param {string} apiKey - Provider API key
  * @returns {VideoProvider} Provider instance
  */
@@ -572,6 +814,8 @@ export function createVideoProvider(providerName, apiKey) {
     runway: RunwayProvider,
     luma: LumaProvider,
     openai: OpenAIProvider,
+    haiper: HaiperProvider,
+    pika: PikaProvider,
     zeroscope: ZeroscopeProvider,
     modelscope: ModelScopeProvider,
     'stable-video': StableVideoDiffusionProvider,
@@ -613,6 +857,16 @@ export function getAvailableProviders() {
       name: 'openai',
       displayName: 'OpenAI (Basic Animation)',
       capabilities: new OpenAIProvider('dummy').getCapabilities(),
+    },
+    {
+      name: 'haiper',
+      displayName: 'Haiper AI',
+      capabilities: new HaiperProvider('dummy').getCapabilities(),
+    },
+    {
+      name: 'pika',
+      displayName: 'Pika Labs',
+      capabilities: new PikaProvider('dummy').getCapabilities(),
     },
     {
       name: 'zeroscope',

@@ -4818,6 +4818,11 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           "success",
         );
         await populateScheduledPosts();
+
+        // Refresh calendar if it exists
+        if (typeof window.refreshCalendar === 'function') {
+          window.refreshCalendar();
+        }
       } else {
         displayValidationError(w.error, "scheduled post");
       }
@@ -4899,13 +4904,8 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     $("librarySearch")?.addEventListener("input", displayLibraryContent);
     $("libraryFilter")?.addEventListener("change", displayLibraryContent);
 
-    // Setup AI Provider connection buttons
-    $("connectOpenAIBtn")?.addEventListener("click", () =>
-      openAiKeyModal("openai"),
-    );
-    $("connectRunwayMLBtn")?.addEventListener("click", () =>
-      openAiKeyModal("runway"),
-    );
+    // AI Provider connection buttons are now initialized lazily in initSettingsSection()
+    // when the Settings section is first shown
 
     // AI Key Modal controls
     $("closeAiKeyModal")?.addEventListener("click", closeAiKeyModal);
@@ -5456,6 +5456,34 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
           <li>Paste it here</li>
         </ol>
         <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> Luma offers fast, affordable AI video generation.</p>
+      `,
+    },
+    haiper: {
+      name: "Haiper AI",
+      helpText: `
+        <p><strong>Where to get your API key:</strong></p>
+        <ol style="margin: 10px 0; padding-left: 20px;">
+          <li>Go to <a href="https://haiper.ai/api" target="_blank" style="color: #4a90e2;">haiper.ai/api</a></li>
+          <li>Sign up or log in to your Haiper account</li>
+          <li>Navigate to API settings or developer portal</li>
+          <li>Create a new API key</li>
+          <li>Paste it here</li>
+        </ol>
+        <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> Haiper specializes in cinematic quality video with excellent motion consistency.</p>
+      `,
+    },
+    pika: {
+      name: "Pika Labs",
+      helpText: `
+        <p><strong>Where to get your API key:</strong></p>
+        <ol style="margin: 10px 0; padding-left: 20px;">
+          <li>Go to <a href="https://pika.art/api" target="_blank" style="color: #4a90e2;">pika.art/api</a></li>
+          <li>Sign up or log in to your Pika account</li>
+          <li>Access the API dashboard</li>
+          <li>Generate a new API key</li>
+          <li>Paste it here</li>
+        </ol>
+        <p style="margin-top: 10px; font-size: 0.8rem;"><strong>Note:</strong> Pika is known for smooth motion and creative flexibility in AI video generation.</p>
       `,
     },
   };
@@ -6343,6 +6371,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
   function initSidebarNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.content-section');
+    const initializedSections = new Set();
 
     // Load saved section or default to 'generate'
     const savedSection = localStorage.getItem('activeSection') || 'generate';
@@ -6376,6 +6405,12 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         }
       });
 
+      // Initialize section-specific functionality on first visit
+      if (!initializedSections.has(sectionId)) {
+        initSectionSpecific(sectionId);
+        initializedSections.add(sectionId);
+      }
+
       // Scroll to top of main content
       const mainContent = document.querySelector('.main-content');
       if (mainContent) {
@@ -6383,6 +6418,48 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
       }
 
       addLogEntry(`📂 Navigated to ${sectionId} section`);
+    }
+
+    // Initialize section-specific event listeners
+    function initSectionSpecific(sectionId) {
+      if (sectionId === 'settings') {
+        initSettingsSection();
+      }
+    }
+
+    // Initialize Settings section buttons
+    function initSettingsSection() {
+      // Setup AI Provider connection buttons
+      const connectOpenAIBtn = $("connectOpenAIBtn");
+      const connectRunwayMLBtn = $("connectRunwayMLBtn");
+      const connectLumaAIBtn = $("connectLumaAIBtn");
+      const connectHaiperAIBtn = $("connectHaiperAIBtn");
+      const connectPikaLabsBtn = $("connectPikaLabsBtn");
+      const reopenBtn = $("reopenSetupWizard");
+
+      if (connectOpenAIBtn) {
+        connectOpenAIBtn.addEventListener("click", () => openAiKeyModal("openai"));
+      }
+
+      if (connectRunwayMLBtn) {
+        connectRunwayMLBtn.addEventListener("click", () => openAiKeyModal("runway"));
+      }
+
+      if (connectLumaAIBtn) {
+        connectLumaAIBtn.addEventListener("click", () => openAiKeyModal("luma"));
+      }
+
+      if (connectHaiperAIBtn) {
+        connectHaiperAIBtn.addEventListener("click", () => openAiKeyModal("haiper"));
+      }
+
+      if (connectPikaLabsBtn) {
+        connectPikaLabsBtn.addEventListener("click", () => openAiKeyModal("pika"));
+      }
+
+      if (reopenBtn) {
+        reopenBtn.addEventListener("click", () => showSetupWizard());
+      }
     }
 
     // Mobile sidebar toggle (for responsive)
@@ -6432,7 +6509,7 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     const closeBtn = document.getElementById('closeSetupWizard');
     const continueBtn = document.getElementById('continueWithoutSetup');
     const openSettingsBtn = document.getElementById('openSettingsFromWizard');
-    const reopenBtn = document.getElementById('reopenSetupWizard');
+    // Note: reopenSetupWizard button is now initialized lazily in initSettingsSection()
 
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
@@ -6454,12 +6531,6 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
         if (settingsFieldset && settingsFieldset.textContent.includes('Settings')) {
           settingsFieldset.closest('fieldset').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      });
-    }
-
-    if (reopenBtn) {
-      reopenBtn.addEventListener('click', () => {
-        showSetupWizard();
       });
     }
   }
@@ -6581,5 +6652,1603 @@ Use metadata.csv for scheduling tools (Buffer, Hootsuite, Later).`,
     addLogEntry('💰 Cost tracker reset');
     showNotification('Cost tracker reset successfully', 'success');
   }
+
+  // ===========================================
+  // ANALYTICS DASHBOARD MODULE
+  // ===========================================
+
+  /* global Chart */
+
+  const analyticsCharts = {
+    postingFrequency: null,
+    platformEngagement: null,
+    contentType: null
+  };
+
+  /**
+   * Initialize analytics dashboard
+   */
+  async function initAnalyticsDashboard() {
+    // Set up event listeners
+    const dateRangeSelect = document.getElementById('analyticsDateRange');
+    const refreshBtn = document.getElementById('refreshAnalyticsBtn');
+
+    if (dateRangeSelect) {
+      dateRangeSelect.addEventListener('change', loadAnalytics);
+    }
+
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', loadAnalytics);
+    }
+
+    // Load analytics data
+    await loadAnalytics();
+  }
+
+  /**
+   * Load and display analytics data
+   */
+  async function loadAnalytics() {
+    try {
+      const result = await window.api.readAnalytics();
+
+      if (!result.success) {
+        console.error('Failed to load analytics:', result.error);
+        return;
+      }
+
+      const analytics = result.data;
+      const dateRange = document.getElementById('analyticsDateRange')?.value || '30';
+
+      // Filter posts by date range
+      let filteredPosts = analytics.posts;
+      if (dateRange !== 'all') {
+        const days = parseInt(dateRange);
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+
+        filteredPosts = analytics.posts.filter(post => {
+          const postDate = new Date(post.timestamp);
+          return postDate >= cutoffDate;
+        });
+      }
+
+      // Calculate summary for filtered posts
+      const summary = calculateFilteredSummary(filteredPosts);
+
+      // Update summary cards
+      updateSummaryCards(summary);
+
+      // Update charts
+      updatePostingFrequencyChart(filteredPosts);
+      updatePlatformEngagementChart(summary.platforms);
+      updateContentTypeChart(filteredPosts);
+      updateBestPostingTimes(filteredPosts);
+
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+      showNotification('Failed to load analytics data', 'error');
+    }
+  }
+
+  /**
+   * Calculate summary for filtered posts
+   */
+  function calculateFilteredSummary(posts) {
+    const summary = {
+      totalPosts: posts.length,
+      totalImpressions: 0,
+      totalEngagement: 0,
+      avgEngagementRate: 0,
+      platforms: {
+        instagram: { posts: 0, impressions: 0, engagement: 0 },
+        tiktok: { posts: 0, impressions: 0, engagement: 0 },
+        youtube: { posts: 0, impressions: 0, engagement: 0 },
+        twitter: { posts: 0, impressions: 0, engagement: 0 }
+      }
+    };
+
+    posts.forEach(post => {
+      summary.totalImpressions += post.impressions || 0;
+      summary.totalEngagement += post.engagement || 0;
+
+      if (summary.platforms[post.platform]) {
+        summary.platforms[post.platform].posts++;
+        summary.platforms[post.platform].impressions += post.impressions || 0;
+        summary.platforms[post.platform].engagement += post.engagement || 0;
+      }
+    });
+
+    if (summary.totalImpressions > 0) {
+      summary.avgEngagementRate = (summary.totalEngagement / summary.totalImpressions) * 100;
+    }
+
+    return summary;
+  }
+
+  /**
+   * Update summary cards
+   */
+  function updateSummaryCards(summary) {
+    const totalPostsEl = document.getElementById('totalPostsValue');
+    const totalImpressionsEl = document.getElementById('totalImpressionsValue');
+    const totalEngagementEl = document.getElementById('totalEngagementValue');
+    const engagementRateEl = document.getElementById('engagementRateValue');
+
+    if (totalPostsEl) {
+      totalPostsEl.textContent = summary.totalPosts.toLocaleString();
+    }
+    if (totalImpressionsEl) {
+      totalImpressionsEl.textContent = summary.totalImpressions.toLocaleString();
+    }
+    if (totalEngagementEl) {
+      totalEngagementEl.textContent = summary.totalEngagement.toLocaleString();
+    }
+    if (engagementRateEl) {
+      engagementRateEl.textContent = summary.avgEngagementRate.toFixed(2) + '%';
+    }
+  }
+
+  /**
+   * Update posting frequency chart (line chart)
+   */
+  function updatePostingFrequencyChart(posts) {
+    const canvas = document.getElementById('postingFrequencyChart');
+    if (!canvas) {
+      return;
+    }
+
+    // Group posts by date
+    const postsByDate = {};
+    posts.forEach(post => {
+      const date = new Date(post.timestamp).toLocaleDateString();
+      postsByDate[date] = (postsByDate[date] || 0) + 1;
+    });
+
+    // Sort dates
+    const sortedDates = Object.keys(postsByDate).sort((a, b) => new Date(a) - new Date(b));
+    const data = sortedDates.map(date => postsByDate[date]);
+
+    // Destroy existing chart
+    if (analyticsCharts.postingFrequency) {
+      analyticsCharts.postingFrequency.destroy();
+    }
+
+    // Create new chart
+    analyticsCharts.postingFrequency = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: sortedDates,
+        datasets: [{
+          label: 'Posts',
+          data: data,
+          borderColor: '#4a90e2',
+          backgroundColor: 'rgba(74, 144, 226, 0.1)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Update platform engagement chart (bar chart)
+   */
+  function updatePlatformEngagementChart(platforms) {
+    const canvas = document.getElementById('platformEngagementChart');
+    if (!canvas) {
+      return;
+    }
+
+    const platformNames = ['instagram', 'tiktok', 'youtube', 'twitter'];
+    const platformLabels = ['Instagram', 'TikTok', 'YouTube', 'Twitter'];
+    const engagementData = platformNames.map(p => platforms[p]?.engagement || 0);
+
+    // Destroy existing chart
+    if (analyticsCharts.platformEngagement) {
+      analyticsCharts.platformEngagement.destroy();
+    }
+
+    // Create new chart
+    analyticsCharts.platformEngagement = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: platformLabels,
+        datasets: [{
+          label: 'Engagement',
+          data: engagementData,
+          backgroundColor: [
+            '#E1306C', // Instagram
+            '#000000', // TikTok
+            '#FF0000', // YouTube
+            '#1DA1F2'  // Twitter
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Update content type chart (pie chart)
+   */
+  function updateContentTypeChart(posts) {
+    const canvas = document.getElementById('contentTypeChart');
+    if (!canvas) {
+      return;
+    }
+
+    // Group by content type
+    const contentTypes = {};
+    posts.forEach(post => {
+      const type = post.contentType || 'unknown';
+      contentTypes[type] = (contentTypes[type] || 0) + 1;
+    });
+
+    const labels = Object.keys(contentTypes);
+    const data = Object.values(contentTypes);
+
+    // Destroy existing chart
+    if (analyticsCharts.contentType) {
+      analyticsCharts.contentType.destroy();
+    }
+
+    // Create new chart
+    analyticsCharts.contentType = new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            '#4a90e2',
+            '#50c878',
+            '#ff6b6b',
+            '#ffd93d',
+            '#a78bfa'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Update best posting times display
+   */
+  function updateBestPostingTimes(posts) {
+    // Calculate best hours
+    const hourStats = {};
+    const dayStats = {};
+
+    posts.forEach(post => {
+      const date = new Date(post.timestamp);
+      const hour = date.getHours();
+      const day = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+      if (!hourStats[hour]) {
+        hourStats[hour] = { posts: 0, engagement: 0 };
+      }
+      hourStats[hour].posts++;
+      hourStats[hour].engagement += post.engagement || 0;
+
+      if (!dayStats[day]) {
+        dayStats[day] = { posts: 0, engagement: 0 };
+      }
+      dayStats[day].posts++;
+      dayStats[day].engagement += post.engagement || 0;
+    });
+
+    // Sort and get top 5 hours
+    const topHours = Object.entries(hourStats)
+      .map(([hour, data]) => ({
+        hour: parseInt(hour),
+        avgEngagement: data.posts > 0 ? data.engagement / data.posts : 0,
+        posts: data.posts
+      }))
+      .sort((a, b) => b.avgEngagement - a.avgEngagement)
+      .slice(0, 5);
+
+    // Sort and get top 3 days
+    const topDays = Object.entries(dayStats)
+      .map(([day, data]) => ({
+        day,
+        avgEngagement: data.posts > 0 ? data.engagement / data.posts : 0,
+        posts: data.posts
+      }))
+      .sort((a, b) => b.avgEngagement - a.avgEngagement)
+      .slice(0, 3);
+
+    // Display best hours
+    const bestHoursContainer = document.getElementById('bestHoursContainer');
+    if (bestHoursContainer) {
+      bestHoursContainer.innerHTML = topHours.map(item => {
+        const maxEngagement = Math.max(...topHours.map(h => h.avgEngagement));
+        const barWidth = maxEngagement > 0 ? (item.avgEngagement / maxEngagement) * 100 : 0;
+
+        return `
+          <div class="best-time-item">
+            <div style="flex: 1;">
+              <div class="best-time-label">${formatHour(item.hour)}</div>
+              <div class="best-time-value">
+                ${item.posts} posts • ${item.avgEngagement.toFixed(1)} avg engagement
+              </div>
+              <div class="best-time-bar" style="width: ${barWidth}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Display best days
+    const bestDaysContainer = document.getElementById('bestDaysContainer');
+    if (bestDaysContainer) {
+      bestDaysContainer.innerHTML = topDays.map(item => {
+        const maxEngagement = Math.max(...topDays.map(d => d.avgEngagement));
+        const barWidth = maxEngagement > 0 ? (item.avgEngagement / maxEngagement) * 100 : 0;
+
+        return `
+          <div class="best-time-item">
+            <div style="flex: 1;">
+              <div class="best-time-label">${item.day}</div>
+              <div class="best-time-value">
+                ${item.posts} posts • ${item.avgEngagement.toFixed(1)} avg engagement
+              </div>
+              <div class="best-time-bar" style="width: ${barWidth}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  /**
+   * Format hour for display (e.g., "2 PM", "11 AM")
+   */
+  function formatHour(hour) {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour} ${period}`;
+  }
+
+  // Initialize analytics dashboard when page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnalyticsDashboard);
+  } else {
+    initAnalyticsDashboard();
+  }
+
+  // ===========================================
+  // END ANALYTICS DASHBOARD MODULE
+  // ===========================================
+
+  // ===========================================
+  // CONTENT CALENDAR MODULE
+  // ===========================================
+  /* global FullCalendar */
+
+  let calendar = null;
+
+  /**
+   * Initialize the content calendar view
+   */
+  function initContentCalendar() {
+    // Setup tab switching
+    const tabs = document.querySelectorAll('.schedule-tab');
+    const formView = document.getElementById('schedule-form-view');
+    const calendarView = document.getElementById('schedule-calendar-view');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const viewType = tab.dataset.view;
+
+        // Update tab active state
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Show/hide views
+        if (viewType === 'form') {
+          formView.classList.add('active');
+          calendarView.classList.remove('active');
+        } else {
+          formView.classList.remove('active');
+          calendarView.classList.add('active');
+
+          // Initialize calendar on first show
+          if (!calendar) {
+            initializeCalendar();
+          } else {
+            // Reload events when switching back
+            loadCalendarEvents();
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * Initialize FullCalendar
+   */
+  function initializeCalendar() {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+      return;
+    }
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      height: 'auto',
+      editable: true,
+      droppable: false,
+      eventClick: handleEventClick,
+      eventDrop: handleEventDrop,
+      eventDidMount: function(info) {
+        // Add platform-specific class
+        const platforms = info.event.extendedProps.platforms || [];
+        const primaryPlatform = platforms[0] || 'instagram';
+        info.el.classList.add(`event-${primaryPlatform.toLowerCase()}`);
+
+        // Mark posted events
+        if (info.event.extendedProps.posted) {
+          info.el.classList.add('event-posted');
+        }
+      }
+    });
+
+    calendar.render();
+    loadCalendarEvents();
+  }
+
+  /**
+   * Load scheduled posts into calendar
+   */
+  async function loadCalendarEvents() {
+    if (!calendar) {
+      return;
+    }
+
+    try {
+      const result = await window.api.readFile('data/scheduledPosts.json');
+      if (!result.success) {
+        console.error('Failed to load scheduled posts:', result.error);
+        return;
+      }
+
+      const data = JSON.parse(result.data);
+      const posts = data.posts || [];
+
+      // Clear existing events
+      calendar.removeAllEvents();
+
+      // Add events to calendar
+      posts.forEach(post => {
+        const platforms = post.platforms || [];
+        const primaryPlatform = platforms[0] || 'instagram';
+
+        // Create caption preview (first 30 chars)
+        const captionPreview = post.caption
+          ? (post.caption.length > 30 ? post.caption.substring(0, 30) + '...' : post.caption)
+          : 'Scheduled Post';
+
+        calendar.addEvent({
+          id: post.id,
+          title: captionPreview,
+          start: post.scheduledTime,
+          extendedProps: {
+            platforms: platforms,
+            caption: post.caption,
+            contentUrl: post.contentUrl,
+            hashtags: post.hashtags,
+            posted: post.posted || false,
+            result: post.result
+          },
+          classNames: [`event-${primaryPlatform.toLowerCase()}`]
+        });
+      });
+
+    } catch (error) {
+      console.error('Error loading calendar events:', error);
+      showNotification('Failed to load calendar events', 'error');
+    }
+  }
+
+  /**
+   * Handle event click - show edit modal
+   */
+  function handleEventClick(info) {
+    const event = info.event;
+    const props = event.extendedProps;
+
+    // Build modal content
+    const platforms = props.platforms || [];
+    const platformIcons = {
+      instagram: '📷',
+      tiktok: '🎵',
+      youtube: '▶️',
+      twitter: '🐦'
+    };
+    const platformEmojis = platforms.map(p => platformIcons[p.toLowerCase()] || '📱').join(' ');
+
+    const posted = props.posted ? ' ✅ Posted' : '';
+    const resultText = props.result ? `\n\nResult: ${props.result}` : '';
+
+    const message = `
+${platformEmojis} ${platforms.join(', ')}${posted}
+
+📅 ${new Date(event.start).toLocaleString()}
+
+📝 Caption:
+${props.caption || 'No caption'}
+
+🏷️ Hashtags:
+${props.hashtags || 'No hashtags'}${resultText}
+
+Options:
+- Click "Edit" to modify this post
+- Click "Delete" to remove it
+- Drag the event to reschedule
+    `.trim();
+
+    // Show confirmation dialog with edit/delete options
+    const action = confirm(message + '\n\nClick OK to delete, Cancel to close.');
+
+    if (action) {
+      deleteScheduledPost(event.id);
+    }
+  }
+
+  /**
+   * Handle event drag & drop - reschedule post
+   */
+  async function handleEventDrop(info) {
+    const event = info.event;
+    const newTime = event.start;
+
+    try {
+      // Read current scheduled posts
+      const result = await window.api.readFile('data/scheduledPosts.json');
+      if (!result.success) {
+        showNotification('Failed to read scheduled posts', 'error');
+        info.revert();
+        return;
+      }
+
+      const data = JSON.parse(result.data);
+      const posts = data.posts || [];
+
+      // Find and update the post
+      const postIndex = posts.findIndex(p => p.id === event.id);
+      if (postIndex === -1) {
+        showNotification('Post not found', 'error');
+        info.revert();
+        return;
+      }
+
+      posts[postIndex].scheduledTime = newTime.toISOString();
+
+      // Save updated data
+      const saveResult = await window.api.writeFile(
+        'data/scheduledPosts.json',
+        JSON.stringify({ posts, lastUpdated: new Date().toISOString() }, null, 2)
+      );
+
+      if (saveResult.success) {
+        showNotification('Post rescheduled successfully! 📅', 'success');
+
+        // Update the list view if visible
+        if (typeof populateScheduledPosts === 'function') {
+          populateScheduledPosts();
+        }
+      } else {
+        showNotification('Failed to reschedule post', 'error');
+        info.revert();
+      }
+
+    } catch (error) {
+      console.error('Error rescheduling post:', error);
+      showNotification('Error rescheduling post', 'error');
+      info.revert();
+    }
+  }
+
+  /**
+   * Delete a scheduled post
+   */
+  async function deleteScheduledPost(postId) {
+    try {
+      const result = await window.api.readFile('data/scheduledPosts.json');
+      if (!result.success) {
+        showNotification('Failed to read scheduled posts', 'error');
+        return;
+      }
+
+      const data = JSON.parse(result.data);
+      const posts = data.posts || [];
+
+      // Remove the post
+      const filteredPosts = posts.filter(p => p.id !== postId);
+
+      // Save updated data
+      const saveResult = await window.api.writeFile(
+        'data/scheduledPosts.json',
+        JSON.stringify({ posts: filteredPosts, lastUpdated: new Date().toISOString() }, null, 2)
+      );
+
+      if (saveResult.success) {
+        showNotification('Post deleted successfully! 🗑️', 'success');
+
+        // Reload calendar
+        loadCalendarEvents();
+
+        // Update the list view if visible
+        if (typeof populateScheduledPosts === 'function') {
+          populateScheduledPosts();
+        }
+      } else {
+        showNotification('Failed to delete post', 'error');
+      }
+
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      showNotification('Error deleting post', 'error');
+    }
+  }
+
+  // Initialize calendar when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContentCalendar);
+  } else {
+    initContentCalendar();
+  }
+
+  // Expose refresh function for external updates
+  window.refreshCalendar = function() {
+    if (calendar) {
+      loadCalendarEvents();
+    }
+  };
+
+  // ===========================================
+  // END CONTENT CALENDAR MODULE
+  // ===========================================
 })();
+
+// ===========================================
+// MULTI-ACCOUNT MANAGEMENT MODULE
+// ===========================================
+(function() {
+  'use strict';
+
+  let selectedAccount = null; // null = "All Accounts"
+  const accountsCache = {}; // { platform: [accounts] }
+
+  /**
+   * Initialize multi-account switcher
+   */
+  function initAccountSwitcher() {
+    const switcherBtn = document.getElementById('accountSwitcherBtn');
+    const switcherMenu = document.getElementById('accountSwitcherMenu');
+    const closeMenuBtn = document.getElementById('closeAccountMenu');
+
+    if (!switcherBtn || !switcherMenu) {
+      return;
+    }
+
+    // Toggle menu on button click
+    switcherBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = switcherMenu.style.display === 'block';
+      if (isOpen) {
+        closeAccountMenu();
+      } else {
+        openAccountMenu();
+      }
+    });
+
+    // Close menu button
+    if (closeMenuBtn) {
+      closeMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountMenu();
+      });
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!switcherBtn.contains(e.target) && !switcherMenu.contains(e.target)) {
+        closeAccountMenu();
+      }
+    });
+
+    // Listen for account changes from main process
+    if (window.api && window.api.onDefaultAccountChanged) {
+      window.api.onDefaultAccountChanged(() => {
+        loadAllAccounts();
+      });
+    }
+
+    if (window.api && window.api.onAccountDeleted) {
+      window.api.onAccountDeleted(() => {
+        loadAllAccounts();
+      });
+    }
+
+    // Listen for OAuth token events to refresh account list
+    if (window.api && window.api.onOAuthToken) {
+      window.api.onOAuthToken(() => {
+        loadAllAccounts();
+      });
+    }
+
+    // Initial load
+    loadAllAccounts();
+  }
+
+  /**
+   * Open account switcher menu
+   */
+  async function openAccountMenu() {
+    const switcherBtn = document.getElementById('accountSwitcherBtn');
+    const switcherMenu = document.getElementById('accountSwitcherMenu');
+
+    if (!switcherBtn || !switcherMenu) {return;}
+
+    // Refresh account list
+    await loadAllAccounts();
+    renderAccountMenu();
+
+    switcherMenu.style.display = 'block';
+    switcherBtn.classList.add('open');
+  }
+
+  /**
+   * Close account switcher menu
+   */
+  function closeAccountMenu() {
+    const switcherBtn = document.getElementById('accountSwitcherBtn');
+    const switcherMenu = document.getElementById('accountSwitcherMenu');
+
+    if (!switcherBtn || !switcherMenu) {return;}
+
+    switcherMenu.style.display = 'none';
+    switcherBtn.classList.remove('open');
+  }
+
+  /**
+   * Load all accounts from all platforms
+   */
+  async function loadAllAccounts() {
+    const platforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
+
+    for (const platform of platforms) {
+      try {
+        const result = await window.api.getAllAccounts(platform);
+        if (result.success && result.accounts) {
+          accountsCache[platform] = result.accounts;
+        } else {
+          accountsCache[platform] = [];
+        }
+      } catch (err) {
+        console.error(`Failed to load ${platform} accounts:`, err);
+        accountsCache[platform] = [];
+      }
+    }
+  }
+
+  /**
+   * Render account menu with all accounts
+   */
+  function renderAccountMenu() {
+    const menuList = document.querySelector('.account-menu-list');
+    if (!menuList) {return;}
+
+    const platforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
+    const platformIcons = {
+      instagram: '📷',
+      tiktok: '🎵',
+      youtube: '▶️',
+      twitter: '🐦'
+    };
+    const platformNames = {
+      instagram: 'Instagram',
+      tiktok: 'TikTok',
+      youtube: 'YouTube',
+      twitter: 'Twitter'
+    };
+
+    // Count total accounts
+    let totalAccounts = 0;
+    platforms.forEach(p => {
+      totalAccounts += (accountsCache[p] || []).length;
+    });
+
+    if (totalAccounts === 0) {
+      menuList.innerHTML = `
+        <div class="account-menu-empty">
+          <p>No accounts connected</p>
+          <small>Connect accounts in Settings</small>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+
+    // Add "All Accounts" option
+    const isAllActive = selectedAccount === null;
+    html += `
+      <div class="account-menu-item account-menu-all ${isAllActive ? 'active' : ''}" data-account-id="all">
+        <span class="account-platform-icon">👥</span>
+        <div class="account-menu-item-info">
+          <div class="account-menu-item-name">All Accounts</div>
+          <div class="account-menu-item-platform">${totalAccounts} connected</div>
+        </div>
+        ${isAllActive ? '<span class="account-menu-item-badge">Active</span>' : ''}
+      </div>
+    `;
+
+    // Add accounts grouped by platform
+    platforms.forEach(platform => {
+      const accounts = accountsCache[platform] || [];
+      if (accounts.length === 0) {return;}
+
+      accounts.forEach(account => {
+        const isActive = selectedAccount &&
+                        selectedAccount.platform === platform &&
+                        selectedAccount.accountId === account.accountId;
+
+        html += `
+          <div class="account-menu-item ${isActive ? 'active' : ''}"
+               data-platform="${platform}"
+               data-account-id="${account.accountId}">
+            <span class="account-platform-icon">${platformIcons[platform]}</span>
+            <div class="account-menu-item-info">
+              <div class="account-menu-item-name">${escapeHtml(account.accountName)}</div>
+              <div class="account-menu-item-platform">${platformNames[platform]}${account.username ? ' • ' + escapeHtml(account.username) : ''}</div>
+            </div>
+            ${account.isDefault ? '<span class="account-menu-item-badge">Default</span>' : ''}
+            ${isActive ? '<span class="account-menu-item-badge">Active</span>' : ''}
+            <button class="account-menu-delete-btn" data-platform="${platform}" data-account-id="${account.accountId}">Delete</button>
+          </div>
+        `;
+      });
+    });
+
+    menuList.innerHTML = html;
+
+    // Add click handlers
+    menuList.querySelectorAll('.account-menu-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        // Don't trigger if clicking delete button
+        if (e.target.classList.contains('account-menu-delete-btn')) {
+          return;
+        }
+
+        const accountId = item.dataset.accountId;
+        const platform = item.dataset.platform;
+
+        if (accountId === 'all') {
+          selectAccount(null);
+        } else {
+          const account = accountsCache[platform]?.find(a => a.accountId === accountId);
+          if (account) {
+            selectAccount({ platform, accountId, accountName: account.accountName });
+          }
+        }
+
+        closeAccountMenu();
+      });
+    });
+
+    // Add delete button handlers
+    menuList.querySelectorAll('.account-menu-delete-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const platform = btn.dataset.platform;
+        const accountId = btn.dataset.accountId;
+        await deleteAccount(platform, accountId);
+      });
+    });
+  }
+
+  /**
+   * Select an account as active
+   */
+  function selectAccount(account) {
+    selectedAccount = account;
+    updateSwitcherButton();
+    filterContentByAccount();
+
+    // Store selection in localStorage
+    if (account) {
+      localStorage.setItem('selectedAccount', JSON.stringify(account));
+    } else {
+      localStorage.removeItem('selectedAccount');
+    }
+  }
+
+  /**
+   * Update switcher button text
+   */
+  function updateSwitcherButton() {
+    const accountNameSpan = document.querySelector('.account-name');
+    if (!accountNameSpan) {return;}
+
+    if (!selectedAccount) {
+      accountNameSpan.textContent = 'All Accounts';
+    } else {
+      const platformIcons = {
+        instagram: '📷',
+        tiktok: '🎵',
+        youtube: '▶️',
+        twitter: '🐦'
+      };
+      accountNameSpan.textContent = `${platformIcons[selectedAccount.platform]} ${selectedAccount.accountName}`;
+    }
+  }
+
+  /**
+   * Filter displayed content by selected account
+   */
+  function filterContentByAccount() {
+    // TODO: Implement filtering logic for:
+    // - Scheduled posts list
+    // - Calendar events
+    // - Library content
+    // - Analytics data
+
+    // Refresh displays
+    if (typeof window.refreshCalendar === 'function') {
+      window.refreshCalendar();
+    }
+
+    // Refresh scheduled posts list if function exists globally
+    if (typeof populateScheduledPosts !== 'undefined') {
+      // eslint-disable-next-line no-undef
+      populateScheduledPosts();
+    }
+  }
+
+  /**
+   * Delete an account
+   */
+  async function deleteAccount(platform, accountId) {
+    const account = accountsCache[platform]?.find(a => a.accountId === accountId);
+    if (!account) {return;}
+
+    const confirmed = confirm(
+      `Are you sure you want to delete the account "${account.accountName}"?\n\n` +
+      `This will remove all tokens and scheduled posts for this account.`
+    );
+
+    if (!confirmed) {return;}
+
+    try {
+      const result = await window.api.deleteAccount(platform, accountId);
+      if (result.success) {
+        // If deleted account was selected, switch to "All Accounts"
+        if (selectedAccount &&
+            selectedAccount.platform === platform &&
+            selectedAccount.accountId === accountId) {
+          selectAccount(null);
+        }
+
+        // Refresh account list
+        await loadAllAccounts();
+        renderAccountMenu();
+
+        showNotification(`Account "${account.accountName}" deleted successfully! 🗑️`, 'success');
+      } else {
+        displayError(new Error('Failed to delete account'));
+      }
+    } catch (err) {
+      displayError(err);
+    }
+  }
+
+  /**
+   * Helper: Escape HTML to prevent XSS
+   */
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Initialize on DOM load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAccountSwitcher);
+  } else {
+    initAccountSwitcher();
+  }
+
+  // Restore selected account from localStorage on load
+  try {
+    const stored = localStorage.getItem('selectedAccount');
+    if (stored) {
+      selectedAccount = JSON.parse(stored);
+      updateSwitcherButton();
+    }
+  } catch (err) {
+    console.error('Failed to restore selected account:', err);
+  }
+
+  // Expose functions for external use
+  window.accountManager = {
+    getSelectedAccount: () => selectedAccount,
+    selectAccount: selectAccount,
+    refreshAccounts: loadAllAccounts,
+  };
+
+  // ===========================================
+  // END MULTI-ACCOUNT MANAGEMENT MODULE
+  // ===========================================
+})();
+
+// ===========================================
+// CONTENT TEMPLATE SYSTEM
+// ===========================================
+/* global showNotification displayError */
+(function () {
+  const PATHS = {
+    TEMPLATES: 'data/templates.json',
+  };
+
+  let templates = [];
+  let editingTemplateId = null;
+
+  // Platform icons
+  const platformIcons = {
+    instagram: '📷',
+    tiktok: '🎵',
+    youtube: '▶️',
+    twitter: '🐦',
+  };
+
+  // Initialize template system
+  async function initTemplateSystem() {
+    await loadTemplates();
+    renderTemplateList();
+    populateTemplateSelector();
+    setupEventListeners();
+  }
+
+  // Load templates from file
+  async function loadTemplates() {
+    try {
+      const result = await window.api.readFile(PATHS.TEMPLATES);
+      if (result.success) {
+        const data = JSON.parse(result.content || '{"templates":[],"variables":{}}');
+        templates = data.templates || [];
+      } else {
+        templates = [];
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+      templates = [];
+    }
+  }
+
+  // Save templates to file
+  async function saveTemplates() {
+    try {
+      const data = {
+        templates: templates,
+        variables: {
+          platform: "Current platform name (instagram, tiktok, youtube, twitter)",
+          date: "Current date (formatted)",
+          time: "Current time (formatted)",
+          username: "Account username",
+          account: "Account display name",
+          hashtags: "Custom hashtags from template",
+        }
+      };
+
+      const result = await window.api.writeFile(PATHS.TEMPLATES, JSON.stringify(data, null, 2));
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to save templates');
+      }
+    } catch (error) {
+      console.error('Failed to save templates:', error);
+      throw error;
+    }
+  }
+
+  // Render template list in Settings
+  function renderTemplateList() {
+    const container = document.getElementById('templateList');
+    if (!container) {return;}
+
+    if (templates.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 24px; color: var(--text-secondary);">
+          <div style="font-size: 3em; margin-bottom: 12px;">📝</div>
+          <div>No templates yet. Create your first template below!</div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = templates.map(template => `
+      <div class="template-card" data-template-id="${escapeHtml(template.id)}" style="
+        padding: 16px;
+        background: var(--glass-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+          <div style="flex: 1;">
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+              ${escapeHtml(template.name)}
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              ${escapeHtml(template.category || 'uncategorized')} · Used ${template.useCount || 0} times
+            </div>
+          </div>
+          <div style="display: flex; gap: 4px; font-size: 1.2em;">
+            ${(template.platforms || []).map(p => platformIcons[p] || '').join('')}
+          </div>
+        </div>
+
+        <div style="
+          padding: 8px;
+          background: var(--bg-secondary);
+          border-radius: 4px;
+          font-size: 0.9rem;
+          color: var(--text-primary);
+          margin-bottom: 8px;
+          max-height: 60px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">
+          ${escapeHtml(template.caption.substring(0, 100))}${template.caption.length > 100 ? '...' : ''}
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="template-edit-btn" data-template-id="${escapeHtml(template.id)}" style="
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--blue-gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+          ">
+            ✏️ Edit
+          </button>
+          <button class="template-delete-btn" data-template-id="${escapeHtml(template.id)}" style="
+            padding: 8px 12px;
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+          ">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Add click handlers
+    container.querySelectorAll('.template-edit-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const templateId = btn.dataset.templateId;
+        editTemplate(templateId);
+      });
+    });
+
+    container.querySelectorAll('.template-delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const templateId = btn.dataset.templateId;
+        deleteTemplate(templateId);
+      });
+    });
+  }
+
+  // Populate template selector dropdown in Generate section
+  function populateTemplateSelector() {
+    const select = document.getElementById('templateSelect');
+    if (!select) {return;}
+
+    select.innerHTML = '<option value="">-- Choose a template --</option>' +
+      templates.map(t =>
+        `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`
+      ).join('');
+  }
+
+  // Show template form
+  function showTemplateForm(template = null) {
+    const form = document.getElementById('templateForm');
+    const title = document.getElementById('templateFormTitle');
+    const addBtn = document.getElementById('addTemplateBtn');
+
+    if (!form || !title || !addBtn) {return;}
+
+    editingTemplateId = template ? template.id : null;
+
+    if (template) {
+      title.textContent = 'Edit Template';
+      document.getElementById('templateName').value = template.name || '';
+      document.getElementById('templateCaption').value = template.caption || '';
+      document.getElementById('templateHashtags').value = template.hashtags || '';
+      document.getElementById('templateCategory').value = template.category || 'other';
+
+      // Set platform checkboxes
+      ['instagram', 'tiktok', 'youtube', 'twitter'].forEach(platform => {
+        const checkbox = document.getElementById(`templatePlatform${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+        if (checkbox) {
+          checkbox.checked = (template.platforms || []).includes(platform);
+        }
+      });
+    } else {
+      title.textContent = 'New Template';
+      document.getElementById('templateName').value = '';
+      document.getElementById('templateCaption').value = '';
+      document.getElementById('templateHashtags').value = '';
+      document.getElementById('templateCategory').value = 'other';
+
+      // Uncheck all platforms
+      ['instagram', 'tiktok', 'youtube', 'twitter'].forEach(platform => {
+        const checkbox = document.getElementById(`templatePlatform${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+        if (checkbox) {
+          checkbox.checked = false;
+        }
+      });
+    }
+
+    form.style.display = 'block';
+    addBtn.style.display = 'none';
+
+    // Scroll to form
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Hide template form
+  function hideTemplateForm() {
+    const form = document.getElementById('templateForm');
+    const addBtn = document.getElementById('addTemplateBtn');
+
+    if (!form || !addBtn) {return;}
+
+    form.style.display = 'none';
+    addBtn.style.display = 'flex';
+    editingTemplateId = null;
+  }
+
+  // Save template
+  async function saveTemplate() {
+    const name = document.getElementById('templateName')?.value?.trim();
+    const caption = document.getElementById('templateCaption')?.value?.trim();
+    const hashtags = document.getElementById('templateHashtags')?.value?.trim();
+    const category = document.getElementById('templateCategory')?.value;
+
+    if (!name) {
+      alert('Please enter a template name');
+      return;
+    }
+
+    if (!caption) {
+      alert('Please enter a caption template');
+      return;
+    }
+
+    // Get selected platforms
+    const platforms = [];
+    ['instagram', 'tiktok', 'youtube', 'twitter'].forEach(platform => {
+      const checkbox = document.getElementById(`templatePlatform${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+      if (checkbox && checkbox.checked) {
+        platforms.push(platform);
+      }
+    });
+
+    try {
+      if (editingTemplateId) {
+        // Update existing template
+        const index = templates.findIndex(t => t.id === editingTemplateId);
+        if (index !== -1) {
+          templates[index] = {
+            ...templates[index],
+            name,
+            caption,
+            hashtags,
+            category,
+            platforms,
+          };
+        }
+      } else {
+        // Create new template
+        const newTemplate = {
+          id: `template_${Date.now()}`,
+          name,
+          caption,
+          hashtags,
+          category,
+          platforms,
+          createdAt: new Date().toISOString(),
+          lastUsed: null,
+          useCount: 0,
+        };
+        templates.unshift(newTemplate);
+      }
+
+      await saveTemplates();
+      renderTemplateList();
+      populateTemplateSelector();
+      hideTemplateForm();
+
+      if (typeof showNotification === 'function') {
+        showNotification(editingTemplateId ? 'Template updated!' : 'Template created!', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      if (typeof displayError === 'function') {
+        displayError(error);
+      } else {
+        alert('Failed to save template: ' + error.message);
+      }
+    }
+  }
+
+  // Edit template
+  function editTemplate(templateId) {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      showTemplateForm(template);
+    }
+  }
+
+  // Delete template
+  async function deleteTemplate(templateId) {
+    const template = templates.find(t => t.id === templateId);
+    if (!template) {return;}
+
+    const confirmed = confirm(`Delete template "${template.name}"?`);
+    if (!confirmed) {return;}
+
+    try {
+      templates = templates.filter(t => t.id !== templateId);
+      await saveTemplates();
+      renderTemplateList();
+      populateTemplateSelector();
+
+      if (typeof showNotification === 'function') {
+        showNotification('Template deleted', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to delete template:', error);
+      if (typeof displayError === 'function') {
+        displayError(error);
+      }
+    }
+  }
+
+  // Preview template in selector
+  function previewTemplate(templateId) {
+    const preview = document.getElementById('templatePreview');
+    if (!preview) {return;}
+
+    if (!templateId) {
+      preview.style.display = 'none';
+      return;
+    }
+
+    const template = templates.find(t => t.id === templateId);
+    if (!template) {
+      preview.style.display = 'none';
+      return;
+    }
+
+    document.getElementById('templatePreviewName').textContent = template.name;
+    document.getElementById('templatePreviewCategory').textContent = template.category || 'uncategorized';
+    document.getElementById('templatePreviewPlatforms').innerHTML =
+      (template.platforms || []).map(p => platformIcons[p] || '').join(' ');
+    document.getElementById('templatePreviewCaption').textContent = template.caption;
+    document.getElementById('templatePreviewHashtags').textContent = template.hashtags || '';
+
+    preview.style.display = 'block';
+  }
+
+  // Apply template to current form
+  async function applyTemplate() {
+    const select = document.getElementById('templateSelect');
+    if (!select || !select.value) {return;}
+
+    const template = templates.find(t => t.id === select.value);
+    if (!template) {return;}
+
+    // Substitute variables
+    const substituted = await substituteTemplateVariables(template.caption, template.hashtags);
+
+    // Apply to form fields (meme fields as example)
+    const topTextEl = document.getElementById('memeTopText');
+    const hashtagsEl = document.getElementById('manualHashtags');
+
+    if (topTextEl) {
+      topTextEl.value = substituted.caption;
+    }
+
+    if (hashtagsEl) {
+      hashtagsEl.value = substituted.hashtags;
+    }
+
+    // Update use count
+    const index = templates.findIndex(t => t.id === template.id);
+    if (index !== -1) {
+      templates[index].useCount = (templates[index].useCount || 0) + 1;
+      templates[index].lastUsed = new Date().toISOString();
+      await saveTemplates();
+    }
+
+    if (typeof showNotification === 'function') {
+      showNotification(`Applied template: ${template.name}`, 'success');
+    }
+
+    // Clear selection
+    select.value = '';
+    previewTemplate(null);
+  }
+
+  // Substitute template variables
+  async function substituteTemplateVariables(caption, hashtags) {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
+
+    // Get current account info
+    let username = 'user';
+    let account = 'Your Account';
+
+    if (window.accountManager && typeof window.accountManager.getSelectedAccount === 'function') {
+      const selected = window.accountManager.getSelectedAccount();
+      if (selected && selected.username) {
+        username = selected.username;
+        account = selected.accountName || selected.username;
+      }
+    }
+
+    // Get current platform (from checked checkboxes)
+    let platform = 'social media';
+    const platforms = [];
+    ['instagram', 'tiktok', 'youtube', 'twitter'].forEach(p => {
+      const checkbox = document.getElementById(p);
+      if (checkbox && checkbox.checked) {
+        platforms.push(p);
+      }
+    });
+    if (platforms.length > 0) {
+      platform = platforms.join(', ');
+    }
+
+    // Perform substitution
+    const processedCaption = caption
+      .replace(/\{platform\}/gi, platform)
+      .replace(/\{date\}/gi, dateStr)
+      .replace(/\{time\}/gi, timeStr)
+      .replace(/\{username\}/gi, username)
+      .replace(/\{account\}/gi, account)
+      .replace(/\{hashtags\}/gi, hashtags || '');
+
+    const processedHashtags = hashtags || '';
+
+    return {
+      caption: processedCaption,
+      hashtags: processedHashtags,
+    };
+  }
+
+  // Setup event listeners
+  function setupEventListeners() {
+    // Add template button
+    const addBtn = document.getElementById('addTemplateBtn');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => showTemplateForm());
+    }
+
+    // Save template button
+    const saveBtn = document.getElementById('saveTemplateBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', saveTemplate);
+    }
+
+    // Cancel button
+    const cancelBtn = document.getElementById('cancelTemplateBtn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', hideTemplateForm);
+    }
+
+    // Template selector change
+    const select = document.getElementById('templateSelect');
+    if (select) {
+      select.addEventListener('change', (e) => {
+        previewTemplate(e.target.value);
+      });
+    }
+
+    // Apply template button
+    const applyBtn = document.getElementById('applyTemplateBtn');
+    if (applyBtn) {
+      applyBtn.addEventListener('click', applyTemplate);
+    }
+  }
+
+  // Helper function for XSS prevention
+  function escapeHtml(str) {
+    if (!str) {return '';}
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTemplateSystem);
+  } else {
+    initTemplateSystem();
+  }
+
+  // Expose API
+  window.templateSystem = {
+    loadTemplates,
+    applyTemplate,
+    getTemplates: () => templates,
+  };
+
+  // ===========================================
+  // END CONTENT TEMPLATE SYSTEM
+  // ===========================================
+})();
+
 
