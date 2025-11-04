@@ -693,27 +693,82 @@ body.dark .highlighted-fieldset {
 }
 
 body.dark .full-width-select {
+  background: #2d3748 !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(74, 144, 226, 0.3) !important;
+}
+
+/* General select styling for dark mode */
+body.dark select {
   background: #2d3748;
   color: #e2e8f0;
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+/* Meme Preview Container */
+.meme-preview-container {
+  position: relative;
+  max-width: 400px;
+  min-height: 300px;
+  margin: 0 auto 12px auto;
+  border-radius: 8px;
+  border: 2px solid rgba(74, 144, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.05), rgba(156, 39, 176, 0.05));
+  overflow: hidden;
 }
 
 /* Meme Preview Image */
 .meme-preview-img {
   display: block;
-  max-width: 400px;
   width: 100%;
-  margin: 0 auto 12px auto;
-  border-radius: 8px;
-  border: 2px solid rgba(74, 144, 226, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 4px;
+  height: auto;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
 }
 
-body.dark .meme-preview-img {
-  background: rgba(30, 41, 59, 0.6);
+/* Placeholder shown when no image */
+.meme-preview-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.meme-preview-img[src]:not([src=""]) ~ .meme-preview-placeholder {
+  display: none;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.placeholder-text {
+  font-size: 1rem;
+  color: rgba(74, 144, 226, 0.6);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.6;
+}
+
+body.dark .meme-preview-container {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(156, 39, 176, 0.1));
   border-color: rgba(74, 144, 226, 0.5);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .placeholder-text {
+  color: rgba(74, 144, 226, 0.7);
 }
 
 /* Template Preview */

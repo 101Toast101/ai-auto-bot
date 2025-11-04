@@ -232,7 +232,13 @@
 
           <fieldset>
             <legend>Preview</legend>
-            <img id="memePreview" alt="Live Meme Preview" class="meme-preview-img" />
+            <div class="meme-preview-container">
+              <img id="memePreview" alt="Live Meme Preview" class="meme-preview-img" />
+              <div class="meme-preview-placeholder">
+                <span class="placeholder-icon">🎨</span>
+                <span class="placeholder-text">Select a template and add text<br>to preview your meme</span>
+              </div>
+            </div>
             <button type="button" id="saveMemeToLibrary" class="save-btn">
               💾 Save to Library
             </button>
@@ -1181,7 +1187,7 @@ Top Text 2|Bottom Text 2"></textarea>
           <!-- Date Range Filter -->
           <div class="analytics-controls">
             <label for="analyticsDateRange">Time Period:</label>
-            <select id="analyticsDateRange">
+            <select id="analyticsDateRange" class="full-width-select">
               <option value="7">Last 7 Days</option>
               <option value="30" selected>Last 30 Days</option>
               <option value="90">Last 90 Days</option>
