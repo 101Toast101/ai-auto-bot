@@ -49,20 +49,22 @@ body {
   position: fixed;
   top: auto;
   bottom: 180px; /* Position above Dark Mode toggle */
-  left: 10px;
-  width: calc(var(--sidebar-width) - 20px);
+  left: 15px;
+  width: calc(var(--sidebar-width) - 30px); /* Narrower, with padding */
   height: auto;
   clip: auto;
   overflow: visible;
-  padding: 12px 20px;
-  background: #4a90e2;
+  padding: 10px 15px; /* Smaller padding */
+  background: rgba(74, 144, 226, 0.9);
   color: white;
   text-decoration: none;
   border-radius: 6px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 9999;
+  font-weight: 500; /* Less bold */
+  font-size: 13px; /* Smaller text */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  z-index: 101; /* Just above sidebar */
   text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 /* SIDEBAR NAVIGATION */
